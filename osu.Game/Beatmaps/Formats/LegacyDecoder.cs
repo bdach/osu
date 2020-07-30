@@ -180,6 +180,14 @@ namespace osu.Game.Beatmaps.Formats
         {
             public int CustomSampleBank;
 
+            public override HitSampleInfo GetSampleInfo(string sampleName = HitSampleInfo.HIT_NORMAL) => new ConvertHitObjectParser.LegacyHitSampleInfo()
+            {
+                Bank = SampleBank,
+                Name = sampleName,
+                Volume = SampleVolume,
+                CustomSampleBank = CustomSampleBank
+            };
+
             public override HitSampleInfo ApplyTo(HitSampleInfo hitSampleInfo)
             {
                 var baseInfo = base.ApplyTo(hitSampleInfo);

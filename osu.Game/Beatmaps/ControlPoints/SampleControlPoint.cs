@@ -54,7 +54,7 @@ namespace osu.Game.Beatmaps.ControlPoints
         /// </summary>
         /// <param name="sampleName">The name of the same.</param>
         /// <returns>A populated <see cref="HitSampleInfo"/>.</returns>
-        public HitSampleInfo GetSampleInfo(string sampleName = HitSampleInfo.HIT_NORMAL) => new HitSampleInfo
+        public virtual HitSampleInfo GetSampleInfo(string sampleName = HitSampleInfo.HIT_NORMAL) => new HitSampleInfo
         {
             Bank = SampleBank,
             Name = sampleName,
