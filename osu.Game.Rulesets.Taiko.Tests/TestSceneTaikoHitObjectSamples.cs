@@ -14,7 +14,9 @@ namespace osu.Game.Rulesets.Taiko.Tests
 
         protected override IResourceStore<byte[]> Resources => new DllResourceStore(Assembly.GetAssembly(typeof(TestSceneTaikoHitObjectSamples)));
 
+        [TestCase("taiko-normal-hitnormal2")]
         [TestCase("taiko-normal-hitnormal")]
+        [TestCase("normal-hitnormal2")]
         [TestCase("normal-hitnormal")]
         [TestCase("hitnormal")]
         public void TestDefaultCustomSampleFromBeatmap(string expectedSample)
