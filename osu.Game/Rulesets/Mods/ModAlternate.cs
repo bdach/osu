@@ -20,7 +20,7 @@ namespace osu.Game.Rulesets.Mods
         public override string Name => "Alternate";
         public override string Acronym => "AL";
         public override ModType Type => ModType.DifficultyIncrease;
-        public override IconUsage? Icon => FontAwesome.Solid.Keyboard;
+        public override IconUsage? Icon => FontAwesome.Solid.Random;
         public override double ScoreMultiplier => 1;
         public override string Description => "Never use the same key twice!";
         public override Type[] IncompatibleMods => new[] { typeof(ModAutoplay) };
