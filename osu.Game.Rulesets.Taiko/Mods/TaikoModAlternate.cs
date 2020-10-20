@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.ComponentModel;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Game.Configuration;
@@ -13,7 +14,7 @@ namespace osu.Game.Rulesets.Taiko.Mods
 {
     public class TaikoModAlternate : ModAlternate<TaikoHitObject, TaikoAction>
     {
-        [SettingSource("Playstyle", "Preferred Alternate Playstyle")]
+        [SettingSource("Playstyle", "Preferred alternate playstyle")]
         public Bindable<Playstyle> Style { get; } = new Bindable<Playstyle>();
 
         [SettingSource("Allow any key after drum roll")]
@@ -93,7 +94,8 @@ namespace osu.Game.Rulesets.Taiko.Mods
 
             switch (Style.Value)
             {
-                case Playstyle.KDDK:
+                case Playstyle.AlternateHands:
+                    // If alternating hands, we need to switch left -> right or right -> left always.
                     if (LastActionPressed == TaikoAction.LeftRim || LastActionPressed == TaikoAction.LeftCentre)
                         blockInput = action == TaikoAction.LeftRim || action == TaikoAction.LeftCentre;
 
@@ -101,7 +103,9 @@ namespace osu.Game.Rulesets.Taiko.Mods
                         blockInput = action == TaikoAction.RightRim || action == TaikoAction.RightCentre;
                     break;
 
-                case Playstyle.KKDD:
+                case Playstyle.AlternateFingers:
+                    // If only alternating fingers, switching hands is not always possible.
+                    // Just make sure the same button is not hit twice in succession.
                     blockInput = action == LastActionPressed;
                     break;
             }
@@ -115,8 +119,8 @@ namespace osu.Game.Rulesets.Taiko.Mods
             {
                 var actionsToCheck = (LastActionPressed, action);
 
-                if (compareUnordered(actionsToCheck, (TaikoAction.LeftRim, TaikoAction.RightRim)) ||
-                    compareUnordered(actionsToCheck, (TaikoAction.LeftCentre, TaikoAction.RightCentre)))
+                if (areTheSameInAnyOrder(actionsToCheck, (TaikoAction.LeftRim, TaikoAction.RightRim)) ||
+                    areTheSameInAnyOrder(actionsToCheck, (TaikoAction.LeftCentre, TaikoAction.RightCentre)))
                 {
                     LastActionPressed = null;
                     strongHitSucceeded = true;
@@ -126,18 +130,30 @@ namespace osu.Game.Rulesets.Taiko.Mods
 
                 return true;
             }
-            else
-                return shouldBlock(action);
 
-            bool compareUnordered((TaikoAction?, TaikoAction) actual, (TaikoAction, TaikoAction) expected)
+            return shouldBlock(action);
+
+            bool areTheSameInAnyOrder((TaikoAction?, TaikoAction) actual, (TaikoAction, TaikoAction) expected)
                 => (actual.Item1 == expected.Item1 && actual.Item2 == expected.Item2) ||
                    (actual.Item1 == expected.Item2 && actual.Item2 == expected.Item1);
         }
 
         public enum Playstyle
         {
-            KDDK,
-            KKDD
+            /// <summary>
+            /// Each hand has a rim and a centre button, so alternating is done by changing hands.
+            /// Also known in community vernacular as "kddk".
+            /// </summary>
+            [Description(@"Alternate hands (""kddk"")")]
+            AlternateHands,
+
+            /// <summary>
+            /// One hand has both rim buttons and the other both centre buttons.
+            /// Alternating is done using fingers only.
+            /// Also known in community vernacular as "kkdd".
+            /// </summary>
+            [Description(@"Alternate fingers (""kkdd"")")]
+            AlternateFingers
         }
     }
 }
