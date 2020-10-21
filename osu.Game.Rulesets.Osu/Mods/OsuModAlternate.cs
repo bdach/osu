@@ -8,14 +8,5 @@ namespace osu.Game.Rulesets.Osu.Mods
 {
     public class OsuModAlternate : ModAlternate<OsuHitObject, OsuAction>
     {
-        protected override bool OnPressed(OsuAction action)
-        {
-            if (LastActionPressed == action)
-                return true;
-
-            LastActionPressed = action;
-
-            return false;
-        }
     }
 }

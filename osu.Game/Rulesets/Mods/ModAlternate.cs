@@ -3,10 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using JetBrains.Annotations;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Bindings;
+using osu.Framework.Logging;
+using osu.Game.Rulesets.Judgements;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
@@ -30,43 +34,99 @@ namespace osu.Game.Rulesets.Mods
         where THitObject : HitObject
         where TAction : struct
     {
-        public readonly BindableBool IsBreakTime = new BindableBool();
-        public readonly BindableInt HighestCombo = new BindableInt();
-        public TAction? LastActionPressed { get; set; }
-        protected List<THitObject> HitObjects;
-        protected InputInterceptor Interceptor;
+        protected readonly Stack<TAction> ActionHistory = new Stack<TAction>();
+        private readonly Bindable<bool> isBreakTime = new BindableBool();
+        private InputInterceptor interceptor;
 
-        public void ApplyToDrawableRuleset(DrawableRuleset<THitObject> drawableRuleset)
+        private List<THitObject> hitObjects;
+        private int lastHitObjectIndex;
+        private bool anyObjectHit;
+
+        protected virtual void OnNewJudgement(JudgementResult result)
         {
-            HitObjects = drawableRuleset.Beatmap.HitObjects;
-            drawableRuleset.KeyBindingInputManager.Add(Interceptor = new InputInterceptor(this));
+            anyObjectHit |= result.IsHit && result.Type.IsScorable();
+
+            if (!result.IsHit)
+                ActionHistory.Clear();
         }
 
-        public void ApplyToScoreProcessor(ScoreProcessor scoreProcessor)
+        protected virtual bool ShouldBlock(TAction action)
         {
-            HighestCombo.BindTo(scoreProcessor.HighestCombo);
+            if (EqualityComparer<TAction?>.Default.Equals(action, LastAction))
+                return true;
+
+            ActionHistory.Push(action);
+            return false;
         }
 
-        public ScoreRank AdjustRank(ScoreRank rank, double accuracy) => rank;
+        protected TAction? LastAction => ActionHistory.Count > 0 ? ActionHistory.Peek() : (TAction?)null;
+
+        [CanBeNull]
+        protected THitObject CurrentHitObject
+        {
+            get
+            {
+                double currentTime = interceptor.Time.Current;
+
+                while (lastHitObjectIndex < hitObjects.Count)
+                {
+                    var lastHitObject = hitObjects[lastHitObjectIndex];
+
+                    double objectMissWindow = lastHitObject.HitWindows.WindowFor(HitResult.Miss);
+                    double nestedObjectMissWindow = lastHitObject.NestedHitObjects.Count > 0
+                        ? lastHitObject.NestedHitObjects.Max(hitObject => hitObject.HitWindows.WindowFor(HitResult.Miss))
+                        : 0;
+
+                    double pessimisticEndTime = lastHitObject.GetEndTime() + Math.Max(objectMissWindow, nestedObjectMissWindow);
+                    if (currentTime <= pessimisticEndTime)
+                        break;
+
+                    lastHitObjectIndex += 1;
+                }
+
+                return lastHitObjectIndex < hitObjects.Count ? hitObjects[lastHitObjectIndex] : null;
+            }
+        }
+
+        #region IApplicableToPlayer
 
         public void ApplyToPlayer(Player player)
         {
-            IsBreakTime.BindTo((BindableBool)player.IsBreakTime);
-            player.IsBreakTime.BindValueChanged(onBreakTimeChanged, true);
+            isBreakTime.BindTo((BindableBool)player.IsBreakTime);
+            isBreakTime.BindValueChanged(onBreakTimeChanged);
         }
 
         private void onBreakTimeChanged(ValueChangedEvent<bool> isBreakTime)
         {
             if (!isBreakTime.NewValue)
-                LastActionPressed = null;
+                return;
+
+            ActionHistory.Clear();
+            anyObjectHit = false; // make sure the alternating doesn't start until the first hit after break.
         }
 
-        public virtual void SaveState(TAction action)
+        #endregion
+
+        #region IApplicableToDrawableRuleset
+
+        public void ApplyToDrawableRuleset(DrawableRuleset<THitObject> drawableRuleset)
         {
-            LastActionPressed = action;
+            drawableRuleset.KeyBindingInputManager.Add(interceptor = new InputInterceptor(this));
+            hitObjects = drawableRuleset.Beatmap.HitObjects;
         }
 
-        protected abstract bool OnPressed(TAction action);
+        #endregion
+
+        #region IApplicableToScoreProcessor
+
+        public void ApplyToScoreProcessor(ScoreProcessor scoreProcessor)
+        {
+            scoreProcessor.NewJudgement += OnNewJudgement;
+        }
+
+        public ScoreRank AdjustRank(ScoreRank rank, double accuracy) => rank;
+
+        #endregion
 
         public class InputInterceptor : Drawable, IKeyBindingHandler<TAction>
         {
@@ -79,15 +139,13 @@ namespace osu.Game.Rulesets.Mods
 
             public bool OnPressed(TAction action)
             {
-                if (mod.IsBreakTime.Value || mod.HighestCombo.Value < 1)
-                {
-                    if (mod.HighestCombo.Value < 1)
-                        mod.SaveState(action);
-
+                if (mod.isBreakTime.Value)
                     return false;
-                }
 
-                return mod.OnPressed(action);
+                // beware: mod.ShouldBlock() should always execute first, to make sure it can see the first object after a break
+                var result = mod.ShouldBlock(action) && mod.anyObjectHit;
+                Logger.Log($"{Time.Current} -> {result}");
+                return result;
             }
 
             public void OnReleased(TAction action)
