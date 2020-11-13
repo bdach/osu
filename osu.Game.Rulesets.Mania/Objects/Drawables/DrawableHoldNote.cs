@@ -53,7 +53,9 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
         /// <summary>
         /// Whether the hold note has been released too early and shouldn't give full score for the release.
         /// </summary>
-        public bool HasBroken { get; private set; }
+        public IBindable<double?> HoldBrokenTime => holdBrokenTime;
+
+        private readonly Bindable<double?> holdBrokenTime = new Bindable<double?>();
 
         /// <summary>
         /// Whether the hold note has been released potentially without having caused a break.
@@ -237,7 +239,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
             }
 
             if (Tail.Judged && !Tail.IsHit)
-                HasBroken = true;
+                holdBrokenTime.Value ??= Time.Current;
         }
 
         public bool OnPressed(ManiaAction action)
@@ -289,7 +291,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
 
             // If the key has been released too early, the user should not receive full score for the release
             if (!Tail.IsHit)
-                HasBroken = true;
+                holdBrokenTime.Value ??= Time.Current;
 
             releaseTime = Time.Current;
         }
