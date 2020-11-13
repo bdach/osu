@@ -198,6 +198,7 @@ namespace osu.Game.Rulesets.Mania.Objects.Drawables
             base.Update();
 
             if (Time.Current < releaseTime) releaseTime = null;
+            if (Time.Current < holdBrokenTime.Value) holdBrokenTime.Value = null;
 
             // Pad the full size container so its contents (i.e. the masking container) reach under the tail.
             // This is required for the tail to not be masked away, since it lies outside the bounds of the hold note.
