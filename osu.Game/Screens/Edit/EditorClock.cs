@@ -9,7 +9,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Transforms;
 using osu.Framework.Timing;
 using osu.Framework.Utils;
-using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
 
 namespace osu.Game.Screens.Edit
@@ -42,8 +41,8 @@ namespace osu.Game.Screens.Edit
         /// </summary>
         public bool IsSeeking { get; private set; }
 
-        public EditorClock(IBeatmap beatmap, BindableBeatDivisor beatDivisor)
-            : this(beatmap.ControlPointInfo, beatDivisor)
+        public EditorClock(EditorBeatmap beatmap)
+            : this(beatmap.ControlPointInfo, beatmap.BeatDivisor)
         {
         }
 

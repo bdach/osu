@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
-using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
@@ -48,8 +47,7 @@ namespace osu.Game.Screens.Edit
 
         public readonly ISkin BeatmapSkin;
 
-        [Resolved]
-        private BindableBeatDivisor beatDivisor { get; set; }
+        public BindableBeatDivisor BeatDivisor { get; } = new BindableBeatDivisor();
 
         private readonly IBeatmapProcessor beatmapProcessor;
 
@@ -61,6 +59,7 @@ namespace osu.Game.Screens.Edit
             BeatmapSkin = beatmapSkin;
 
             beatmapProcessor = playableBeatmap.BeatmapInfo.Ruleset?.CreateInstance().CreateBeatmapProcessor(PlayableBeatmap);
+            BeatDivisor.Value = playableBeatmap.BeatmapInfo.BeatDivisor;
 
             foreach (var obj in HitObjects)
                 trackStartTime(obj);
@@ -303,13 +302,13 @@ namespace osu.Game.Screens.Edit
         public double SnapTime(double time, double? referenceTime)
         {
             var timingPoint = ControlPointInfo.TimingPointAt(referenceTime ?? time);
-            var beatLength = timingPoint.BeatLength / BeatDivisor;
+            var beatLength = timingPoint.BeatLength / BeatDivisor.Value;
 
             return timingPoint.Time + (int)Math.Round((time - timingPoint.Time) / beatLength, MidpointRounding.AwayFromZero) * beatLength;
         }
 
-        public double GetBeatLengthAtTime(double referenceTime) => ControlPointInfo.TimingPointAt(referenceTime).BeatLength / BeatDivisor;
+        public double GetBeatLengthAtTime(double referenceTime) => ControlPointInfo.TimingPointAt(referenceTime).BeatLength / BeatDivisor.Value;
 
-        public int BeatDivisor => beatDivisor?.Value ?? 1;
+        int IBeatSnapProvider.BeatDivisor => BeatDivisor.Value;
     }
 }

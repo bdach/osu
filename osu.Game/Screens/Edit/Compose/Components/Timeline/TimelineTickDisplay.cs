@@ -24,25 +24,25 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
         [Resolved]
         private Bindable<WorkingBeatmap> working { get; set; }
 
-        [Resolved]
-        private BindableBeatDivisor beatDivisor { get; set; }
-
         [Resolved(CanBeNull = true)]
         private IEditorChangeHandler changeHandler { get; set; }
 
         [Resolved]
         private OsuColour colours { get; set; }
 
+        private readonly BindableBeatDivisor beatDivisor = new BindableBeatDivisor();
+
+        private readonly Cached tickCache = new Cached();
+
         public TimelineTickDisplay()
         {
             RelativeSizeAxes = Axes.Both;
         }
 
-        private readonly Cached tickCache = new Cached();
-
         [BackgroundDependencyLoader]
         private void load()
         {
+            beatDivisor.BindTo(beatmap.BeatDivisor);
             beatDivisor.BindValueChanged(_ => invalidateTicks());
 
             if (changeHandler != null)

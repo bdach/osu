@@ -48,11 +48,9 @@ namespace osu.Game.Screens.Edit.Compose.Components
         [Resolved]
         private EditorBeatmap beatmap { get; set; }
 
-        [Resolved]
-        private BindableBeatDivisor beatDivisor { get; set; }
-
         private readonly LayoutValue gridCache = new LayoutValue(Invalidation.RequiredParentSizeToFit);
         private readonly double? endTime;
+        private readonly BindableBeatDivisor beatDivisor = new BindableBeatDivisor();
 
         /// <summary>
         /// Creates a new <see cref="DistanceSnapGrid"/>.
@@ -75,6 +73,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         {
             base.LoadComplete();
 
+            beatDivisor.BindTo(beatmap.BeatDivisor);
             beatDivisor.BindValueChanged(_ => updateSpacing(), true);
         }
 

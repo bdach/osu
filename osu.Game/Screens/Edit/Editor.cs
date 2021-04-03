@@ -77,7 +77,6 @@ namespace osu.Game.Screens.Edit
 
         private EditorScreen currentScreen;
 
-        private readonly BindableBeatDivisor beatDivisor = new BindableBeatDivisor();
         private EditorClock clock;
 
         private IBeatmap playableBeatmap;
@@ -138,11 +137,13 @@ namespace osu.Game.Screens.Edit
                 return;
             }
 
-            beatDivisor.Value = playableBeatmap.BeatmapInfo.BeatDivisor;
-            beatDivisor.BindValueChanged(divisor => playableBeatmap.BeatmapInfo.BeatDivisor = divisor.NewValue);
+            AddInternal(editorBeatmap = new EditorBeatmap(playableBeatmap, loadableBeatmap.Skin));
+            dependencies.CacheAs(editorBeatmap);
+            changeHandler = new EditorChangeHandler(editorBeatmap);
+            dependencies.CacheAs<IEditorChangeHandler>(changeHandler);
 
             // Todo: should probably be done at a DrawableRuleset level to share logic with Player.
-            clock = new EditorClock(playableBeatmap, beatDivisor) { IsCoupled = false };
+            clock = new EditorClock(editorBeatmap) { IsCoupled = false };
 
             UpdateClockSource();
 
@@ -150,14 +151,6 @@ namespace osu.Game.Screens.Edit
             AddInternal(clock);
 
             clock.SeekingOrStopped.BindValueChanged(_ => updateSampleDisabledState());
-
-            // todo: remove caching of this and consume via editorBeatmap?
-            dependencies.Cache(beatDivisor);
-
-            AddInternal(editorBeatmap = new EditorBeatmap(playableBeatmap, loadableBeatmap.Skin));
-            dependencies.CacheAs(editorBeatmap);
-            changeHandler = new EditorChangeHandler(editorBeatmap);
-            dependencies.CacheAs<IEditorChangeHandler>(changeHandler);
 
             updateLastSavedHash();
 
@@ -661,7 +654,7 @@ namespace osu.Game.Screens.Edit
                 // generally users are not looking to perform tiny seeks when the track is playing,
                 // so seeks should always be by one full beat, bypassing the beatDivisor.
                 // this multiplication undoes the division that will be applied in the underlying seek operation.
-                amount *= beatDivisor.Value;
+                amount *= BeatDivisor;
             }
 
             if (direction < 1)
@@ -700,6 +693,6 @@ namespace osu.Game.Screens.Edit
 
         public double GetBeatLengthAtTime(double referenceTime) => editorBeatmap.GetBeatLengthAtTime(referenceTime);
 
-        public int BeatDivisor => beatDivisor.Value;
+        public int BeatDivisor => editorBeatmap.BeatDivisor.Value;
     }
 }

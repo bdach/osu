@@ -35,10 +35,10 @@ namespace osu.Game.Screens.Edit
         private LoadingSpinner spinner;
 
         [BackgroundDependencyLoader(true)]
-        private void load([CanBeNull] BindableBeatDivisor beatDivisor)
+        private void load([CanBeNull] EditorBeatmap editorBeatmap)
         {
-            if (beatDivisor != null)
-                this.beatDivisor.BindTo(beatDivisor);
+            if (editorBeatmap?.BeatDivisor != null)
+                beatDivisor.BindTo(editorBeatmap.BeatDivisor);
 
             Children = new Drawable[]
             {

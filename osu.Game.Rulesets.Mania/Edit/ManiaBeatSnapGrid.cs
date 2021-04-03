@@ -55,8 +55,7 @@ namespace osu.Game.Rulesets.Mania.Edit
         [Resolved]
         private OsuColour colours { get; set; }
 
-        [Resolved]
-        private BindableBeatDivisor beatDivisor { get; set; }
+        private readonly BindableBeatDivisor beatDivisor = new BindableBeatDivisor();
 
         private readonly List<ScrollingHitObjectContainer> grids = new List<ScrollingHitObjectContainer>();
 
@@ -78,6 +77,7 @@ namespace osu.Game.Rulesets.Mania.Edit
                 }
             }
 
+            beatDivisor.BindTo(beatmap.BeatDivisor);
             beatDivisor.BindValueChanged(_ => createLines(), true);
         }
 
