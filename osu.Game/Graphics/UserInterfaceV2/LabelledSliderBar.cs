@@ -3,11 +3,10 @@
 
 using System;
 using osu.Framework.Graphics;
-using osu.Game.Overlays.Settings;
 
 namespace osu.Game.Graphics.UserInterfaceV2
 {
-    public class LabelledSliderBar<TNumber> : LabelledComponent<SettingsSlider<TNumber>, TNumber>
+    public class LabelledSliderBar<TNumber> : LabelledComponent<SliderBar<TNumber>, TNumber>
         where TNumber : struct, IEquatable<TNumber>, IComparable<TNumber>, IConvertible
     {
         public LabelledSliderBar()
@@ -15,7 +14,7 @@ namespace osu.Game.Graphics.UserInterfaceV2
         {
         }
 
-        protected override SettingsSlider<TNumber> CreateComponent() => new SettingsSlider<TNumber>
+        protected override SliderBar<TNumber> CreateComponent() => new SliderBar<TNumber>
         {
             TransferValueOnCommit = true,
             RelativeSizeAxes = Axes.X,
