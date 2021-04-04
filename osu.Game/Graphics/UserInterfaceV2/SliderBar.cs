@@ -3,10 +3,14 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.Events;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterfaceV2
 {
@@ -85,9 +89,28 @@ namespace osu.Game.Graphics.UserInterfaceV2
             nub.MoveToX(value, 250, Easing.OutQuint);
         }
 
+        protected override bool OnDragStart(DragStartEvent e)
+        {
+            nub.Dragging.Value = true;
+            return base.OnDragStart(e);
+        }
+
+        protected override void OnDragEnd(DragEndEvent e)
+        {
+            nub.Dragging.Value = false;
+            base.OnDragEnd(e);
+        }
+
         private class Nub : CircularContainer
         {
             public const int WIDTH = 40;
+
+            public Bindable<bool> Dragging { get; } = new BindableBool();
+
+            private Color4 primaryColour;
+            private Color4 activeColour;
+
+            private Box fill;
 
             [BackgroundDependencyLoader]
             private void load(OsuColour colours)
@@ -95,14 +118,39 @@ namespace osu.Game.Graphics.UserInterfaceV2
                 Size = new Vector2(WIDTH, HEIGHT);
                 Masking = true;
 
+                primaryColour = colours.BlueDark;
+                activeColour = colours.BlueDark.Lighten(0.3f);
+
                 Children = new[]
                 {
-                    new Box
+                    fill = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
-                        Colour = colours.BlueDark
                     }
                 };
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+                Dragging.BindValueChanged(_ => updateState(), true);
+            }
+
+            protected override bool OnHover(HoverEvent e)
+            {
+                updateState();
+                return true;
+            }
+
+            protected override void OnHoverLost(HoverLostEvent e)
+            {
+                updateState();
+            }
+
+            private void updateState()
+            {
+                bool active = IsHovered || Dragging.Value;
+                fill.FadeColour(active ? activeColour : primaryColour, 200, Easing.OutQuint);
             }
         }
     }
