@@ -8,6 +8,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterfaceV2
 {
@@ -15,17 +16,24 @@ namespace osu.Game.Graphics.UserInterfaceV2
         where T : struct, IEquatable<T>, IComparable<T>, IConvertible
     {
         public const int HEIGHT = 20;
+        public const int FADE_DURATION = 200;
 
         private Box leftBox;
         private Box rightBox;
         private Container nubContainer;
         private Nub<T> nub;
 
+        private Color4 primaryColour;
+        private Color4 disabledColour;
+
         [BackgroundDependencyLoader]
         private void load(OsuColour colours)
         {
             Height = HEIGHT;
             RangePadding = Nub<T>.WIDTH / 2.0f;
+
+            primaryColour = colours.BlueDark;
+            disabledColour = colours.Gray3;
 
             Children = new Drawable[]
             {
@@ -43,7 +51,6 @@ namespace osu.Game.Graphics.UserInterfaceV2
                             RelativeSizeAxes = Axes.Y,
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
-                            Colour = colours.BlueDark
                         },
                         rightBox = new Box
                         {
@@ -60,10 +67,18 @@ namespace osu.Game.Graphics.UserInterfaceV2
                     Child = nub = new Nub<T>
                     {
                         Origin = Anchor.TopCentre,
-                        RelativePositionAxes = Axes.X
+                        RelativePositionAxes = Axes.X,
+                        Current = Current
                     }
                 }
             };
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            Current.BindDisabledChanged(_ => updateState(), true);
+            FinishTransforms(true);
         }
 
         protected override void Update()
@@ -96,6 +111,11 @@ namespace osu.Game.Graphics.UserInterfaceV2
         {
             nub.Dragging.Value = false;
             base.OnDragEnd(e);
+        }
+
+        private void updateState()
+        {
+            leftBox.FadeColour(Current.Disabled ? disabledColour : primaryColour, FADE_DURATION, Easing.OutQuint);
         }
     }
 }

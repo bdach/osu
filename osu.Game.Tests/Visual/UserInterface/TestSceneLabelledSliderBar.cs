@@ -1,10 +1,12 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Testing;
 using osu.Game.Graphics.UserInterfaceV2;
 
 namespace osu.Game.Tests.Visual.UserInterface
@@ -14,6 +16,15 @@ namespace osu.Game.Tests.Visual.UserInterface
         [TestCase(false)]
         [TestCase(true)]
         public void TestSliderBar(bool hasDescription) => createSliderBar(hasDescription);
+
+        [Test]
+        public void TestDisabled()
+        {
+            createSliderBar();
+
+            AddStep("disable current", () => this.ChildrenOfType<LabelledSliderBar<double>>().Single().Current.Disabled = true);
+            AddStep("enable current", () => this.ChildrenOfType<LabelledSliderBar<double>>().Single().Current.Disabled = false);
+        }
 
         private void createSliderBar(bool hasDescription = false)
         {
