@@ -9,6 +9,12 @@ namespace osu.Game.Graphics.UserInterfaceV2
     public class LabelledSliderBar<TNumber> : LabelledComponent<SliderBar<TNumber>, TNumber>
         where TNumber : struct, IEquatable<TNumber>, IComparable<TNumber>, IConvertible
     {
+        public bool ShowTicks
+        {
+            get => Component.ShowTicks;
+            set => Component.ShowTicks = value;
+        }
+
         public LabelledSliderBar()
             : base(true)
         {

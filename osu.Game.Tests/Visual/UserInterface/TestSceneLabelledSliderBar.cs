@@ -1,18 +1,18 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Testing;
 using osu.Game.Graphics.UserInterfaceV2;
 
 namespace osu.Game.Tests.Visual.UserInterface
 {
     public class TestSceneLabelledSliderBar : OsuTestScene
     {
+        private LabelledSliderBar<double> component;
+
         [TestCase(false)]
         [TestCase(true)]
         public void TestSliderBar(bool hasDescription) => createSliderBar(hasDescription);
@@ -22,16 +22,29 @@ namespace osu.Game.Tests.Visual.UserInterface
         {
             createSliderBar();
 
-            AddStep("disable current", () => this.ChildrenOfType<LabelledSliderBar<double>>().Single().Current.Disabled = true);
-            AddStep("enable current", () => this.ChildrenOfType<LabelledSliderBar<double>>().Single().Current.Disabled = false);
+            AddStep("disable current", () => component.Current.Disabled = true);
+            AddStep("enable current", () => component.Current.Disabled = false);
+        }
+
+        [Test]
+        public void TestTicks()
+        {
+            createSliderBar();
+
+            AddStep("show ticks", () => component.ShowTicks = true);
+
+            AddStep("change precision", () => ((BindableNumber<double>)component.Current).Precision = 0.1);
+            AddStep("restore precision", () => ((BindableNumber<double>)component.Current).Precision = 1);
+            AddStep("change min", () => ((BindableNumber<double>)component.Current).MinValue = 3);
+            AddStep("change max", () => ((BindableNumber<double>)component.Current).MaxValue = 12);
+
+            AddStep("hide ticks", () => component.ShowTicks = false);
         }
 
         private void createSliderBar(bool hasDescription = false)
         {
             AddStep("create component", () =>
             {
-                LabelledSliderBar<double> component;
-
                 Child = new Container
                 {
                     Anchor = Anchor.Centre,

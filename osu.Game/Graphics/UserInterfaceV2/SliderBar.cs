@@ -18,10 +18,27 @@ namespace osu.Game.Graphics.UserInterfaceV2
         public const int HEIGHT = 20;
         public const int FADE_DURATION = 200;
 
+        private bool showTicks;
+
+        public bool ShowTicks
+        {
+            get => showTicks;
+            set
+            {
+                if (showTicks == value)
+                    return;
+
+                showTicks = value;
+
+                if (IsLoaded)
+                    updateState();
+            }
+        }
+
         private Box leftBox;
         private Box rightBox;
-        private Container nubContainer;
         private Nub<T> nub;
+        private TickContainer<T> ticks;
 
         private Color4 primaryColour;
         private Color4 disabledColour;
@@ -29,46 +46,74 @@ namespace osu.Game.Graphics.UserInterfaceV2
         [BackgroundDependencyLoader]
         private void load(OsuColour colours)
         {
-            Height = HEIGHT;
+            AutoSizeAxes = Axes.Y;
             RangePadding = Nub<T>.WIDTH / 2.0f;
 
             primaryColour = colours.BlueDark;
             disabledColour = colours.Gray3;
 
-            Children = new Drawable[]
+            Child = new FillFlowContainer
             {
-                new CircularContainer
+                RelativeSizeAxes = Axes.X,
+                AutoSizeAxes = Axes.Y,
+                Children = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.X,
-                    Height = 7,
-                    Anchor = Anchor.CentreLeft,
-                    Origin = Anchor.CentreLeft,
-                    Masking = true,
-                    Children = new[]
+                    new Container
                     {
-                        leftBox = new Box
+                        RelativeSizeAxes = Axes.X,
+                        Height = HEIGHT,
+                        Children = new Drawable[]
                         {
-                            RelativeSizeAxes = Axes.Y,
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                        },
-                        rightBox = new Box
-                        {
-                            RelativeSizeAxes = Axes.Y,
-                            Anchor = Anchor.CentreRight,
-                            Origin = Anchor.CentreRight,
-                            Colour = Colour4.FromHex("16191e")
+                            new CircularContainer
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                Height = 7,
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Masking = true,
+                                Children = new[]
+                                {
+                                    leftBox = new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Y,
+                                        Anchor = Anchor.CentreLeft,
+                                        Origin = Anchor.CentreLeft,
+                                    },
+                                    rightBox = new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Y,
+                                        Anchor = Anchor.CentreRight,
+                                        Origin = Anchor.CentreRight,
+                                        Colour = Colour4.FromHex("16191e")
+                                    }
+                                },
+                            },
+                            new Container
+                            {
+                                Padding = new MarginPadding
+                                {
+                                    Horizontal = RangePadding
+                                },
+                                RelativeSizeAxes = Axes.Both,
+                                Child = nub = new Nub<T>
+                                {
+                                    Origin = Anchor.TopCentre,
+                                    RelativePositionAxes = Axes.X,
+                                    Current = Current
+                                }
+                            },
                         }
                     },
-                },
-                nubContainer = new Container
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Child = nub = new Nub<T>
+                    new Container
                     {
-                        Origin = Anchor.TopCentre,
-                        RelativePositionAxes = Axes.X,
-                        Current = Current
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Padding = new MarginPadding { Horizontal = RangePadding },
+                        Child = ticks = new TickContainer<T>
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Current = Current
+                        }
                     }
                 }
             };
@@ -79,12 +124,6 @@ namespace osu.Game.Graphics.UserInterfaceV2
             base.LoadComplete();
             Current.BindDisabledChanged(_ => updateState(), true);
             FinishTransforms(true);
-        }
-
-        protected override void Update()
-        {
-            base.Update();
-            nubContainer.Padding = new MarginPadding { Horizontal = RangePadding };
         }
 
         protected override void UpdateAfterChildren()
@@ -116,6 +155,7 @@ namespace osu.Game.Graphics.UserInterfaceV2
         private void updateState()
         {
             leftBox.FadeColour(Current.Disabled ? disabledColour : primaryColour, FADE_DURATION, Easing.OutQuint);
+            ticks.FadeTo(showTicks ? 1 : 0, FADE_DURATION, Easing.OutQuint);
         }
     }
 }
