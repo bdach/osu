@@ -32,6 +32,12 @@ namespace osu.Game.Tests.Visual.UserInterface
             createSliderBar();
 
             AddStep("show ticks", () => component.ShowTicks = true);
+            AddStep("add labels", () =>
+            {
+                component.Labels.Add((0f, "Large"));
+                component.Labels.Add((5f, "Normal"));
+                component.Labels.Add((10f, "Small"));
+            });
 
             AddStep("change precision", () => ((BindableNumber<double>)component.Current).Precision = 0.1);
             AddStep("restore precision", () => ((BindableNumber<double>)component.Current).Precision = 1);

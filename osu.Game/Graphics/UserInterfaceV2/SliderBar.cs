@@ -3,10 +3,12 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 using osuTK;
 using osuTK.Graphics;
 
@@ -34,6 +36,8 @@ namespace osu.Game.Graphics.UserInterfaceV2
                     updateState();
             }
         }
+
+        public BindableList<(T, LocalisableString)> Labels { get; } = new BindableList<(T, LocalisableString)>();
 
         private Box leftBox;
         private Box rightBox;
@@ -117,6 +121,8 @@ namespace osu.Game.Graphics.UserInterfaceV2
                     }
                 }
             };
+
+            Labels.BindTo(ticks.Labels);
         }
 
         protected override void LoadComplete()

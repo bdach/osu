@@ -8,6 +8,9 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Localisation;
+using osu.Framework.Utils;
+using osu.Game.Graphics.Sprites;
 using osuTK;
 
 namespace osu.Game.Graphics.UserInterfaceV2
@@ -24,16 +27,35 @@ namespace osu.Game.Graphics.UserInterfaceV2
         }
 
         private Container ticks;
+        private Container labels;
+
+        public BindableList<(T, LocalisableString)> Labels { get; } = new BindableList<(T, LocalisableString)>();
 
         [BackgroundDependencyLoader]
         private void load()
         {
             AutoSizeAxes = Axes.Y;
 
-            InternalChild = ticks = new Container
+            InternalChild = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.X,
-                Height = 2
+                AutoSizeAxes = Axes.Y,
+                Direction = FillDirection.Vertical,
+                Spacing = new Vector2(0, 5),
+                Colour = Colour4.FromHex("3f6073"),
+                Children = new Drawable[]
+                {
+                    ticks = new Container
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        Height = 2
+                    },
+                    labels = new Container
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y
+                    }
+                }
             };
         }
 
@@ -44,6 +66,8 @@ namespace osu.Game.Graphics.UserInterfaceV2
             current.MaxValueChanged += _ => generateTicks();
             current.PrecisionChanged += _ => generateTicks();
             generateTicks();
+
+            Labels.BindCollectionChanged((_, __) => generateLabels(), true);
         }
 
         private void generateTicks()
@@ -74,6 +98,8 @@ namespace osu.Game.Graphics.UserInterfaceV2
 
                 i += 1;
             } while (lastTick < 1);
+
+            generateLabels();
         }
 
         private class Tick : Box
@@ -83,8 +109,44 @@ namespace osu.Game.Graphics.UserInterfaceV2
                 RelativeSizeAxes = Axes.Y;
                 Width = 1;
                 EdgeSmoothness = new Vector2(1);
-                Colour = Colour4.FromHex("3f6073");
             }
+        }
+
+        private void generateLabels()
+        {
+            labels.Clear();
+
+            double minValue = Convert.ToDouble(current.MinValue);
+            double maxValue = Convert.ToDouble(current.MaxValue);
+
+            foreach (var (position, label) in Labels)
+            {
+                double pos = Convert.ToDouble(position);
+                float relativePos = (float)Math.Clamp((pos - minValue) / (maxValue - minValue), 0, 1);
+
+                var anchor = anchorForPosition(relativePos);
+
+                labels.Add(new OsuSpriteText
+                {
+                    RelativePositionAxes = Axes.X,
+                    X = relativePos,
+                    Text = label,
+                    Font = OsuFont.Default.With(size: 12),
+                    Shadow = false,
+                    Origin = anchor
+                });
+            }
+        }
+
+        private Anchor anchorForPosition(float position)
+        {
+            if (Precision.AlmostEquals(position, 0))
+                return Anchor.TopLeft;
+
+            if (Precision.AlmostEquals(position, 1))
+                return Anchor.TopRight;
+
+            return Anchor.TopCentre;
         }
     }
 }

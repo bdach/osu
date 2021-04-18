@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Localisation;
 
 namespace osu.Game.Graphics.UserInterfaceV2
 {
@@ -14,6 +16,8 @@ namespace osu.Game.Graphics.UserInterfaceV2
             get => Component.ShowTicks;
             set => Component.ShowTicks = value;
         }
+
+        public BindableList<(TNumber, LocalisableString)> Labels => Component.Labels;
 
         public LabelledSliderBar()
             : base(true)
