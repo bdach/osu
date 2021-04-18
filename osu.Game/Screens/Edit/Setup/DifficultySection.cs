@@ -35,6 +35,13 @@ namespace osu.Game.Screens.Edit.Setup
                         MinValue = 0,
                         MaxValue = 10,
                         Precision = 0.1f,
+                    },
+                    ShowTicks = true,
+                    Labels =
+                    {
+                        (0, "Large"),
+                        (BeatmapDifficulty.DEFAULT_DIFFICULTY, "Normal"),
+                        (10, "Small")
                     }
                 },
                 healthDrainSlider = new LabelledSliderBar<float>
@@ -47,6 +54,12 @@ namespace osu.Game.Screens.Edit.Setup
                         MinValue = 0,
                         MaxValue = 10,
                         Precision = 0.1f,
+                    },
+                    ShowTicks = true,
+                    Labels =
+                    {
+                        (0, "Easy"),
+                        (10, "Insane")
                     }
                 },
                 approachRateSlider = new LabelledSliderBar<float>
@@ -59,6 +72,12 @@ namespace osu.Game.Screens.Edit.Setup
                         MinValue = 0,
                         MaxValue = 10,
                         Precision = 0.1f,
+                    },
+                    ShowTicks = true,
+                    Labels =
+                    {
+                        (0, "Slow"),
+                        (10, "Fast")
                     }
                 },
                 overallDifficultySlider = new LabelledSliderBar<float>
@@ -71,6 +90,12 @@ namespace osu.Game.Screens.Edit.Setup
                         MinValue = 0,
                         MaxValue = 10,
                         Precision = 0.1f,
+                    },
+                    ShowTicks = true,
+                    Labels =
+                    {
+                        (0, "Easy"),
+                        (10, "Insane")
                     }
                 },
             };
