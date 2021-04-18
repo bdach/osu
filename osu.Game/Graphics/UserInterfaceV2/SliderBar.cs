@@ -20,6 +20,8 @@ namespace osu.Game.Graphics.UserInterfaceV2
         public const int HEIGHT = 20;
         public const int FADE_DURATION = 200;
 
+        private const int background_bar_height = 7;
+
         private bool showTicks;
 
         public bool ShowTicks
@@ -64,48 +66,52 @@ namespace osu.Game.Graphics.UserInterfaceV2
                 {
                     new Container
                     {
+                        Padding = new MarginPadding
+                        {
+                            Horizontal = RangePadding
+                        },
                         RelativeSizeAxes = Axes.X,
                         Height = HEIGHT,
                         Children = new Drawable[]
                         {
-                            new CircularContainer
-                            {
-                                RelativeSizeAxes = Axes.X,
-                                Height = 7,
-                                Anchor = Anchor.CentreLeft,
-                                Origin = Anchor.CentreLeft,
-                                Masking = true,
-                                Children = new[]
-                                {
-                                    leftBox = new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Y,
-                                        Anchor = Anchor.CentreLeft,
-                                        Origin = Anchor.CentreLeft,
-                                    },
-                                    rightBox = new Box
-                                    {
-                                        RelativeSizeAxes = Axes.Y,
-                                        Anchor = Anchor.CentreRight,
-                                        Origin = Anchor.CentreRight,
-                                        Colour = Colour4.FromHex("16191e")
-                                    }
-                                },
-                            },
                             new Container
                             {
+                                RelativeSizeAxes = Axes.Both,
                                 Padding = new MarginPadding
                                 {
-                                    Horizontal = RangePadding
+                                    Horizontal = -background_bar_height / 2.0f
                                 },
-                                RelativeSizeAxes = Axes.Both,
-                                Child = nub = new Nub<T>
+                                Child = new CircularContainer
                                 {
-                                    Origin = Anchor.TopCentre,
-                                    RelativePositionAxes = Axes.X,
-                                    Current = Current
-                                }
+                                    RelativeSizeAxes = Axes.X,
+                                    Height = 7,
+                                    Anchor = Anchor.CentreLeft,
+                                    Origin = Anchor.CentreLeft,
+                                    Masking = true,
+                                    Children = new[]
+                                    {
+                                        leftBox = new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Y,
+                                            Anchor = Anchor.CentreLeft,
+                                            Origin = Anchor.CentreLeft,
+                                        },
+                                        rightBox = new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Y,
+                                            Anchor = Anchor.CentreRight,
+                                            Origin = Anchor.CentreRight,
+                                            Colour = Colour4.FromHex("16191e")
+                                        }
+                                    },
+                                },
                             },
+                            nub = new Nub<T>
+                            {
+                                Origin = Anchor.TopCentre,
+                                RelativePositionAxes = Axes.X,
+                                Current = Current
+                            }
                         }
                     },
                     new Container
