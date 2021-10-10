@@ -29,7 +29,7 @@ namespace osu.Game.Tests.Visual.Audio
         private WaveformTestBeatmap beatmap;
 
         [BackgroundDependencyLoader]
-        private void load(AudioManager audio)
+        private void load(AudioManager audio, AudioEffectManager audioEffects)
         {
             beatmap = new WaveformTestBeatmap(audio);
             track = beatmap.LoadTrack();
@@ -38,8 +38,8 @@ namespace osu.Game.Tests.Visual.Audio
             {
                 Children = new Drawable[]
                 {
-                    lowpassFilter = new AudioFilter(audio.TrackMixer),
-                    highpassFilter = new AudioFilter(audio.TrackMixer, BQFType.HighPass),
+                    lowpassFilter = audioEffects.Get(BQFType.LowPass),
+                    highpassFilter = audioEffects.Get(BQFType.HighPass),
                     lowpassText = new OsuSpriteText
                     {
                         Padding = new MarginPadding(20),

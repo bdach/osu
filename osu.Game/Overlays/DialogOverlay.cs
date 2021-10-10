@@ -7,8 +7,8 @@ using osu.Game.Overlays.Dialog;
 using osu.Game.Graphics.Containers;
 using osu.Game.Input.Bindings;
 using System.Linq;
+using ManagedBass.Fx;
 using osu.Framework.Allocation;
-using osu.Framework.Audio;
 using osu.Framework.Input.Events;
 using osu.Game.Audio.Effects;
 
@@ -20,6 +20,9 @@ namespace osu.Game.Overlays
 
         protected override string PopInSampleName => "UI/dialog-pop-in";
         protected override string PopOutSampleName => "UI/dialog-pop-out";
+
+        [Resolved]
+        private AudioEffectManager audioEffects { get; set; }
 
         private AudioFilter lowPassFilter;
 
@@ -37,12 +40,6 @@ namespace osu.Game.Overlays
             Width = 0.4f;
             Anchor = Anchor.BottomCentre;
             Origin = Anchor.BottomCentre;
-        }
-
-        [BackgroundDependencyLoader]
-        private void load(AudioManager audio)
-        {
-            AddInternal(lowPassFilter = new AudioFilter(audio.TrackMixer));
         }
 
         public void Push(PopupDialog dialog)
@@ -82,6 +79,8 @@ namespace osu.Game.Overlays
         {
             base.PopIn();
             this.FadeIn(PopupDialog.ENTER_DURATION, Easing.OutQuint);
+
+            lowPassFilter = audioEffects.Get(BQFType.LowPass);
             lowPassFilter.CutoffTo(300, 100, Easing.OutCubic);
         }
 
@@ -89,7 +88,8 @@ namespace osu.Game.Overlays
         {
             base.PopOut();
 
-            lowPassFilter.CutoffTo(AudioFilter.MAX_LOWPASS_CUTOFF, 100, Easing.InCubic);
+            lowPassFilter?.CutoffTo(AudioFilter.MAX_LOWPASS_CUTOFF, 100, Easing.InCubic).Expire();
+            lowPassFilter = null;
 
             if (CurrentDialog?.State.Value == Visibility.Visible)
             {

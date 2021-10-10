@@ -20,6 +20,7 @@ using osu.Framework.IO.Stores;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Game.Audio;
+using osu.Game.Audio.Effects;
 using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Database;
@@ -105,6 +106,8 @@ namespace osu.Game
         protected MenuCursorContainer MenuCursorContainer { get; private set; }
 
         protected MusicController MusicController { get; private set; }
+
+        protected AudioEffectManager AudioEffects { get; private set; }
 
         protected IAPIProvider API { get; set; }
 
@@ -328,6 +331,9 @@ namespace osu.Game
 
             AddInternal(MusicController = new MusicController());
             dependencies.CacheAs(MusicController);
+
+            AddInternal(AudioEffects = new AudioEffectManager(Audio.TrackMixer));
+            dependencies.CacheAs(AudioEffects);
 
             Ruleset.BindValueChanged(onRulesetChanged);
         }

@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using ManagedBass.Fx;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Bindables;
@@ -121,6 +122,9 @@ namespace osu.Game.Screens.Play
         [Resolved]
         private AudioManager audioManager { get; set; }
 
+        [Resolved]
+        private AudioEffectManager audioEffects { get; set; }
+
         [Resolved(CanBeNull = true)]
         private BatteryInfo batteryInfo { get; set; }
 
@@ -163,7 +167,6 @@ namespace osu.Game.Screens.Play
                     }
                 },
                 idleTracker = new IdleTracker(750),
-                lowPassFilter = new AudioFilter(audio.TrackMixer)
             });
 
             if (Beatmap.Value.BeatmapInfo.EpilepsyWarning)
@@ -181,6 +184,10 @@ namespace osu.Game.Screens.Play
             base.LoadComplete();
 
             inputManager = GetContainingInputManager();
+
+            // has to happen on LoadComplete() to avoid mutating audio effects from invalid thread.
+            // i'm aware it's bad but this is mostly a proof of concept. tried fixing via a schedule in AudioEffectManager but it didn't work.
+            lowPassFilter = audioEffects.Get(BQFType.LowPass);
         }
 
         #region Screen handling
@@ -234,7 +241,7 @@ namespace osu.Game.Screens.Play
             // stop the track before removing adjustment to avoid a volume spike.
             Beatmap.Value.Track.Stop();
             Beatmap.Value.Track.RemoveAdjustment(AdjustableProperty.Volume, volumeAdjustment);
-            lowPassFilter.CutoffTo(AudioFilter.MAX_LOWPASS_CUTOFF);
+            lowPassFilter.CutoffTo(AudioFilter.MAX_LOWPASS_CUTOFF).Expire();
         }
 
         public override bool OnExiting(IScreen next)
@@ -248,7 +255,7 @@ namespace osu.Game.Screens.Play
 
             BackgroundBrightnessReduction = false;
             Beatmap.Value.Track.RemoveAdjustment(AdjustableProperty.Volume, volumeAdjustment);
-            lowPassFilter.CutoffTo(AudioFilter.MAX_LOWPASS_CUTOFF, 100, Easing.InCubic);
+            lowPassFilter.CutoffTo(AudioFilter.MAX_LOWPASS_CUTOFF, 100, Easing.InCubic).Expire();
 
             return base.OnExiting(next);
         }

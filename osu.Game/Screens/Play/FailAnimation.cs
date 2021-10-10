@@ -6,6 +6,7 @@ using osu.Framework.Bindables;
 using osu.Game.Rulesets.UI;
 using System;
 using System.Collections.Generic;
+using ManagedBass.Fx;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Audio.Track;
@@ -40,6 +41,9 @@ namespace osu.Game.Screens.Play
 
         private Sample failSample;
 
+        [Resolved]
+        private AudioEffectManager audioEffects { get; set; }
+
         public FailAnimation(DrawableRuleset drawableRuleset)
         {
             this.drawableRuleset = drawableRuleset;
@@ -50,8 +54,15 @@ namespace osu.Game.Screens.Play
         {
             track = beatmap.Value.Track;
             failSample = audio.Samples.Get(@"Gameplay/failsound");
+        }
 
-            AddInternal(failLowPassFilter = new AudioFilter(audio.TrackMixer));
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            // has to happen on LoadComplete() to avoid mutating audio effects from invalid thread.
+            // i'm aware it's bad but this is mostly a proof of concept. tried fixing via a schedule in AudioEffectManager but it didn't work.
+            failLowPassFilter = audioEffects.Get(BQFType.LowPass);
         }
 
         private bool started;
@@ -134,6 +145,7 @@ namespace osu.Game.Screens.Play
         {
             base.Dispose(isDisposing);
             track?.RemoveAdjustment(AdjustableProperty.Frequency, trackFreq);
+            failLowPassFilter?.Expire();
         }
     }
 }
