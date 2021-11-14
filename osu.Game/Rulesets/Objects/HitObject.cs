@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -133,9 +134,13 @@ namespace osu.Game.Rulesets.Objects
             else if (SampleControlPoint == SampleControlPoint.DEFAULT)
                 SampleControlPoint = new SampleControlPoint();
 
-            nestedHitObjects.Clear();
+            var previousNested = nestedHitObjects.ToArray();
 
+            nestedHitObjects.Clear();
             CreateNestedHitObjects(cancellationToken);
+
+            foreach (var h in nestedHitObjects)
+                h.TransferFromPreviousNestedHitObjects(previousNested);
 
             if (this is IHasComboInformation hasCombo)
             {
@@ -168,6 +173,14 @@ namespace osu.Game.Rulesets.Objects
 
         protected virtual void CreateNestedHitObjects(CancellationToken cancellationToken)
         {
+        }
+
+        protected virtual void TransferFromPreviousNestedHitObjects(IEnumerable<HitObject> previousNested)
+        {
+            var previous = previousNested.FirstOrDefault(h => h.GetType() == GetType() && h.StartTime == StartTime);
+
+            if (previous != null && SampleControlPoint == SampleControlPoint.DEFAULT)
+                SampleControlPoint = previous.SampleControlPoint;
         }
 
         protected void AddNested(HitObject hitObject) => nestedHitObjects.Add(hitObject);
