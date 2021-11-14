@@ -133,9 +133,20 @@ namespace osu.Game.Rulesets.Objects
             else if (SampleControlPoint == SampleControlPoint.DEFAULT)
                 SampleControlPoint = new SampleControlPoint();
 
+            bool objectsCleared = nestedHitObjects.Count > 0;
             nestedHitObjects.Clear();
 
             CreateNestedHitObjects(cancellationToken);
+
+            if (objectsCleared && legacyInfo == null)
+            {
+                foreach (var h in nestedHitObjects)
+                {
+                    var clone = (SampleControlPoint)SampleControlPoint.DeepClone();
+                    clone.Time = h.GetEndTime();
+                    h.SampleControlPoint = clone;
+                }
+            }
 
             if (this is IHasComboInformation hasCombo)
             {
