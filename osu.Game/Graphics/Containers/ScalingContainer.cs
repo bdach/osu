@@ -76,6 +76,9 @@ namespace osu.Game.Graphics.Containers
                 RelativePositionAxes = Axes.Both,
                 CornerRadius = corner_radius,
                 Child = content = new ScalingDrawSizePreservingFillContainer(targetMode != ScalingMode.Gameplay)
+                {
+                    TargetDrawSize = new Vector2(1440, 1080)
+                }
             };
         }
 

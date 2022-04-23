@@ -193,6 +193,12 @@ namespace osu.Game.Configuration
                 if (!positionalHitsoundsEnabled.Value)
                     SetValue(OsuSetting.PositionalHitsoundsLevel, 0);
             }
+
+            if (combined < 20220423)
+            {
+                var uiScale = GetBindable<float>(OsuSetting.UIScale);
+                uiScale.Value *= 1.4f;
+            }
         }
 
         public override TrackedSettings CreateTrackedSettings()
