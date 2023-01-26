@@ -253,6 +253,7 @@ namespace osu.Game.Graphics.Backgrounds
         private class TrianglesDrawNode : DrawNode
         {
             private float fill = 1f;
+            private float texelSize;
 
             protected new Triangles Source => (Triangles)base.Source;
 
@@ -280,6 +281,15 @@ namespace osu.Game.Graphics.Backgrounds
                 size = Source.DrawSize;
                 masking = Source.Masking;
 
+                Quad triangleQuad = new Quad(
+                    Vector2Extensions.Transform(Vector2.Zero, DrawInfo.Matrix),
+                    Vector2Extensions.Transform(new Vector2(triangle_size, 0f), DrawInfo.Matrix),
+                    Vector2Extensions.Transform(new Vector2(0f, triangleSize.Y), DrawInfo.Matrix),
+                    Vector2Extensions.Transform(triangleSize, DrawInfo.Matrix)
+                );
+
+                texelSize = 1.5f / triangleQuad.Height;
+
                 parts.Clear();
                 parts.AddRange(Source.parts);
             }
@@ -296,6 +306,7 @@ namespace osu.Game.Graphics.Backgrounds
 
                 shader.Bind();
                 shader.GetUniform<float>("thickness").UpdateValue(ref fill);
+                shader.GetUniform<float>("texelSize").UpdateValue(ref texelSize);
 
                 foreach (TriangleParticle particle in parts)
                 {
