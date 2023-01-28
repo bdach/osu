@@ -68,16 +68,8 @@ namespace osu.Game.Skinning
 
                 storage ??= realmBackedStorage = new RealmBackedResourceStore<SkinInfo>(SkinInfo, resources.Files, resources.RealmAccess);
 
-                var samples = resources.AudioManager?.GetSampleStore(storage);
-                if (samples != null)
-                    samples.PlaybackConcurrency = OsuGameBase.SAMPLE_CONCURRENCY;
-
-                // osu-stable performs audio lookups in order of wav -> mp3 -> ogg.
-                // The GetSampleStore() call above internally adds wav and mp3, so ogg is added at the end to ensure expected ordering.
-                (storage as ResourceStore<byte[]>)?.AddExtension("ogg");
-
-                Samples = samples;
-                Textures = new TextureStore(resources.Renderer, new MaxDimensionLimitedTextureLoaderStore(resources.CreateTextureLoaderStore(storage)));
+                Samples = createSampleStore(resources, storage);
+                Textures = createTextureStore(resources, storage);
             }
             else
             {
@@ -128,6 +120,31 @@ namespace osu.Game.Skinning
                     Logger.Error(ex, "Failed to load skin configuration.");
                 }
             }
+        }
+
+        private ISampleStore? createSampleStore(IStorageResourceProvider resources, IResourceStore<byte[]> storage)
+        {
+            // wrap the provided storage in order to prioritise audio extensions.
+            var sampleStorage = new ResourceStore<byte[]>(storage);
+
+            // this GetSampleStore() call internally adds wav and mp3 extensions to the storage provided via the argument.
+            // ergo, this MUTATES the storage, which is why we bothered to wrap it in the first place above.
+            var samples = resources.AudioManager?.GetSampleStore(sampleStorage);
+            if (samples != null)
+                samples.PlaybackConcurrency = OsuGameBase.SAMPLE_CONCURRENCY;
+
+            // osu-stable performs audio lookups in order of wav -> mp3 -> ogg.
+            // everything but ogg is already handled above.
+            sampleStorage.AddExtension(@"ogg");
+
+            return samples;
+        }
+
+        private TextureStore createTextureStore(IStorageResourceProvider resources, IResourceStore<byte[]> storage)
+        {
+            // texture loader stores have png and jpg extensions added by default.
+            var textureLoaderStore = new MaxDimensionLimitedTextureLoaderStore(resources.CreateTextureLoaderStore(storage));
+            return new TextureStore(resources.Renderer, textureLoaderStore);
         }
 
         protected virtual void ParseConfigurationStream(Stream stream)
