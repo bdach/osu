@@ -7,6 +7,7 @@ using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio.Track;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Testing;
 using osu.Game.Audio;
 using osu.Game.Beatmaps;
@@ -22,27 +23,24 @@ namespace osu.Game.Tests.Skins
         [Resolved]
         private BeatmapManager beatmaps { get; set; }
 
-        private IWorkingBeatmap beatmap;
-
-        [BackgroundDependencyLoader]
-        private void load()
+        [Test]
+        public void TestRetrieveOggAudio()
         {
-            var imported = beatmaps.Import(new ImportTask(TestResources.OpenResource("Archives/ogg-beatmap.osz"), "ogg-beatmap.osz")).GetResultSafely();
+            IWorkingBeatmap beatmap = null!;
 
-            imported?.PerformRead(s =>
+            AddStep("import beatmap", () => beatmap = importBeatmapFromArchives(@"ogg-beatmap.osz"));
+            AddAssert("sample is non-null", () => beatmap.Skin.GetSample(new SampleInfo(@"sample")) != null);
+            AddAssert("track is non-null", () =>
             {
-                beatmap = beatmaps.GetWorkingBeatmap(s.Beatmaps[0]);
+                using (var track = beatmap.LoadTrack())
+                    return track is not TrackVirtual;
             });
         }
 
-        [Test]
-        public void TestRetrieveOggSample() => AddAssert("sample is non-null", () => beatmap.Skin.GetSample(new SampleInfo("sample")) != null);
-
-        [Test]
-        public void TestRetrieveOggTrack() => AddAssert("track is non-null", () =>
+        private IWorkingBeatmap importBeatmapFromArchives(string filename)
         {
-            using (var track = beatmap.LoadTrack())
-                return track is not TrackVirtual;
-        });
+            var imported = beatmaps.Import(new ImportTask(TestResources.OpenResource($@"Archives/{filename}"), filename)).GetResultSafely();
+            return imported.AsNonNull().PerformRead(s => beatmaps.GetWorkingBeatmap(s.Beatmaps[0]));
+        }
     }
 }
