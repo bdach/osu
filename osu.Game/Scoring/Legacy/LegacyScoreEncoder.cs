@@ -116,7 +116,7 @@ namespace osu.Game.Scoring.Legacy
                 for (int i = 0; i < 8; i++)
                     outStream.WriteByte((byte)(content.Length >> (8 * i)));
 
-                coder.Code(inStream, outStream, -1, -1, null);
+                coder.Code(inStream, outStream, content.Length, -1, null);
                 return outStream.ToArray();
             }
         }
