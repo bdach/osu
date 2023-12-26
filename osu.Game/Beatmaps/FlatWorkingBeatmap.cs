@@ -28,6 +28,13 @@ namespace osu.Game.Beatmaps
                 beatmap.BeatmapInfo.OnlineID = beatmapId.Value;
         }
 
+        public FlatWorkingBeatmap(Stream stream, int? beatmapId = null)
+            : this(readFromStream(stream, leaveOpen: true))
+        {
+            if (beatmapId.HasValue)
+                beatmap.BeatmapInfo.OnlineID = beatmapId.Value;
+        }
+
         public FlatWorkingBeatmap(IBeatmap beatmap)
             : base(beatmap.BeatmapInfo, null)
         {
@@ -37,7 +44,12 @@ namespace osu.Game.Beatmaps
         private static Beatmap readFromFile(string filename)
         {
             using (var stream = File.OpenRead(filename))
-            using (var reader = new LineBufferedReader(stream))
+                return readFromStream(stream);
+        }
+
+        private static Beatmap readFromStream(Stream stream, bool leaveOpen = false)
+        {
+            using (var reader = new LineBufferedReader(stream, leaveOpen))
                 return Decoder.GetDecoder<Beatmap>(reader).Decode(reader);
         }
 
