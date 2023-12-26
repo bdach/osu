@@ -15,7 +15,6 @@ using osu.Game.IO.Serialization;
 using osu.Game.Replays.Legacy;
 using osu.Game.Rulesets.Replays;
 using osu.Game.Rulesets.Replays.Types;
-using SharpCompress.Compressors.LZMA;
 
 namespace osu.Game.Scoring.Legacy
 {
@@ -107,19 +106,17 @@ namespace osu.Game.Scoring.Legacy
         {
             byte[] content = new ASCIIEncoding().GetBytes(data);
 
+            using (var inStream = new MemoryStream(content))
             using (var outStream = new MemoryStream())
             {
-                using (var lzma = new LzmaStream(new LzmaEncoderProperties(false, 1 << 21, 255), false, outStream))
-                {
-                    outStream.Write(lzma.Properties);
+                var coder = new SevenZip.Compression.LZMA.Encoder();
 
-                    long fileSize = content.Length;
-                    for (int i = 0; i < 8; i++)
-                        outStream.WriteByte((byte)(fileSize >> (8 * i)));
+                coder.WriteCoderProperties(outStream);
 
-                    lzma.Write(content);
-                }
+                for (int i = 0; i < 8; i++)
+                    outStream.WriteByte((byte)(content.Length >> (8 * i)));
 
+                coder.Code(inStream, outStream, -1, -1, null);
                 return outStream.ToArray();
             }
         }
