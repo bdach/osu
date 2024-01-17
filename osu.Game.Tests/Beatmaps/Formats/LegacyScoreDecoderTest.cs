@@ -66,7 +66,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
                 Assert.IsTrue(score.ScoreInfo.APIMods.Any(m => m.Acronym == "CL"));
                 Assert.IsTrue(score.ScoreInfo.ModsJson.Contains("CL"));
 
-                Assert.IsTrue(Precision.AlmostEquals(0.8889, score.ScoreInfo.Accuracy, 0.0001));
+                Assert.IsTrue(Precision.AlmostEquals((2 * 300d + 1 * 200) / (3 * 305d), score.ScoreInfo.Accuracy, 0.0001));
                 Assert.AreEqual(ScoreRank.B, score.ScoreInfo.Rank);
 
                 Assert.That(score.Replay.Frames, Is.Not.Empty);
@@ -289,7 +289,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
             Assert.Multiple(() =>
             {
                 Assert.That(decoded.ScoreInfo.Accuracy, Is.EqualTo((double)(198 * 305 + 300) / (200 * 305)));
-                Assert.That(decoded.ScoreInfo.Rank, Is.EqualTo(ScoreRank.S));
+                Assert.That(decoded.ScoreInfo.Rank, Is.EqualTo(ScoreRank.SH));
             });
         }
 
@@ -328,7 +328,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
         }
 
         [Test]
-        public void AccuracyAndRankOfLazerScoreWithoutLegacyReplaySoloScoreInfoUsesBestEffortFallbackToLegacy()
+        public void AccuracyAndRankOfLazerScoreWithoutLegacyReplaySoloScoreInfoUsesBestEffortFallback()
         {
             var memoryStream = new MemoryStream();
 
@@ -365,7 +365,7 @@ namespace osu.Game.Tests.Beatmaps.Formats
             Assert.Multiple(() =>
             {
                 Assert.That(decoded.ScoreInfo.Accuracy, Is.EqualTo((double)(198 * 300 + 50) / (200 * 300)));
-                Assert.That(decoded.ScoreInfo.Rank, Is.EqualTo(ScoreRank.A));
+                Assert.That(decoded.ScoreInfo.Rank, Is.EqualTo(ScoreRank.SH));
             });
         }
 
