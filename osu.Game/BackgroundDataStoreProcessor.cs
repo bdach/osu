@@ -355,7 +355,7 @@ namespace osu.Game
                     realmAccess.Write(r =>
                     {
                         ScoreInfo s = r.Find<ScoreInfo>(id)!;
-                        StandardisedScoreMigrationTools.UpdateFromLegacy(s, beatmapManager);
+                        s.TotalScore = StandardisedScoreMigrationTools.ConvertFromLegacyTotalScore(s, beatmapManager);
                         s.TotalScoreVersion = LegacyScoreEncoder.LATEST_VERSION;
                     });
 
