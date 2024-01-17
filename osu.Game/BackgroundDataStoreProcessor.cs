@@ -356,6 +356,8 @@ namespace osu.Game
                     {
                         ScoreInfo s = r.Find<ScoreInfo>(id)!;
                         s.TotalScore = StandardisedScoreMigrationTools.ConvertFromLegacyTotalScore(s, beatmapManager);
+                        s.Accuracy = StandardisedScoreMigrationTools.ComputeAccuracy(s);
+                        s.Rank = StandardisedScoreMigrationTools.ComputeRank(s);
                         s.TotalScoreVersion = LegacyScoreEncoder.LATEST_VERSION;
                     });
 
