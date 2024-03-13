@@ -6,14 +6,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
+using osu.Framework.Extensions.ObjectExtensions;
+using osu.Framework.Graphics.Sprites;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Extensions;
+using osu.Game.Online;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.Leaderboards;
+using osu.Game.Online.Placeholders;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Scoring;
@@ -85,6 +91,7 @@ namespace osu.Game.Screens.Select.Leaderboards
         private IDisposable? scoreSubscription;
 
         private GetScoresRequest? scoreRetrievalRequest;
+        private BeatmapSetUpdater beatmapSetUpdater = null!;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -95,6 +102,8 @@ namespace osu.Game.Screens.Select.Leaderboards
                 if (filterMods)
                     RefetchScores();
             };
+
+            AddInternal(beatmapSetUpdater = new BeatmapSetUpdater());
         }
 
         protected override bool IsOnlineScope => Scope != BeatmapLeaderboardScope.Local;
@@ -135,6 +144,12 @@ namespace osu.Game.Screens.Select.Leaderboards
             if (fetchBeatmapInfo.OnlineID <= 0 || fetchBeatmapInfo.Status <= BeatmapOnlineStatus.Pending)
             {
                 SetErrorState(LeaderboardState.BeatmapUnavailable);
+                return null;
+            }
+
+            if (!fetchBeatmapInfo.BeatmapSet.AsNonNull().AllBeatmapsUpToDate)
+            {
+                SetErrorState(LeaderboardState.BeatmapOutdated);
                 return null;
             }
 
@@ -223,6 +238,26 @@ namespace osu.Game.Screens.Select.Leaderboards
 
                 SetScores(scores);
             }
+        }
+
+        protected override Placeholder? GetPlaceholderFor(LeaderboardState state)
+        {
+            switch (state)
+            {
+                case LeaderboardState.BeatmapOutdated:
+                    Debug.Assert(beatmapInfo?.BeatmapSet != null);
+                    return new ClickablePlaceholder("Please update the beatmap to view online leaderboards!", FontAwesome.Solid.Sync)
+                    {
+                        Action = () => beatmapSetUpdater.UpdateBeatmapSet(beatmapInfo.BeatmapSet!).ContinueWith(t =>
+                        {
+                            var request = t.GetResultSafely();
+                            if (request != null)
+                                request.Success += _ => RefetchScores();
+                        }, TaskContinuationOptions.OnlyOnRanToCompletion)
+                    };
+            }
+
+            return base.GetPlaceholderFor(state);
         }
 
         protected override void Dispose(bool isDisposing)

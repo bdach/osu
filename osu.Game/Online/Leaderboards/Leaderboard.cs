@@ -317,7 +317,7 @@ namespace osu.Game.Online.Leaderboards
 
             placeholder?.FadeOut(150, Easing.OutQuint).Expire();
 
-            placeholder = getPlaceholderFor(state);
+            placeholder = GetPlaceholderFor(state);
 
             if (placeholder == null)
                 return;
@@ -328,7 +328,7 @@ namespace osu.Game.Online.Leaderboards
             placeholder.FadeInFromZero(fade_duration, Easing.OutQuint);
         }
 
-        private Placeholder? getPlaceholderFor(LeaderboardState state)
+        protected virtual Placeholder? GetPlaceholderFor(LeaderboardState state)
         {
             switch (state)
             {
@@ -363,7 +363,7 @@ namespace osu.Game.Online.Leaderboards
                     return null;
 
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(nameof(state), state, "Unsupported leaderboard state");
             }
         }
 

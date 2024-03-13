@@ -10,12 +10,13 @@ namespace osu.Game.Screens.Select.Carousel
 {
     public partial class UpdateLocalConfirmationDialog : DangerousActionDialog
     {
-        public UpdateLocalConfirmationDialog(Action onConfirm)
+        public UpdateLocalConfirmationDialog(Action onConfirm, Action? onCancel = null)
         {
             HeaderText = PopupDialogStrings.UpdateLocallyModifiedText;
             BodyText = PopupDialogStrings.UpdateLocallyModifiedDescription;
             Icon = FontAwesome.Solid.ExclamationTriangle;
             DangerousAction = onConfirm;
+            CancelAction = onCancel;
         }
     }
 }
