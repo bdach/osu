@@ -41,7 +41,7 @@ namespace osu.Game.Screens.Select.Leaderboards
                 if (beatmapInfo == null && value == null)
                     return;
 
-                if (beatmapInfo?.Equals(value) == true)
+                if (beatmapInfo?.Equals(value) == true && beatmapInfo.MatchesOnlineVersion == value!.MatchesOnlineVersion)
                     return;
 
                 beatmapInfo = value;

@@ -959,6 +959,18 @@ namespace osu.Game.Screens.Select
 
             Beatmap.BindValueChanged(updateCarouselSelection);
 
+            beatmaps.OnInvalidated += invalidated =>
+            {
+                if (ReferenceEquals(Beatmap.Value, invalidated))
+                {
+                    Schedule(() =>
+                    {
+                        Beatmap.Value = beatmaps.GetWorkingBeatmap(invalidated.BeatmapInfo, true);
+                        updateComponentFromBeatmap(Beatmap.Value);
+                    });
+                }
+            };
+
             boundLocalBindables = true;
         }
 
