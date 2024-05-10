@@ -59,6 +59,15 @@ namespace osu.Game.Online.Metadata
 
         #endregion
 
+        #region Beatmap of the Day
+
+        public abstract IBindable<BeatmapOfTheDayInfo> BeatmapOfTheDayInfo { get; }
+
+        /// <inheritdoc/>
+        public abstract Task BeatmapOfTheDayUpdated(BeatmapOfTheDayInfo info);
+
+        #endregion
+
         #region Disconnection handling
 
         public event Action? Disconnecting;
