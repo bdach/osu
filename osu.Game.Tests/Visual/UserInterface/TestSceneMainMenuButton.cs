@@ -17,7 +17,7 @@ namespace osu.Game.Tests.Visual.UserInterface
         [Test]
         public void TestStandardButton()
         {
-            AddStep("add button", () => Child = new MainMenuButton(
+            AddStep("add button", () => Child = new MainMenuIconButton(
                 ButtonSystemStrings.Solo, @"button-default-select", OsuIcon.Player, new Color4(102, 68, 204, 255), () => { }, 0, Key.P)
             {
                 Anchor = Anchor.Centre,

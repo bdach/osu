@@ -7,7 +7,6 @@ using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
-using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -18,10 +17,8 @@ using osuTK.Input;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Game.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
-using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
-using osu.Game.Beatmaps.ControlPoints;
 
 namespace osu.Game.Screens.Menu
 {
@@ -38,10 +35,11 @@ namespace osu.Game.Screens.Menu
 
         public readonly Key[] TriggerKeys;
 
-        private readonly Container iconText;
+        protected override Container<Drawable> Content => content;
+        private readonly Container content;
+
         private readonly Container box;
         private readonly Box boxHoverLayer;
-        private readonly SpriteIcon icon;
         private readonly string sampleName;
 
         /// <summary>
@@ -70,7 +68,7 @@ namespace osu.Game.Screens.Menu
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => box.ReceivePositionalInputAt(screenSpacePos);
 
-        public MainMenuButton(LocalisableString text, string sampleName, IconUsage symbol, Color4 colour, Action? clickAction = null, float extraWidth = 0, params Key[] triggerKeys)
+        public MainMenuButton(LocalisableString text, string sampleName, Color4 colour, Action? clickAction = null, float extraWidth = 0, params Key[] triggerKeys)
         {
             this.sampleName = sampleName;
             this.clickAction = clickAction;
@@ -81,7 +79,7 @@ namespace osu.Game.Screens.Menu
 
             Vector2 boxSize = new Vector2(ButtonSystem.BUTTON_WIDTH + Math.Abs(extraWidth), ButtonArea.BUTTON_AREA_HEIGHT);
 
-            Children = new Drawable[]
+            AddRangeInternal(new Drawable[]
             {
                 box = new Container
                 {
@@ -119,60 +117,30 @@ namespace osu.Game.Screens.Menu
                         },
                     }
                 },
-                iconText = new Container
+                content = new Container
                 {
-                    AutoSizeAxes = Axes.Both,
-                    Position = new Vector2(extraWidth / 2, 0),
+                    RelativeSizeAxes = Axes.Both,
+                    Margin = new MarginPadding { Left = extraWidth / 2 },
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Children = new Drawable[]
                     {
-                        icon = new SpriteIcon
-                        {
-                            Shadow = true,
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            Size = new Vector2(32),
-                            Position = new Vector2(0, 0),
-                            Margin = new MarginPadding { Top = -4 },
-                            Icon = symbol
-                        },
                         new OsuSpriteText
                         {
                             Shadow = true,
                             AllowMultiline = false,
-                            Anchor = Anchor.Centre,
-                            Origin = Anchor.Centre,
-                            Position = new Vector2(0, 35),
-                            Margin = new MarginPadding { Left = -3 },
+                            Anchor = Anchor.BottomCentre,
+                            Origin = Anchor.BottomCentre,
+                            Margin = new MarginPadding
+                            {
+                                Left = -3,
+                                Bottom = 7,
+                            },
                             Text = text
                         }
                     }
                 }
-            };
-        }
-
-        private bool rightward;
-
-        protected override void OnNewBeat(int beatIndex, TimingControlPoint timingPoint, EffectControlPoint effectPoint, ChannelAmplitudes amplitudes)
-        {
-            base.OnNewBeat(beatIndex, timingPoint, effectPoint, amplitudes);
-
-            if (!IsHovered) return;
-
-            double duration = timingPoint.BeatLength / 2;
-
-            icon.RotateTo(rightward ? BOUNCE_ROTATION : -BOUNCE_ROTATION, duration * 2, Easing.InOutSine);
-
-            icon.Animate(
-                i => i.MoveToY(-10, duration, Easing.Out),
-                i => i.ScaleTo(HOVER_SCALE, duration, Easing.Out)
-            ).Then(
-                i => i.MoveToY(0, duration, Easing.In),
-                i => i.ScaleTo(new Vector2(HOVER_SCALE, HOVER_SCALE * BOUNCE_COMPRESSION), duration, Easing.In)
-            );
-
-            rightward = !rightward;
+            });
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -180,24 +148,13 @@ namespace osu.Game.Screens.Menu
             if (State != ButtonState.Expanded) return true;
 
             sampleHover?.Play();
-
             box.ScaleTo(new Vector2(1.5f, 1), 500, Easing.OutElastic);
 
-            double duration = TimeUntilNextBeat;
-
-            icon.ClearTransforms();
-            icon.RotateTo(rightward ? -BOUNCE_ROTATION : BOUNCE_ROTATION, duration, Easing.InOutSine);
-            icon.ScaleTo(new Vector2(HOVER_SCALE, HOVER_SCALE * BOUNCE_COMPRESSION), duration, Easing.Out);
             return true;
         }
 
         protected override void OnHoverLost(HoverLostEvent e)
         {
-            icon.ClearTransforms();
-            icon.RotateTo(0, 500, Easing.Out);
-            icon.MoveTo(Vector2.Zero, 500, Easing.Out);
-            icon.ScaleTo(Vector2.One, 200, Easing.Out);
-
             if (State == ButtonState.Expanded)
                 box.ScaleTo(new Vector2(1, 1), 500, Easing.OutElastic);
         }
@@ -260,7 +217,7 @@ namespace osu.Game.Screens.Menu
 
         protected override void Update()
         {
-            iconText.Alpha = Math.Clamp((box.Scale.X - 0.5f) / 0.3f, 0, 1);
+            content.Alpha = Math.Clamp((box.Scale.X - 0.5f) / 0.3f, 0, 1);
             base.Update();
         }
 
