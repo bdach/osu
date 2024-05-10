@@ -38,7 +38,7 @@ namespace osu.Game.Screens.Menu
         protected override Container<Drawable> Content => content;
         private readonly Container content;
 
-        private readonly Container box;
+        private readonly Vector2 initialSize;
         private readonly Box boxHoverLayer;
         private readonly string sampleName;
 
@@ -57,6 +57,10 @@ namespace osu.Game.Screens.Menu
         public ButtonSystemState VisibleStateMin = ButtonSystemState.TopLevel;
         public ButtonSystemState VisibleStateMax = ButtonSystemState.TopLevel;
 
+        protected OsuSpriteText Title { get; private set; }
+
+        protected Container Background { get; }
+
         private readonly Action? clickAction;
         private Sample? sampleClick;
         private Sample? sampleHover;
@@ -66,7 +70,7 @@ namespace osu.Game.Screens.Menu
                                           // Allow keyboard interaction based on state rather than waiting for delayed animations.
                                           || state == ButtonState.Expanded;
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => box.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Background.ReceivePositionalInputAt(screenSpacePos);
 
         public MainMenuButton(LocalisableString text, string sampleName, Color4 colour, Action? clickAction = null, float extraWidth = 0, params Key[] triggerKeys)
         {
@@ -77,11 +81,11 @@ namespace osu.Game.Screens.Menu
             AutoSizeAxes = Axes.Both;
             Alpha = 0;
 
-            Vector2 boxSize = new Vector2(ButtonSystem.BUTTON_WIDTH + Math.Abs(extraWidth), ButtonArea.BUTTON_AREA_HEIGHT);
+            initialSize = new Vector2(ButtonSystem.BUTTON_WIDTH + Math.Abs(extraWidth), ButtonArea.BUTTON_AREA_HEIGHT);
 
             AddRangeInternal(new Drawable[]
             {
-                box = new Container
+                Background = new Container
                 {
                     // box needs to be always present to ensure the button is always sized correctly for flow
                     AlwaysPresent = true,
@@ -96,9 +100,8 @@ namespace osu.Game.Screens.Menu
                     },
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    Scale = new Vector2(0, 1),
-                    Size = boxSize,
-                    Shear = new Vector2(ButtonSystem.WEDGE_WIDTH / boxSize.Y, 0),
+                    Size = initialSize,
+                    Shear = new Vector2(ButtonSystem.WEDGE_WIDTH / initialSize.Y, 0),
                     Children = new[]
                     {
                         new Box
@@ -113,6 +116,7 @@ namespace osu.Game.Screens.Menu
                             RelativeSizeAxes = Axes.Both,
                             Blending = BlendingParameters.Additive,
                             Colour = Color4.White,
+                            Depth = float.MinValue,
                             Alpha = 0,
                         },
                     }
@@ -125,7 +129,7 @@ namespace osu.Game.Screens.Menu
                     Origin = Anchor.Centre,
                     Children = new Drawable[]
                     {
-                        new OsuSpriteText
+                        Title = new OsuSpriteText
                         {
                             Shadow = true,
                             AllowMultiline = false,
@@ -148,7 +152,7 @@ namespace osu.Game.Screens.Menu
             if (State != ButtonState.Expanded) return true;
 
             sampleHover?.Play();
-            box.ScaleTo(new Vector2(1.5f, 1), 500, Easing.OutElastic);
+            Background.ResizeTo(Vector2.Multiply(initialSize, new Vector2(1.5f, 1)), 500, Easing.OutElastic);
 
             return true;
         }
@@ -156,7 +160,7 @@ namespace osu.Game.Screens.Menu
         protected override void OnHoverLost(HoverLostEvent e)
         {
             if (State == ButtonState.Expanded)
-                box.ScaleTo(new Vector2(1, 1), 500, Easing.OutElastic);
+                Background.ResizeTo(initialSize, 500, Easing.OutElastic);
         }
 
         [BackgroundDependencyLoader]
@@ -211,13 +215,13 @@ namespace osu.Game.Screens.Menu
         }
 
         public override bool HandleNonPositionalInput => state == ButtonState.Expanded;
-        public override bool HandlePositionalInput => state != ButtonState.Exploded && box.Scale.X >= 0.8f;
+        public override bool HandlePositionalInput => state != ButtonState.Exploded && Background.Width / initialSize.X >= 0.8f;
 
         public void StopSamplePlayback() => sampleChannel?.Stop();
 
         protected override void Update()
         {
-            content.Alpha = Math.Clamp((box.Scale.X - 0.5f) / 0.3f, 0, 1);
+            content.Alpha = Math.Clamp((Background.Width / initialSize.X - 0.5f) / 0.3f, 0, 1);
             base.Update();
         }
 
@@ -242,12 +246,12 @@ namespace osu.Game.Screens.Menu
                         switch (ContractStyle)
                         {
                             default:
-                                box.ScaleTo(new Vector2(0, 1), 500, Easing.OutExpo);
+                                Background.ResizeTo(Vector2.Multiply(initialSize, new Vector2(0, 1)), 500, Easing.OutExpo);
                                 this.FadeOut(500);
                                 break;
 
                             case 1:
-                                box.ScaleTo(new Vector2(0, 1), 400, Easing.InSine);
+                                Background.ScaleTo(Vector2.Multiply(initialSize, new Vector2(0, 1)), 400, Easing.InSine);
                                 this.FadeOut(800);
                                 break;
                         }
@@ -256,13 +260,13 @@ namespace osu.Game.Screens.Menu
 
                     case ButtonState.Expanded:
                         const int expand_duration = 500;
-                        box.ScaleTo(new Vector2(1, 1), expand_duration, Easing.OutExpo);
+                        Background.ResizeTo(initialSize, expand_duration, Easing.OutExpo);
                         this.FadeIn(expand_duration / 6f);
                         break;
 
                     case ButtonState.Exploded:
                         const int explode_duration = 200;
-                        box.ScaleTo(new Vector2(2, 1), explode_duration, Easing.OutExpo);
+                        Background.ResizeTo(Vector2.Multiply(initialSize, new Vector2(2, 1)), explode_duration, Easing.OutExpo);
                         this.FadeOut(explode_duration / 4f * 3);
                         break;
                 }

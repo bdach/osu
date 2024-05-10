@@ -25,5 +25,18 @@ namespace osu.Game.Tests.Visual.UserInterface
                 ButtonSystemState = ButtonSystemState.TopLevel,
             });
         }
+
+        [Test]
+        public void TestBeatmapOfTheDayButton()
+        {
+            AddStep("add button", () => Child = new BeatmapOfTheDayButton(
+                @"button-default-select", new Color4(102, 68, 204, 255), () => { }, 0, Key.D)
+            {
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                ButtonSystemState = ButtonSystemState.TopLevel,
+                Beatmap = CreateAPIBeatmap(),
+            });
+        }
     }
 }
