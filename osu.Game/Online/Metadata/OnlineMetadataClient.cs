@@ -26,8 +26,8 @@ namespace osu.Game.Online.Metadata
         public override IBindableDictionary<int, UserPresence> UserStates => userStates;
         private readonly BindableDictionary<int, UserPresence> userStates = new BindableDictionary<int, UserPresence>();
 
-        public override IBindable<BeatmapOfTheDayInfo> BeatmapOfTheDayInfo => beatmapOfTheDayInfo;
-        private readonly Bindable<BeatmapOfTheDayInfo> beatmapOfTheDayInfo = new Bindable<BeatmapOfTheDayInfo>();
+        public override IBindable<BeatmapOfTheDayInfo?> BeatmapOfTheDayInfo => beatmapOfTheDayInfo;
+        private readonly Bindable<BeatmapOfTheDayInfo?> beatmapOfTheDayInfo = new Bindable<BeatmapOfTheDayInfo?>();
 
         private readonly string endpoint;
 
@@ -61,7 +61,7 @@ namespace osu.Game.Online.Metadata
                     // https://github.com/dotnet/aspnetcore/issues/15198
                     connection.On<BeatmapUpdates>(nameof(IMetadataClient.BeatmapSetsUpdated), ((IMetadataClient)this).BeatmapSetsUpdated);
                     connection.On<int, UserPresence?>(nameof(IMetadataClient.UserPresenceUpdated), ((IMetadataClient)this).UserPresenceUpdated);
-                    connection.On<BeatmapOfTheDayInfo>(nameof(IMetadataClient.BeatmapOfTheDayUpdated), ((IMetadataClient)this).BeatmapOfTheDayUpdated);
+                    connection.On<BeatmapOfTheDayInfo?>(nameof(IMetadataClient.BeatmapOfTheDayUpdated), ((IMetadataClient)this).BeatmapOfTheDayUpdated);
                     connection.On(nameof(IStatefulUserHubClient.DisconnectRequested), ((IMetadataClient)this).DisconnectRequested);
                 };
 
@@ -233,7 +233,7 @@ namespace osu.Game.Online.Metadata
             }
         }
 
-        public override Task BeatmapOfTheDayUpdated(BeatmapOfTheDayInfo info)
+        public override Task BeatmapOfTheDayUpdated(BeatmapOfTheDayInfo? info)
         {
             Schedule(() => beatmapOfTheDayInfo.Value = info);
             return Task.CompletedTask;
