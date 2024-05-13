@@ -39,9 +39,14 @@ namespace osu.Game.Screens.Menu
         private readonly Container content;
 
         public Vector2 BaseSize { get; init; } = new Vector2(ButtonSystem.BUTTON_WIDTH, ButtonArea.BUTTON_AREA_HEIGHT);
-        public float ExtraWidth { get; init; }
 
-        private Vector2 initialSize => BaseSize + new Vector2(Math.Abs(ExtraWidth), 0);
+        public new MarginPadding Padding
+        {
+            get => Content.Padding;
+            set => Content.Padding = value;
+        }
+
+        private Vector2 initialSize => BaseSize + Padding.Total;
 
         private readonly Box boxHoverLayer;
         private readonly string sampleName;
@@ -102,8 +107,6 @@ namespace osu.Game.Screens.Menu
                     },
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    Size = initialSize,
-                    Shear = new Vector2(ButtonSystem.WEDGE_WIDTH / initialSize.Y, 0),
                     Children = new[]
                     {
                         new Box
@@ -126,7 +129,6 @@ namespace osu.Game.Screens.Menu
                 content = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Margin = new MarginPadding { Left = ExtraWidth / 2 },
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Children = new Drawable[]
@@ -147,6 +149,14 @@ namespace osu.Game.Screens.Menu
                     }
                 }
             });
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            Background.Size = initialSize;
+            Background.Shear = new Vector2(ButtonSystem.WEDGE_WIDTH / initialSize.Y, 0);
         }
 
         protected override bool OnHover(HoverEvent e)
