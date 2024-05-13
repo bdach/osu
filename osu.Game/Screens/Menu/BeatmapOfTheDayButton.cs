@@ -8,17 +8,21 @@ using osu.Framework.Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
-using osu.Game.Beatmaps;
+using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Game.Beatmaps.Drawables;
+using osu.Game.Beatmaps.Drawables.Cards;
 using osu.Game.Database;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Metadata;
+using osu.Game.Overlays;
 using osuTK;
 using osuTK.Graphics;
 using osuTK.Input;
 
 namespace osu.Game.Screens.Menu
 {
-    public partial class BeatmapOfTheDayButton : MainMenuButton
+    public partial class BeatmapOfTheDayButton : MainMenuButton, IHasCustomTooltip<APIBeatmapSet?>
     {
         private readonly UpdateableOnlineBeatmapSetCover cover;
         private IBindable<BeatmapOfTheDayInfo?> info = null!;
@@ -74,11 +78,7 @@ namespace osu.Game.Screens.Menu
             else
             {
                 beatmapLookupCache.GetBeatmapAsync(info.NewValue.Value.BeatmapID)
-                                  .ContinueWith(t =>
-                                  {
-                                      if (t.GetResultSafely()?.BeatmapSet is IBeatmapSetOnlineInfo onlineInfo)
-                                          Schedule(() => cover.OnlineInfo = onlineInfo);
-                                  });
+                                  .ContinueWith(t => Schedule(() => cover.OnlineInfo = TooltipContent = t.GetResultSafely()?.BeatmapSet));
             }
         }
 
@@ -92,6 +92,38 @@ namespace osu.Game.Screens.Menu
             }
 
             base.UpdateState();
+        }
+
+        public ITooltip<APIBeatmapSet?> GetCustomTooltip() => new BeatmapOfTheDayTooltip();
+
+        public APIBeatmapSet? TooltipContent { get; private set; }
+
+        internal partial class BeatmapOfTheDayTooltip : CompositeDrawable, ITooltip<APIBeatmapSet?>
+        {
+            [Cached]
+            private OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Purple);
+
+            private APIBeatmapSet? lastContent;
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                AutoSizeAxes = Axes.Both;
+            }
+
+            public void Move(Vector2 pos) => Position = pos;
+
+            public void SetContent(APIBeatmapSet? content)
+            {
+                if (content == lastContent)
+                    return;
+
+                lastContent = content;
+
+                ClearInternal();
+                if (content != null)
+                    AddInternal(new BeatmapCardNano(content));
+            }
         }
     }
 }
