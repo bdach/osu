@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Beatmaps.Drawables.Cards;
 using osu.Game.Database;
+using osu.Game.Localisation;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Metadata;
 using osu.Game.Overlays;
@@ -31,7 +32,7 @@ namespace osu.Game.Screens.Menu
         private BeatmapLookupCache beatmapLookupCache { get; set; } = null!;
 
         public BeatmapOfTheDayButton(string sampleName, Color4 colour, Action? clickAction = null, params Key[] triggerKeys)
-            : base("beatmap of the day", sampleName, colour, clickAction, triggerKeys)
+            : base(ButtonSystemStrings.BeatmapOfTheDay, sampleName, colour, clickAction, triggerKeys)
         {
             Title.Margin = new MarginPadding { Left = -12, Bottom = 7 };
             BaseSize = new Vector2(ButtonSystem.BUTTON_WIDTH * 1.3f, ButtonArea.BUTTON_AREA_HEIGHT);
