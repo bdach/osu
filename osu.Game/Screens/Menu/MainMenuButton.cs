@@ -263,7 +263,7 @@ namespace osu.Game.Screens.Menu
                                 break;
 
                             case 1:
-                                Background.ScaleTo(Vector2.Multiply(initialSize, new Vector2(0, 1)), 400, Easing.InSine);
+                                Background.ResizeTo(Vector2.Multiply(initialSize, new Vector2(0, 1)), 400, Easing.InSine);
                                 this.FadeOut(800);
                                 break;
                         }
