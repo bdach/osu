@@ -18,8 +18,8 @@ namespace osu.Game.Screens.Menu
     {
         private readonly SpriteIcon icon;
 
-        public MainMenuIconButton(LocalisableString text, string sampleName, IconUsage symbol, Color4 colour, Action? clickAction = null, float extraWidth = 0, params Key[] triggerKeys)
-            : base(text, sampleName, colour, clickAction, extraWidth, triggerKeys)
+        public MainMenuIconButton(LocalisableString text, string sampleName, IconUsage symbol, Color4 colour, Action? clickAction = null, params Key[] triggerKeys)
+            : base(text, sampleName, colour, clickAction, triggerKeys)
         {
             Add(icon = new SpriteIcon
             {

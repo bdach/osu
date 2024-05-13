@@ -38,7 +38,11 @@ namespace osu.Game.Screens.Menu
         protected override Container<Drawable> Content => content;
         private readonly Container content;
 
-        private readonly Vector2 initialSize;
+        public Vector2 BaseSize { get; init; } = new Vector2(ButtonSystem.BUTTON_WIDTH, ButtonArea.BUTTON_AREA_HEIGHT);
+        public float ExtraWidth { get; init; }
+
+        private Vector2 initialSize => BaseSize + new Vector2(Math.Abs(ExtraWidth), 0);
+
         private readonly Box boxHoverLayer;
         private readonly string sampleName;
 
@@ -72,7 +76,7 @@ namespace osu.Game.Screens.Menu
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Background.ReceivePositionalInputAt(screenSpacePos);
 
-        public MainMenuButton(LocalisableString text, string sampleName, Color4 colour, Action? clickAction = null, float extraWidth = 0, params Key[] triggerKeys)
+        public MainMenuButton(LocalisableString text, string sampleName, Color4 colour, Action? clickAction = null, params Key[] triggerKeys)
         {
             this.sampleName = sampleName;
             this.clickAction = clickAction;
@@ -80,8 +84,6 @@ namespace osu.Game.Screens.Menu
 
             AutoSizeAxes = Axes.Both;
             Alpha = 0;
-
-            initialSize = new Vector2(ButtonSystem.BUTTON_WIDTH + Math.Abs(extraWidth), ButtonArea.BUTTON_AREA_HEIGHT);
 
             AddRangeInternal(new Drawable[]
             {
@@ -124,7 +126,7 @@ namespace osu.Game.Screens.Menu
                 content = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Margin = new MarginPadding { Left = extraWidth / 2 },
+                    Margin = new MarginPadding { Left = ExtraWidth / 2 },
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Children = new Drawable[]
