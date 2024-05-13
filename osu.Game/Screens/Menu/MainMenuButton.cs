@@ -70,7 +70,7 @@ namespace osu.Game.Screens.Menu
 
         protected Container Background { get; }
 
-        private readonly Action? clickAction;
+        private readonly Action<MainMenuButton>? clickAction;
         private Sample? sampleClick;
         private Sample? sampleHover;
         private SampleChannel? sampleChannel;
@@ -81,7 +81,7 @@ namespace osu.Game.Screens.Menu
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Background.ReceivePositionalInputAt(screenSpacePos);
 
-        public MainMenuButton(LocalisableString text, string sampleName, Color4 colour, Action? clickAction = null, params Key[] triggerKeys)
+        public MainMenuButton(LocalisableString text, string sampleName, Color4 colour, Action<MainMenuButton>? clickAction = null, params Key[] triggerKeys)
         {
             this.sampleName = sampleName;
             this.clickAction = clickAction;
@@ -219,7 +219,7 @@ namespace osu.Game.Screens.Menu
             sampleChannel = sampleClick?.GetChannel();
             sampleChannel?.Play();
 
-            clickAction?.Invoke();
+            clickAction?.Invoke(this);
 
             boxHoverLayer.ClearTransforms();
             boxHoverLayer.Alpha = 0.9f;

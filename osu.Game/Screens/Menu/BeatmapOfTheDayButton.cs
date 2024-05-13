@@ -2,9 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
-using osu.Framework.Extensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
@@ -12,10 +12,11 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Beatmaps.Drawables.Cards;
-using osu.Game.Database;
 using osu.Game.Localisation;
+using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Metadata;
+using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osuTK;
 using osuTK.Graphics;
@@ -25,13 +26,15 @@ namespace osu.Game.Screens.Menu
 {
     public partial class BeatmapOfTheDayButton : MainMenuButton, IHasCustomTooltip<APIBeatmapSet?>
     {
+        public Room? Room { get; private set; }
+
         private readonly UpdateableOnlineBeatmapSetCover cover;
         private IBindable<BeatmapOfTheDayInfo?> info = null!;
 
         [Resolved]
-        private BeatmapLookupCache beatmapLookupCache { get; set; } = null!;
+        private IAPIProvider api { get; set; } = null!;
 
-        public BeatmapOfTheDayButton(string sampleName, Color4 colour, Action? clickAction = null, params Key[] triggerKeys)
+        public BeatmapOfTheDayButton(string sampleName, Color4 colour, Action<MainMenuButton>? clickAction = null, params Key[] triggerKeys)
             : base(ButtonSystemStrings.BeatmapOfTheDay, sampleName, colour, clickAction, triggerKeys)
         {
             Title.Margin = new MarginPadding { Left = -12, Bottom = 7 };
@@ -74,12 +77,19 @@ namespace osu.Game.Screens.Menu
 
             if (info.NewValue == null)
             {
-                cover.OnlineInfo = null;
+                Room = null;
+                cover.OnlineInfo = TooltipContent = null;
             }
             else
             {
-                beatmapLookupCache.GetBeatmapAsync(info.NewValue.Value.BeatmapID)
-                                  .ContinueWith(t => Schedule(() => cover.OnlineInfo = TooltipContent = t.GetResultSafely()?.BeatmapSet));
+                var roomRequest = new GetRoomRequest(info.NewValue.Value.RoomID);
+
+                roomRequest.Success += room =>
+                {
+                    Room = room;
+                    cover.OnlineInfo = TooltipContent = room.Playlist.FirstOrDefault()?.Beatmap.BeatmapSet as APIBeatmapSet;
+                };
+                api.Queue(roomRequest);
             }
         }
 

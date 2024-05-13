@@ -147,6 +147,12 @@ namespace osu.Game.Screens.Menu
                             OnSolo = loadSoloSongSelect,
                             OnMultiplayer = () => this.Push(new Multiplayer()),
                             OnPlaylists = () => this.Push(new Playlists()),
+                            OnBeatmapOfTheDay = room =>
+                            {
+                                Playlists playlistsScreen;
+                                this.Push(playlistsScreen = new Playlists());
+                                playlistsScreen.Join(room);
+                            },
                             OnExit = () =>
                             {
                                 exitConfirmedViaHoldOrClick = true;

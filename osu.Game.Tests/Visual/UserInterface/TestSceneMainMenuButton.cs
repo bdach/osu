@@ -31,7 +31,7 @@ namespace osu.Game.Tests.Visual.UserInterface
         public void TestStandardButton()
         {
             AddStep("add button", () => Child = new MainMenuIconButton(
-                ButtonSystemStrings.Solo, @"button-default-select", OsuIcon.Player, new Color4(102, 68, 204, 255), () => { }, 0, Key.P)
+                ButtonSystemStrings.Solo, @"button-default-select", OsuIcon.Player, new Color4(102, 68, 204, 255), _ => { }, 0, Key.P)
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -53,7 +53,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                 CachedDependencies = [(typeof(BeatmapLookupCache), lookupCache)],
                 RelativeSizeAxes = Axes.Both,
                 Child = new BeatmapOfTheDayButton(
-                    @"button-default-select", new Color4(102, 68, 204, 255), () => { }, 0, Key.D)
+                    @"button-default-select", new Color4(102, 68, 204, 255), _ => { }, 0, Key.D)
                 {
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
