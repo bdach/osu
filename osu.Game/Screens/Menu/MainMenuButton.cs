@@ -287,32 +287,44 @@ namespace osu.Game.Screens.Menu
             }
         }
 
+        private ButtonSystemState buttonSystemState;
+
         public ButtonSystemState ButtonSystemState
         {
+            get => buttonSystemState;
             set
             {
-                ContractStyle = 0;
+                if (buttonSystemState == value)
+                    return;
 
-                switch (value)
-                {
-                    case ButtonSystemState.Initial:
+                buttonSystemState = value;
+                UpdateState();
+            }
+        }
+
+        protected virtual void UpdateState()
+        {
+            ContractStyle = 0;
+
+            switch (ButtonSystemState)
+            {
+                case ButtonSystemState.Initial:
+                    State = ButtonState.Contracted;
+                    break;
+
+                case ButtonSystemState.EnteringMode:
+                    ContractStyle = 1;
+                    State = ButtonState.Contracted;
+                    break;
+
+                default:
+                    if (ButtonSystemState <= VisibleStateMax && ButtonSystemState >= VisibleStateMin)
+                        State = ButtonState.Expanded;
+                    else if (ButtonSystemState < VisibleStateMin)
                         State = ButtonState.Contracted;
-                        break;
-
-                    case ButtonSystemState.EnteringMode:
-                        ContractStyle = 1;
-                        State = ButtonState.Contracted;
-                        break;
-
-                    default:
-                        if (value <= VisibleStateMax && value >= VisibleStateMin)
-                            State = ButtonState.Expanded;
-                        else if (value < VisibleStateMin)
-                            State = ButtonState.Contracted;
-                        else
-                            State = ButtonState.Exploded;
-                        break;
-                }
+                    else
+                        State = ButtonState.Exploded;
+                    break;
             }
         }
     }
