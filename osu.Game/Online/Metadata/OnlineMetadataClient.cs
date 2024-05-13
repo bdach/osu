@@ -105,6 +105,7 @@ namespace osu.Game.Online.Metadata
                 {
                     isWatchingUserPresence.Value = false;
                     userStates.Clear();
+                    beatmapOfTheDayInfo.Value = null;
                 });
                 return;
             }
