@@ -26,7 +26,7 @@ namespace osu.Game.Screens.Ranking.Statistics
     {
         public const float SIDE_PADDING = 30;
 
-        public readonly Bindable<ScoreInfo?> Score = new Bindable<ScoreInfo?>();
+        public readonly Bindable<IScoreInfo?> Score = new Bindable<IScoreInfo?>();
 
         protected override bool StartHidden => true;
 
@@ -70,7 +70,7 @@ namespace osu.Game.Screens.Ranking.Statistics
             popOutSample = audio.Samples.Get(@"Results/statistics-panel-pop-out");
         }
 
-        private void populateStatistics(ValueChangedEvent<ScoreInfo?> score)
+        private void populateStatistics(ValueChangedEvent<IScoreInfo?> score)
         {
             loadCancellation?.Cancel();
             loadCancellation = null;
@@ -89,6 +89,8 @@ namespace osu.Game.Screens.Ranking.Statistics
 
             var localCancellationSource = loadCancellation = new CancellationTokenSource();
 
+            // TODO: PROBLEM. This kinda only works for local scores.
+            // Will need to investigate what everything else does here.
             var workingBeatmap = beatmapManager.GetWorkingBeatmap(newScore.BeatmapInfo);
 
             // Todo: The placement of this is temporary. Eventually we'll both generate the playable beatmap _and_ run through it in a background task to generate the hit events.
@@ -184,6 +186,7 @@ namespace osu.Game.Screens.Ranking.Statistics
 
                 LoadComponentAsync(container, d =>
                 {
+                    // TODO: PROBLEM. Need equality for this.
                     if (Score.Value?.Equals(newScore) != true)
                         return;
 

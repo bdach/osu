@@ -18,7 +18,7 @@ namespace osu.Game.Screens.Ranking
 {
     public partial class ReplayDownloadButton : CompositeDrawable, IKeyBindingHandler<GlobalAction>
     {
-        public readonly Bindable<ScoreInfo> Score = new Bindable<ScoreInfo>();
+        public readonly Bindable<IScoreInfo> Score = new Bindable<IScoreInfo>();
 
         protected readonly Bindable<DownloadState> State = new Bindable<DownloadState>();
 
@@ -37,6 +37,7 @@ namespace osu.Game.Screens.Ranking
                 if (State.Value == DownloadState.LocallyAvailable)
                     return ReplayAvailability.Local;
 
+                // TODO: PROBLEM. HasOnlineReplay does not exist on the interface.
                 if (Score.Value?.HasOnlineReplay == true)
                     return ReplayAvailability.Online;
 
@@ -44,7 +45,7 @@ namespace osu.Game.Screens.Ranking
             }
         }
 
-        public ReplayDownloadButton(ScoreInfo score)
+        public ReplayDownloadButton(IScoreInfo score)
         {
             Score.Value = score;
             Size = new Vector2(50, 30);

@@ -63,7 +63,7 @@ namespace osu.Game.Screens.Ranking
         /// </summary>
         public Action? PostExpandAction;
 
-        public readonly Bindable<ScoreInfo?> SelectedScore = new Bindable<ScoreInfo?>();
+        public readonly Bindable<IScoreInfo?> SelectedScore = new Bindable<IScoreInfo?>();
 
         private readonly CancellationTokenSource loadCancellationSource = new CancellationTokenSource();
         private readonly Flow flow;
@@ -106,7 +106,7 @@ namespace osu.Game.Screens.Ranking
         /// </summary>
         /// <param name="score">The <see cref="ScoreInfo"/> to add.</param>
         /// <param name="isNewLocalScore">Whether this is a score that has just been achieved locally. Controls whether flair is added to the display or not.</param>
-        public ScorePanel AddScore(ScoreInfo score, bool isNewLocalScore = false)
+        public ScorePanel AddScore(IScoreInfo score, bool isNewLocalScore = false)
         {
             var panel = new ScorePanel(score, isNewLocalScore)
             {
@@ -171,7 +171,7 @@ namespace osu.Game.Screens.Ranking
         /// Brings a <see cref="ScoreInfo"/> to the centre of the screen and expands it.
         /// </summary>
         /// <param name="score">The <see cref="ScoreInfo"/> to present.</param>
-        private void selectedScoreChanged(ValueChangedEvent<ScoreInfo?> score)
+        private void selectedScoreChanged(ValueChangedEvent<IScoreInfo?> score)
         {
             // avoid contracting panels unnecessarily when TriggerChange is fired manually.
             if (score.OldValue != null && !score.OldValue.Equals(score.NewValue))
@@ -258,7 +258,7 @@ namespace osu.Game.Screens.Ranking
         /// </summary>
         /// <param name="score">The <see cref="ScoreInfo"/> to find the corresponding <see cref="ScorePanel"/> for.</param>
         /// <returns>The <see cref="ScorePanel"/>.</returns>
-        public ScorePanel GetPanelForScore(ScoreInfo score) => flow.Single(t => t.Panel.Score.Equals(score)).Panel;
+        public ScorePanel GetPanelForScore(IScoreInfo score) => flow.Single(t => t.Panel.Score.Equals(score)).Panel;
 
         /// <summary>
         /// Detaches a <see cref="ScorePanel"/> from its <see cref="ScorePanelTrackingContainer"/>, allowing the panel to be moved elsewhere in the hierarchy.
@@ -321,11 +321,11 @@ namespace osu.Game.Screens.Ranking
         {
             public override IEnumerable<Drawable> FlowingChildren => applySorting(AliveInternalChildren);
 
-            public int GetPanelIndex(ScoreInfo score) => applySorting(Children).TakeWhile(s => !s.Panel.Score.Equals(score)).Count();
+            public int GetPanelIndex(IScoreInfo score) => applySorting(Children).TakeWhile(s => !s.Panel.Score.Equals(score)).Count();
 
-            public ScoreInfo? GetPreviousScore(ScoreInfo score) => applySorting(Children).TakeWhile(s => !s.Panel.Score.Equals(score)).LastOrDefault()?.Panel.Score;
+            public IScoreInfo? GetPreviousScore(IScoreInfo score) => applySorting(Children).TakeWhile(s => !s.Panel.Score.Equals(score)).LastOrDefault()?.Panel.Score;
 
-            public ScoreInfo? GetNextScore(ScoreInfo score) => applySorting(Children).SkipWhile(s => !s.Panel.Score.Equals(score)).ElementAtOrDefault(1)?.Panel.Score;
+            public IScoreInfo? GetNextScore(IScoreInfo score) => applySorting(Children).SkipWhile(s => !s.Panel.Score.Equals(score)).ElementAtOrDefault(1)?.Panel.Score;
 
             private IEnumerable<ScorePanelTrackingContainer> applySorting(IEnumerable<Drawable> drawables) => drawables.OfType<ScorePanelTrackingContainer>()
                                                                                                                        .OrderByDescending(GetLayoutPosition)

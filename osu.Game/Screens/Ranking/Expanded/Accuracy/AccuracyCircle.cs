@@ -15,6 +15,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Utils;
 using osu.Game.Audio;
 using osu.Game.Graphics;
+using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
@@ -89,7 +90,7 @@ namespace osu.Game.Screens.Ranking.Expanded.Accuracy
         /// </summary>
         public static readonly Easing ACCURACY_TRANSFORM_EASING = Easing.OutPow10;
 
-        private readonly ScoreInfo score;
+        private readonly IScoreInfo score;
 
         private CircularProgress accuracyCircle = null!;
         private GradedCircles gradedCircles = null!;
@@ -119,7 +120,10 @@ namespace osu.Game.Screens.Ranking.Expanded.Accuracy
         private readonly bool isFailedSDueToMisses;
         private RankText failedSRankText = null!;
 
-        public AccuracyCircle(ScoreInfo score, bool withFlair = false)
+        [Resolved]
+        private RulesetStore rulesets { get; set; }
+
+        public AccuracyCircle(IScoreInfo score, bool withFlair = false)
         {
             this.score = score;
             this.withFlair = withFlair;
@@ -440,7 +444,7 @@ namespace osu.Game.Screens.Ranking.Expanded.Accuracy
 
         private ScoreRank getRank(ScoreRank rank)
         {
-            foreach (var mod in score.Mods.OfType<IApplicableToScoreProcessor>())
+            foreach (var mod in score.InstantiateMods(rulesets).OfType<IApplicableToScoreProcessor>())
                 rank = mod.AdjustRank(rank, score.Accuracy);
 
             return rank;

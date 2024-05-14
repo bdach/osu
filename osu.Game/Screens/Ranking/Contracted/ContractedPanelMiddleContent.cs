@@ -15,7 +15,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Resources.Localisation.Web;
-using osu.Game.Rulesets.Scoring;
+using osu.Game.Rulesets;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Users;
@@ -31,7 +31,7 @@ namespace osu.Game.Screens.Ranking.Contracted
     /// </summary>
     public partial class ContractedPanelMiddleContent : CompositeDrawable
     {
-        private readonly ScoreInfo score;
+        private readonly IScoreInfo score;
 
         [Resolved]
         private ScoreManager scoreManager { get; set; } = null!;
@@ -40,14 +40,14 @@ namespace osu.Game.Screens.Ranking.Contracted
         /// Creates a new <see cref="ContractedPanelMiddleContent"/>.
         /// </summary>
         /// <param name="score">The <see cref="ScoreInfo"/> to display.</param>
-        public ContractedPanelMiddleContent(ScoreInfo score)
+        public ContractedPanelMiddleContent(IScoreInfo score)
         {
             this.score = score;
             RelativeSizeAxes = Axes.Both;
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(RulesetStore rulesets)
         {
             InternalChild = new GridContainer
             {
@@ -79,6 +79,7 @@ namespace osu.Game.Screens.Ranking.Contracted
                                 new UserCoverBackground
                                 {
                                     RelativeSizeAxes = Axes.Both,
+                                    // TODO: PROBLEM. same old w/ online user
                                     User = score.User,
                                     Colour = ColourInfo.GradientVertical(Color4.White.Opacity(0.5f), Color4Extensions.FromHex("#444").Opacity(0))
                                 },
@@ -90,6 +91,7 @@ namespace osu.Game.Screens.Ranking.Contracted
                                     Spacing = new Vector2(0, 10),
                                     Children = new Drawable[]
                                     {
+                                        // TODO: PROBLEM. same old w/ online user
                                         new UpdateableAvatar(score.User)
                                         {
                                             Anchor = Anchor.TopCentre,
@@ -110,7 +112,7 @@ namespace osu.Game.Screens.Ranking.Contracted
                                         {
                                             Anchor = Anchor.TopCentre,
                                             Origin = Anchor.TopCentre,
-                                            Text = score.RealmUser.Username,
+                                            Text = score.User.Username,
                                             Font = OsuFont.GetFont(size: 16, weight: FontWeight.SemiBold)
                                         },
                                         new FillFlowContainer
@@ -119,6 +121,7 @@ namespace osu.Game.Screens.Ranking.Contracted
                                             AutoSizeAxes = Axes.Y,
                                             Direction = FillDirection.Vertical,
                                             Spacing = new Vector2(0, 5),
+                                            // TODO: PROBLEM. need ruleset instantiation
                                             ChildrenEnumerable = score.GetStatisticsForDisplay().Where(s => !s.Result.IsBonus()).Select(createStatistic)
                                         },
                                         new FillFlowContainer
@@ -140,7 +143,7 @@ namespace osu.Game.Screens.Ranking.Contracted
                                             Origin = Anchor.TopCentre,
                                             AutoSizeAxes = Axes.Y,
                                             RelativeSizeAxes = Axes.X,
-                                            Current = { Value = score.Mods },
+                                            Current = { Value = score.InstantiateMods(rulesets).ToList() },
                                             IconScale = 0.5f,
                                         }
                                     }

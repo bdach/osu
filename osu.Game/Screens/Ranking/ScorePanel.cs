@@ -92,7 +92,7 @@ namespace osu.Game.Screens.Ranking
         /// </summary>
         public Action? PostExpandAction;
 
-        public readonly ScoreInfo Score;
+        public readonly IScoreInfo Score;
 
         [Resolved]
         private OsuGameBase game { get; set; } = null!;
@@ -115,11 +115,12 @@ namespace osu.Game.Screens.Ranking
 
         private DrawableSample? samplePanelFocus;
 
-        public ScorePanel(ScoreInfo score, bool isNewLocalScore = false)
+        public ScorePanel(IScoreInfo score, bool isNewLocalScore = false)
         {
             Score = score;
             displayWithFlair = isNewLocalScore;
 
+            // TODO: PROBLEM. Not sure what to even do with this. Probably scope to online only.
             ScorePosition.Value = score.Position;
         }
 
@@ -175,6 +176,7 @@ namespace osu.Game.Screens.Ranking
                                     new UserCoverBackground
                                     {
                                         RelativeSizeAxes = Axes.Both,
+                                        // TODO: PROBLEM. This kinda can't work as is. The components that need the online stuff should probably do lookups locally?
                                         User = Score.User,
                                         Colour = ColourInfo.GradientVertical(Color4.White.Opacity(0.5f), Color4Extensions.FromHex("#444").Opacity(0))
                                     }
@@ -251,6 +253,7 @@ namespace osu.Game.Screens.Ranking
                     middleLayerBackground.FadeColour(expanded_middle_layer_colour, RESIZE_DURATION, Easing.OutQuint);
 
                     bool firstLoad = topLayerContent == null;
+                    // TODO: PROBLEM. online user again
                     topLayerContentContainer.Add(topLayerContent = new ExpandedPanelTopContent(Score.User, firstLoad) { Alpha = 0 });
                     middleLayerContentContainer.Add(middleLayerContent = new ExpandedPanelMiddleContent(Score, displayWithFlair) { Alpha = 0 });
 

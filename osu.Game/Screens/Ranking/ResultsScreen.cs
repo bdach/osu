@@ -43,7 +43,7 @@ namespace osu.Game.Screens.Ranking
 
         protected override OverlayActivation InitialOverlayActivationMode => OverlayActivation.UserTriggered;
 
-        public readonly Bindable<ScoreInfo?> SelectedScore = new Bindable<ScoreInfo?>();
+        public readonly Bindable<IScoreInfo?> SelectedScore = new Bindable<IScoreInfo?>();
 
         public readonly ScoreInfo? Score;
 
@@ -242,7 +242,7 @@ namespace osu.Game.Screens.Ranking
         /// </summary>
         /// <param name="scoresCallback">A callback which should be called when fetching is completed. Scheduling is not required.</param>
         /// <returns>An <see cref="APIRequest"/> responsible for the fetch operation. This will be queued and performed automatically.</returns>
-        protected virtual APIRequest? FetchScores(Action<IEnumerable<ScoreInfo>> scoresCallback) => null;
+        protected virtual APIRequest? FetchScores(Action<IEnumerable<IScoreInfo>> scoresCallback) => null;
 
         /// <summary>
         /// Performs a fetch of the next page of scores. This is invoked every frame until a non-null <see cref="APIRequest"/> is returned.
@@ -250,7 +250,7 @@ namespace osu.Game.Screens.Ranking
         /// <param name="direction">The fetch direction. -1 to fetch scores greater than the current start of the list, and 1 to fetch scores lower than the current end of the list.</param>
         /// <param name="scoresCallback">A callback which should be called when fetching is completed. Scheduling is not required.</param>
         /// <returns>An <see cref="APIRequest"/> responsible for the fetch operation. This will be queued and performed automatically.</returns>
-        protected virtual APIRequest? FetchNextPage(int direction, Action<IEnumerable<ScoreInfo>> scoresCallback) => null;
+        protected virtual APIRequest? FetchNextPage(int direction, Action<IEnumerable<IScoreInfo>> scoresCallback) => null;
 
         /// <summary>
         /// Creates the <see cref="Statistics.StatisticsPanel"/> to be used to display extended information about scores.
@@ -262,7 +262,7 @@ namespace osu.Game.Screens.Ranking
                 : new StatisticsPanel();
         }
 
-        private void fetchScoresCallback(IEnumerable<ScoreInfo> scores) => Schedule(() =>
+        private void fetchScoresCallback(IEnumerable<IScoreInfo> scores) => Schedule(() =>
         {
             foreach (var s in scores)
                 addScore(s);
@@ -316,7 +316,7 @@ namespace osu.Game.Screens.Ranking
             return false;
         }
 
-        private void addScore(ScoreInfo score)
+        private void addScore(IScoreInfo score)
         {
             var panel = ScorePanelList.AddScore(score);
 

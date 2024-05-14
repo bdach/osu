@@ -27,7 +27,7 @@ namespace osu.Game.Screens.Ranking
         {
         }
 
-        protected override APIRequest? FetchScores(Action<IEnumerable<ScoreInfo>> scoresCallback)
+        protected override APIRequest? FetchScores(Action<IEnumerable<IScoreInfo>> scoresCallback)
         {
             Debug.Assert(Score != null);
 
