@@ -83,7 +83,7 @@ namespace osu.Game.Screens.Play
         // Don't re-import replay scores as they're already present in the database.
         protected override Task ImportScore(Score score) => Task.CompletedTask;
 
-        public readonly BindableList<ScoreInfo> LeaderboardScores = new BindableList<ScoreInfo>();
+        public readonly BindableList<IScoreInfo> LeaderboardScores = new BindableList<IScoreInfo>();
 
         protected override GameplayLeaderboard CreateGameplayLeaderboard() =>
             new SoloGameplayLeaderboard(Score.ScoreInfo.User)

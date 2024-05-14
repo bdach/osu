@@ -92,7 +92,7 @@ namespace osu.Game.Screens.Ranking
         /// </summary>
         public Action? PostExpandAction;
 
-        public readonly ScoreInfo Score;
+        public readonly IScoreInfo Score;
 
         [Resolved]
         private OsuGameBase game { get; set; } = null!;
@@ -115,7 +115,7 @@ namespace osu.Game.Screens.Ranking
 
         private DrawableSample? samplePanelFocus;
 
-        public ScorePanel(ScoreInfo score, bool isNewLocalScore = false)
+        public ScorePanel(IScoreInfo score, bool isNewLocalScore = false)
         {
             Score = score;
             displayWithFlair = isNewLocalScore;

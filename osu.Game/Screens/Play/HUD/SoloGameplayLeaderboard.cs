@@ -25,7 +25,7 @@ namespace osu.Game.Screens.Play.HUD
 
         private readonly IUser trackingUser;
 
-        public readonly IBindableList<ScoreInfo> Scores = new BindableList<ScoreInfo>();
+        public readonly IBindableList<IScoreInfo> Scores = new BindableList<IScoreInfo>();
 
         [Resolved]
         private ScoreProcessor scoreProcessor { get; set; } = null!;

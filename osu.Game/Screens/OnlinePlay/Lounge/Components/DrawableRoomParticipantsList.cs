@@ -17,6 +17,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
+using osu.Game.Users;
 using osu.Game.Users.Drawables;
 using osuTK;
 
@@ -283,7 +284,7 @@ namespace osu.Game.Screens.OnlinePlay.Lounge.Components
 
         private partial class CircularAvatar : CompositeDrawable
         {
-            public APIUser User
+            public IUser User
             {
                 get => avatar.User;
                 set => avatar.User = value;

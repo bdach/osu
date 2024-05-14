@@ -21,9 +21,9 @@ using Realms;
 
 namespace osu.Game.Screens.Select.Leaderboards
 {
-    public partial class BeatmapLeaderboard : Leaderboard<BeatmapLeaderboardScope, ScoreInfo>
+    public partial class BeatmapLeaderboard : Leaderboard<BeatmapLeaderboardScope, IScoreInfo>
     {
-        public Action<ScoreInfo>? ScoreSelected;
+        public Action<IScoreInfo, BeatmapInfo>? ScoreSelected;
 
         private BeatmapInfo? beatmapInfo;
 
@@ -169,14 +169,14 @@ namespace osu.Game.Screens.Select.Leaderboards
             return scoreRetrievalRequest = newRequest;
         }
 
-        protected override LeaderboardScore CreateDrawableScore(ScoreInfo model, int index) => new LeaderboardScore(model, index, IsOnlineScope)
+        protected override LeaderboardScore CreateDrawableScore(IScoreInfo model, int index) => new LeaderboardScore(model, index, IsOnlineScope)
         {
-            Action = () => ScoreSelected?.Invoke(model)
+            Action = () => ScoreSelected?.Invoke(model, BeatmapInfo!)
         };
 
-        protected override LeaderboardScore CreateDrawableTopScore(ScoreInfo model) => new LeaderboardScore(model, model.Position, false)
+        protected override LeaderboardScore CreateDrawableTopScore(IScoreInfo model) => new LeaderboardScore(model, (model as IOnlineScoreInfo)?.Position, false)
         {
-            Action = () => ScoreSelected?.Invoke(model)
+            Action = () => ScoreSelected?.Invoke(model, BeatmapInfo!)
         };
 
         private void subscribeToLocalScores(BeatmapInfo beatmapInfo, CancellationToken cancellationToken)

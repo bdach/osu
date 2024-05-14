@@ -9,7 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Threading;
-using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Users;
 using osu.Game.Users.Drawables;
 using osuTK;
 
@@ -94,7 +94,7 @@ namespace osu.Game.Screens.OnlinePlay.Components
 
         private partial class UserTile : CompositeDrawable
         {
-            public APIUser User
+            public IUser User
             {
                 get => avatar.User;
                 set => avatar.User = value;

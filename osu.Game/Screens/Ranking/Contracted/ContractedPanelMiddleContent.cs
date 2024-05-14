@@ -32,7 +32,7 @@ namespace osu.Game.Screens.Ranking.Contracted
     /// </summary>
     public partial class ContractedPanelMiddleContent : CompositeDrawable
     {
-        private readonly ScoreInfo score;
+        private readonly IScoreInfo score;
 
         [Resolved]
         private ScoreManager scoreManager { get; set; } = null!;
@@ -41,14 +41,14 @@ namespace osu.Game.Screens.Ranking.Contracted
         /// Creates a new <see cref="ContractedPanelMiddleContent"/>.
         /// </summary>
         /// <param name="score">The <see cref="ScoreInfo"/> to display.</param>
-        public ContractedPanelMiddleContent(ScoreInfo score)
+        public ContractedPanelMiddleContent(IScoreInfo score)
         {
             this.score = score;
             RelativeSizeAxes = Axes.Both;
         }
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(RulesetStore rulesets)
         {
             InternalChild = new GridContainer
             {
@@ -111,7 +111,7 @@ namespace osu.Game.Screens.Ranking.Contracted
                                         {
                                             Anchor = Anchor.TopCentre,
                                             Origin = Anchor.TopCentre,
-                                            Text = score.RealmUser.Username,
+                                            Text = score.User.Username,
                                             Font = OsuFont.GetFont(size: 16, weight: FontWeight.SemiBold)
                                         },
                                         new FillFlowContainer
@@ -141,7 +141,7 @@ namespace osu.Game.Screens.Ranking.Contracted
                                             Origin = Anchor.TopCentre,
                                             AutoSizeAxes = Axes.Y,
                                             RelativeSizeAxes = Axes.X,
-                                            Current = { Value = score.Mods },
+                                            Current = { Value = score.InstantiateMods(rulesets).ToList() },
                                             IconScale = 0.5f,
                                         }
                                     }

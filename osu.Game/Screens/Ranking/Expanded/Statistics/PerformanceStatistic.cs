@@ -16,6 +16,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Scoring;
 using osu.Game.Localisation;
+using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 
 namespace osu.Game.Screens.Ranking.Expanded.Statistics
@@ -24,7 +25,7 @@ namespace osu.Game.Screens.Ranking.Expanded.Statistics
     {
         public LocalisableString TooltipText { get; private set; }
 
-        private readonly ScoreInfo score;
+        private readonly IScoreInfo score;
 
         private readonly Bindable<int> performance = new Bindable<int>();
 
@@ -32,7 +33,10 @@ namespace osu.Game.Screens.Ranking.Expanded.Statistics
 
         private RollingCounter<int> counter = null!;
 
-        public PerformanceStatistic(ScoreInfo score)
+        [Resolved]
+        private RulesetStore rulesets { get; set; } = null!;
+
+        public PerformanceStatistic(IScoreInfo score)
             : base(BeatmapsetsStrings.ShowScoreboardHeaderspp)
         {
             this.score = score;
@@ -49,7 +53,7 @@ namespace osu.Game.Screens.Ranking.Expanded.Statistics
             {
                 Task.Run(async () =>
                 {
-                    var attributes = await difficultyCache.GetDifficultyAsync(score.BeatmapInfo!, score.Ruleset, score.Mods, cancellationToken ?? default).ConfigureAwait(false);
+                    var attributes = await difficultyCache.GetDifficultyAsync(score.Beatmap!, score.Ruleset, score.InstantiateMods(rulesets), cancellationToken ?? default).ConfigureAwait(false);
                     var performanceCalculator = score.Ruleset.CreateInstance().CreatePerformanceCalculator();
 
                     // Performance calculation requires the beatmap and ruleset to be locally available. If not, return a default value.
@@ -63,13 +67,13 @@ namespace osu.Game.Screens.Ranking.Expanded.Statistics
             }
         }
 
-        private void setPerformanceValue(ScoreInfo scoreInfo, double? pp)
+        private void setPerformanceValue(IScoreInfo scoreInfo, double? pp)
         {
             if (pp.HasValue)
             {
                 performance.Value = (int)Math.Round(pp.Value, MidpointRounding.AwayFromZero);
 
-                if (!scoreInfo.BeatmapInfo!.Status.GrantsPerformancePoints())
+                if ((scoreInfo.Beatmap as IBeatmapSetOnlineInfo)?.Status.GrantsPerformancePoints() != true)
                 {
                     Alpha = 0.5f;
                     TooltipText = ResultsScreenStrings.NoPPForUnrankedBeatmaps;
@@ -87,9 +91,9 @@ namespace osu.Game.Screens.Ranking.Expanded.Statistics
             }
         }
 
-        private static bool hasUnrankedMods(ScoreInfo scoreInfo)
+        private bool hasUnrankedMods(IScoreInfo scoreInfo)
         {
-            IEnumerable<Mod> modsToCheck = scoreInfo.Mods;
+            IEnumerable<Mod> modsToCheck = scoreInfo.InstantiateMods(rulesets);
 
             if (scoreInfo.IsLegacyScore)
                 modsToCheck = modsToCheck.Where(m => m is not ModClassic);

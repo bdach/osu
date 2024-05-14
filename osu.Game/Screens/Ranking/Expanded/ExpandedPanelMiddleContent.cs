@@ -20,6 +20,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Rulesets;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play.HUD;
@@ -36,7 +37,7 @@ namespace osu.Game.Screens.Ranking.Expanded
     {
         private const float padding = 10;
 
-        private readonly ScoreInfo score;
+        private readonly IScoreInfo score;
         private readonly bool withFlair;
 
         private readonly List<StatisticDisplay> statisticDisplays = new List<StatisticDisplay>();
@@ -52,7 +53,7 @@ namespace osu.Game.Screens.Ranking.Expanded
         /// </summary>
         /// <param name="score">The score to display.</param>
         /// <param name="withFlair">Whether to add flair for a new score being set.</param>
-        public ExpandedPanelMiddleContent(ScoreInfo score, bool withFlair = false)
+        public ExpandedPanelMiddleContent(IScoreInfo score, bool withFlair = false)
         {
             this.score = score;
             this.withFlair = withFlair;
@@ -64,11 +65,12 @@ namespace osu.Game.Screens.Ranking.Expanded
         }
 
         [BackgroundDependencyLoader]
-        private void load(BeatmapDifficultyCache beatmapDifficultyCache)
+        private void load(RulesetStore rulesets, BeatmapDifficultyCache beatmapDifficultyCache)
         {
-            var beatmap = score.BeatmapInfo!;
+            var beatmap = score.Beatmap!;
             var metadata = beatmap.BeatmapSet?.Metadata ?? beatmap.Metadata;
             string creator = metadata.Author.Username;
+            var mods = score.InstantiateMods(rulesets).ToArray();
 
             var topStatistics = new List<StatisticDisplay>
             {
@@ -226,7 +228,7 @@ namespace osu.Game.Screens.Ranking.Expanded
             if (score.Date != default)
                 AddInternal(new PlayedOnText(score.Date));
 
-            var starDifficulty = beatmapDifficultyCache.GetDifficultyAsync(beatmap, score.Ruleset, score.Mods).GetResultSafely();
+            var starDifficulty = beatmapDifficultyCache.GetDifficultyAsync(beatmap, score.Ruleset, mods).GetResultSafely();
 
             if (starDifficulty != null)
             {
@@ -237,7 +239,7 @@ namespace osu.Game.Screens.Ranking.Expanded
                 });
             }
 
-            if (score.Mods.Any())
+            if (mods.Any())
             {
                 starAndModDisplay.Add(new ModDisplay
                 {
@@ -245,7 +247,7 @@ namespace osu.Game.Screens.Ranking.Expanded
                     Origin = Anchor.CentreLeft,
                     ExpansionMode = ExpansionMode.AlwaysExpanded,
                     Scale = new Vector2(0.5f),
-                    Current = { Value = score.Mods }
+                    Current = { Value = mods }
                 });
             }
         }

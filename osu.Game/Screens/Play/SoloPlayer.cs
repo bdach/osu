@@ -43,7 +43,7 @@ namespace osu.Game.Screens.Play
             return new CreateSoloScoreRequest(Beatmap.Value.BeatmapInfo, rulesetId, Game.VersionHash);
         }
 
-        public readonly BindableList<ScoreInfo> LeaderboardScores = new BindableList<ScoreInfo>();
+        public readonly BindableList<IScoreInfo> LeaderboardScores = new BindableList<IScoreInfo>();
 
         protected override GameplayLeaderboard CreateGameplayLeaderboard() =>
             new SoloGameplayLeaderboard(Score.ScoreInfo.User)

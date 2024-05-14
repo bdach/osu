@@ -16,6 +16,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Notifications;
+using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play;
@@ -32,6 +33,9 @@ namespace osu.Game.Screens.Select
 
         [Resolved]
         private INotificationOverlay? notifications { get; set; }
+
+        [Resolved]
+        private RulesetStore rulesets { get; set; } = null!;
 
         public override bool AllowExternalScreenChange => true;
 
@@ -53,8 +57,8 @@ namespace osu.Game.Screens.Select
             AddInternal(new SongSelectTouchInputDetector());
         }
 
-        protected void PresentScore(ScoreInfo score) =>
-            FinaliseSelection(score.BeatmapInfo, score.Ruleset, () => this.Push(new SoloResultsScreen(score)));
+        protected void PresentScore(IScoreInfo score, BeatmapInfo beatmapInfo) =>
+            FinaliseSelection(beatmapInfo, rulesets.GetRuleset(score.Ruleset.ShortName), () => this.Push(new SoloResultsScreen(score)));
 
         protected override BeatmapDetailArea CreateBeatmapDetailArea()
         {

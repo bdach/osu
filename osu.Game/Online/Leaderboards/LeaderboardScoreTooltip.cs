@@ -21,7 +21,7 @@ using osu.Game.Rulesets;
 
 namespace osu.Game.Online.Leaderboards
 {
-    public partial class LeaderboardScoreTooltip : VisibilityContainer, ITooltip<ScoreInfo>
+    public partial class LeaderboardScoreTooltip : VisibilityContainer, ITooltip<IScoreInfo>
     {
         private OsuSpriteText timestampLabel = null!;
         private FillFlowContainer<HitResultCell> topScoreStatistics = null!;
@@ -109,8 +109,9 @@ namespace osu.Game.Online.Leaderboards
 
         private IScoreInfo? displayedScore;
 
-        public void SetContent(ScoreInfo score)
+        public void SetContent(IScoreInfo score)
         {
+            // TODO: PROBLEM. equality strikes back
             if (displayedScore?.Equals(score) == true)
                 return;
 
@@ -122,7 +123,7 @@ namespace osu.Game.Online.Leaderboards
             topScoreStatistics.Clear();
             bottomScoreStatistics.Clear();
 
-            foreach (var mod in score.Mods.AsOrdered())
+            foreach (var mod in score.InstantiateMods(rulesets).AsOrdered())
             {
                 modStatistics.Add(new ModCell(mod));
             }

@@ -74,7 +74,7 @@ namespace osu.Game.Screens.OnlinePlay.Playlists
             });
         }
 
-        protected override APIRequest FetchScores(Action<IEnumerable<ScoreInfo>> scoresCallback)
+        protected override APIRequest FetchScores(Action<IEnumerable<IScoreInfo>> scoresCallback)
         {
             // This performs two requests:
             // 1. A request to show the user's score (and scores around).
@@ -89,7 +89,7 @@ namespace osu.Game.Screens.OnlinePlay.Playlists
                 // Other scores could have arrived between score submission and entering the results screen. Ensure the local player score position is up to date.
                 if (Score != null)
                 {
-                    Score.Position = userScore.Position;
+                    //Score.Position = userScore.Position;
                     ScorePanelList.GetPanelForScore(Score).ScorePosition.Value = userScore.Position;
                 }
 
@@ -120,7 +120,7 @@ namespace osu.Game.Screens.OnlinePlay.Playlists
             return userScoreReq;
         }
 
-        protected override APIRequest? FetchNextPage(int direction, Action<IEnumerable<ScoreInfo>> scoresCallback)
+        protected override APIRequest? FetchNextPage(int direction, Action<IEnumerable<IScoreInfo>> scoresCallback)
         {
             Debug.Assert(direction == 1 || direction == -1);
 
@@ -144,7 +144,7 @@ namespace osu.Game.Screens.OnlinePlay.Playlists
         /// <param name="scoresCallback">The callback to perform with the resulting scores.</param>
         /// <param name="pivot">An optional score pivot to retrieve scores around. Can be null to retrieve scores from the highest score.</param>
         /// <returns>The indexing <see cref="APIRequest"/>.</returns>
-        private APIRequest createIndexRequest(Action<IEnumerable<ScoreInfo>> scoresCallback, MultiplayerScores? pivot = null)
+        private APIRequest createIndexRequest(Action<IEnumerable<IScoreInfo>> scoresCallback, MultiplayerScores? pivot = null)
         {
             var indexReq = pivot != null
                 ? new IndexPlaylistScoresRequest(roomId, playlistItem.ID, pivot.Cursor, pivot.Params)
@@ -177,7 +177,7 @@ namespace osu.Game.Screens.OnlinePlay.Playlists
         /// <param name="callback">The callback to invoke with the final <see cref="ScoreInfo"/>s.</param>
         /// <param name="scores">The <see cref="MultiplayerScore"/>s that were retrieved from <see cref="APIRequest"/>s.</param>
         /// <param name="pivot">An optional pivot around which the scores were retrieved.</param>
-        private void performSuccessCallback(Action<IEnumerable<ScoreInfo>> callback, List<MultiplayerScore> scores, MultiplayerScores? pivot = null) => Schedule(() =>
+        private void performSuccessCallback(Action<IEnumerable<IScoreInfo>> callback, List<MultiplayerScore> scores, MultiplayerScores? pivot = null) => Schedule(() =>
         {
             var scoreInfos = scores.Select(s => s.CreateScoreInfo(scoreManager, rulesets, playlistItem, Beatmap.Value.BeatmapInfo)).OrderByTotalScore().ToArray();
 
