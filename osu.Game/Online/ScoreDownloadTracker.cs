@@ -11,7 +11,7 @@ using osu.Game.Scoring;
 
 namespace osu.Game.Online
 {
-    public partial class ScoreDownloadTracker : DownloadTracker<ScoreInfo>
+    public partial class ScoreDownloadTracker : DownloadTracker<IScoreInfo>
     {
         [Resolved(CanBeNull = true)]
         protected ScoreModelDownloader? Downloader { get; private set; }
@@ -23,7 +23,7 @@ namespace osu.Game.Online
         [Resolved]
         private RealmAccess realm { get; set; } = null!;
 
-        public ScoreDownloadTracker(ScoreInfo trackedItem)
+        public ScoreDownloadTracker(IScoreInfo trackedItem)
             : base(trackedItem)
         {
         }
@@ -35,21 +35,13 @@ namespace osu.Game.Online
             if (Downloader == null)
                 return;
 
-            // Used to interact with manager classes that don't support interface types. Will eventually be replaced.
-            var scoreInfo = new ScoreInfo
-            {
-                ID = TrackedItem.ID,
-                OnlineID = TrackedItem.OnlineID,
-                LegacyOnlineID = TrackedItem.LegacyOnlineID
-            };
-
             Downloader.DownloadBegan += downloadBegan;
             Downloader.DownloadFailed += downloadFailed;
 
             realmSubscription = realm.RegisterForNotifications(r => r.All<ScoreInfo>().Where(s =>
                 ((s.OnlineID > 0 && s.OnlineID == TrackedItem.OnlineID)
                  || (s.LegacyOnlineID > 0 && s.LegacyOnlineID == TrackedItem.LegacyOnlineID)
-                 || (!string.IsNullOrEmpty(s.Hash) && s.Hash == TrackedItem.Hash))
+                 || (!string.IsNullOrEmpty(s.Hash) && TrackedItem is ScoreInfo && s.Hash == ((ScoreInfo)TrackedItem).Hash))
                 && !s.DeletePending), (items, _) =>
             {
                 if (items.Any())
@@ -59,7 +51,7 @@ namespace osu.Game.Online
                     Schedule(() =>
                     {
                         UpdateState(DownloadState.NotDownloaded);
-                        attachDownload(Downloader.GetExistingDownload(scoreInfo));
+                        attachDownload(Downloader.GetExistingDownload(TrackedItem));
                     });
                 }
             });
