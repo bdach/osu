@@ -36,6 +36,7 @@ using osu.Game.Overlays.BeatmapSet;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Scoring;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Users.Drawables;
 using osuTK;

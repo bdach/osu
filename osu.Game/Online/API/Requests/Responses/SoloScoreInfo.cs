@@ -153,6 +153,7 @@ namespace osu.Game.Online.API.Requests.Responses
         long IScoreInfo.LegacyOnlineID => (long?)LegacyScoreId ?? -1;
         IBeatmapInfo IScoreInfo.Beatmap => Beatmap!;
         IRulesetInfo IScoreInfo.Ruleset => Beatmap!.Ruleset;
+        IEnumerable<IConfiguredMod> IScoreInfo.Mods => Mods;
         IReadOnlyDictionary<HitResult, int> IScoreInfo.Statistics => Statistics;
         IReadOnlyDictionary<HitResult, int> IScoreInfo.MaximumStatistics => MaximumStatistics;
 
