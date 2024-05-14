@@ -206,7 +206,7 @@ namespace osu.Game.Scoring
         /// The <see cref="IScoreInfo"/> is re-retrieved from the database to ensure all the required data
         /// for exporting a replay are present (may have missing properties if it was retrieved from online data).
         /// </remarks>
-        public Task Export(ScoreInfo scoreInfo)
+        public Task Export(IScoreInfo scoreInfo)
         {
             ScoreInfo? databasedScoreInfo = getDatabasedScoreInfo(scoreInfo);
 
