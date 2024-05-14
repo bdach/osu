@@ -31,6 +31,6 @@ namespace osu.Game.Scoring
         /// </summary>
         /// <param name="score">The <see cref="ScoreInfo"/> to compute the maximum achievable combo for.</param>
         /// <returns>The maximum achievable combo.</returns>
-        public static int GetMaximumAchievableCombo(this ScoreInfo score) => score.MaximumStatistics.Where(kvp => kvp.Key.AffectsCombo()).Sum(kvp => kvp.Value);
+        public static int GetMaximumAchievableCombo(this IScoreInfo score) => score.MaximumStatistics.Where(kvp => kvp.Key.AffectsCombo()).Sum(kvp => kvp.Value);
     }
 }
