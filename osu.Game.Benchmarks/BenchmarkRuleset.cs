@@ -6,6 +6,7 @@ using BenchmarkDotNet.Engines;
 using osu.Game.Online.API;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Osu;
+using osu.Game.Scoring;
 
 namespace osu.Game.Benchmarks
 {

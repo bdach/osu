@@ -210,6 +210,7 @@ namespace osu.Game.Scoring
         IRulesetInfo IScoreInfo.Ruleset => Ruleset;
         IBeatmapInfo? IScoreInfo.Beatmap => BeatmapInfo;
         IUser IScoreInfo.User => User;
+        IEnumerable<IConfiguredMod> IScoreInfo.Mods => APIMods;
         IReadOnlyDictionary<HitResult, int> IScoreInfo.Statistics => Statistics;
         IReadOnlyDictionary<HitResult, int> IScoreInfo.MaximumStatistics => Statistics;
 
