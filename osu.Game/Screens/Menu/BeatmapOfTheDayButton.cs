@@ -12,7 +12,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Beatmaps.Drawables.Cards;
-using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Metadata;
@@ -35,7 +34,7 @@ namespace osu.Game.Screens.Menu
         private IAPIProvider api { get; set; } = null!;
 
         public BeatmapOfTheDayButton(string sampleName, Color4 colour, Action<MainMenuButton>? clickAction = null, params Key[] triggerKeys)
-            : base(ButtonSystemStrings.BeatmapOfTheDay, sampleName, colour, clickAction, triggerKeys)
+            : base("daily challenge", sampleName, colour, clickAction, triggerKeys)
         {
             Title.Margin = new MarginPadding { Left = -12, Bottom = 7 };
             BaseSize = new Vector2(ButtonSystem.BUTTON_WIDTH * 1.3f, ButtonArea.BUTTON_AREA_HEIGHT);
@@ -43,8 +42,11 @@ namespace osu.Game.Screens.Menu
             Background.Add(cover = new UpdateableOnlineBeatmapSetCover
             {
                 RelativeSizeAxes = Axes.Y,
-                Margin = new MarginPadding { Left = -ButtonSystem.WEDGE_WIDTH },
                 Colour = ColourInfo.GradientVertical(Colour4.White, Colour4.White.Opacity(0)),
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                RelativePositionAxes = Axes.X,
+                X = -0.5f,
             });
         }
 
@@ -58,17 +60,21 @@ namespace osu.Game.Screens.Menu
         {
             base.LoadComplete();
 
-            cover.Shear = -Background.Shear;
-
             info.BindValueChanged(updateDisplay, true);
             FinishTransforms(true);
+
+            cover.Shear = -Background.Shear;
+
+            cover.MoveToX(-0.5f, 10000, Easing.InOutSine)
+                 .Then().MoveToX(0.5f, 10000, Easing.InOutSine)
+                 .Loop();
         }
 
         protected override void Update()
         {
             base.Update();
 
-            cover.Width = Background.Width + ButtonSystem.WEDGE_WIDTH;
+            cover.Width = 2 * Background.Width + ButtonSystem.WEDGE_WIDTH;
         }
 
         private void updateDisplay(ValueChangedEvent<BeatmapOfTheDayInfo?> info)
