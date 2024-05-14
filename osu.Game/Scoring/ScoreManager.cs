@@ -114,7 +114,7 @@ namespace osu.Game.Scoring
         /// </remarks>
         /// <param name="score">The <see cref="ScoreInfo"/> to retrieve the bindable for.</param>
         /// <returns>The bindable containing the total score.</returns>
-        public Bindable<long> GetBindableTotalScore(ScoreInfo score) => new TotalScoreBindable(score, configManager);
+        public Bindable<long> GetBindableTotalScore(IScoreInfo score) => new TotalScoreBindable(score, configManager);
 
         /// <summary>
         /// Retrieves a bindable that represents the formatted total score string of a <see cref="ScoreInfo"/>.
@@ -124,7 +124,7 @@ namespace osu.Game.Scoring
         /// </remarks>
         /// <param name="score">The <see cref="ScoreInfo"/> to retrieve the bindable for.</param>
         /// <returns>The bindable containing the formatted total score string.</returns>
-        public Bindable<string> GetBindableTotalScoreString(ScoreInfo score) => new TotalScoreStringBindable(GetBindableTotalScore(score));
+        public Bindable<string> GetBindableTotalScoreString(IScoreInfo score) => new TotalScoreStringBindable(GetBindableTotalScore(score));
 
         /// <summary>
         /// Provides the total score of a <see cref="ScoreInfo"/>. Responds to changes in the currently-selected <see cref="ScoringMode"/>.
@@ -138,7 +138,7 @@ namespace osu.Game.Scoring
             /// </summary>
             /// <param name="score">The <see cref="ScoreInfo"/> to provide the total score of.</param>
             /// <param name="configManager">The config.</param>
-            public TotalScoreBindable(ScoreInfo score, OsuConfigManager? configManager)
+            public TotalScoreBindable(IScoreInfo score, OsuConfigManager? configManager)
             {
                 configManager?.BindWith(OsuSetting.ScoreDisplayMode, scoringMode);
                 scoringMode.BindValueChanged(mode => Value = score.GetDisplayScore(mode.NewValue), true);
