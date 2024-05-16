@@ -64,12 +64,9 @@ namespace osu.Game.Screens.Menu
 
         protected Vector2 BaseSize { get; init; } = new Vector2(ButtonSystem.BUTTON_WIDTH, ButtonArea.BUTTON_AREA_HEIGHT);
 
-        protected OsuSpriteText Title { get; private set; }
-
-        protected Container Background { get; }
-
         private readonly Action<MainMenuButton>? clickAction;
 
+        private readonly Container background;
         private readonly Drawable backgroundContent;
         private readonly Box boxHoverLayer;
         private readonly SpriteIcon icon;
@@ -85,7 +82,7 @@ namespace osu.Game.Screens.Menu
                                           // Allow keyboard interaction based on state rather than waiting for delayed animations.
                                           || state == ButtonState.Expanded;
 
-        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Background.ReceivePositionalInputAt(screenSpacePos);
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => background.ReceivePositionalInputAt(screenSpacePos);
 
         public MainMenuButton(LocalisableString text, string sampleName, IconUsage symbol, Color4 colour, Action<MainMenuButton>? clickAction = null, params Key[] triggerKeys)
         {
@@ -98,7 +95,7 @@ namespace osu.Game.Screens.Menu
 
             AddRangeInternal(new Drawable[]
             {
-                Background = new Container
+                background = new Container
                 {
                     // box needs to be always present to ensure the button is always sized correctly for flow
                     AlwaysPresent = true,
@@ -138,7 +135,7 @@ namespace osu.Game.Screens.Menu
                     Origin = Anchor.Centre,
                     Children = new Drawable[]
                     {
-                        Title = new OsuSpriteText
+                        new OsuSpriteText
                         {
                             Shadow = true,
                             AllowMultiline = false,
@@ -180,9 +177,9 @@ namespace osu.Game.Screens.Menu
         {
             base.LoadComplete();
 
-            Background.Size = initialSize;
-            Background.Shear = new Vector2(ButtonSystem.WEDGE_WIDTH / initialSize.Y, 0);
-            backgroundContent.Shear = -Background.Shear;
+            background.Size = initialSize;
+            background.Shear = new Vector2(ButtonSystem.WEDGE_WIDTH / initialSize.Y, 0);
+            backgroundContent.Shear = -background.Shear;
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -196,7 +193,7 @@ namespace osu.Game.Screens.Menu
             icon.ScaleTo(new Vector2(HOVER_SCALE, HOVER_SCALE * BOUNCE_COMPRESSION), duration, Easing.Out);
 
             sampleHover?.Play();
-            Background.ResizeTo(Vector2.Multiply(initialSize, new Vector2(1.5f, 1)), 500, Easing.OutElastic);
+            background.ResizeTo(Vector2.Multiply(initialSize, new Vector2(1.5f, 1)), 500, Easing.OutElastic);
 
             return true;
         }
@@ -204,7 +201,7 @@ namespace osu.Game.Screens.Menu
         protected override void OnHoverLost(HoverLostEvent e)
         {
             if (State == ButtonState.Expanded)
-                Background.ResizeTo(initialSize, 500, Easing.OutElastic);
+                background.ResizeTo(initialSize, 500, Easing.OutElastic);
 
             icon.ClearTransforms();
             icon.RotateTo(0, 500, Easing.Out);
@@ -287,14 +284,14 @@ namespace osu.Game.Screens.Menu
         }
 
         public override bool HandleNonPositionalInput => state == ButtonState.Expanded;
-        public override bool HandlePositionalInput => state != ButtonState.Exploded && Background.Width / initialSize.X >= 0.8f;
+        public override bool HandlePositionalInput => state != ButtonState.Exploded && background.Width / initialSize.X >= 0.8f;
 
         public void StopSamplePlayback() => sampleChannel?.Stop();
 
         protected override void Update()
         {
-            content.Alpha = Math.Clamp((Background.Width / initialSize.X - 0.5f) / 0.3f, 0, 1);
-            backgroundContent.Width = Background.Width + ButtonSystem.WEDGE_WIDTH;
+            content.Alpha = Math.Clamp((background.Width / initialSize.X - 0.5f) / 0.3f, 0, 1);
+            backgroundContent.Width = background.Width + ButtonSystem.WEDGE_WIDTH;
             base.Update();
         }
 
@@ -319,12 +316,12 @@ namespace osu.Game.Screens.Menu
                         switch (ContractStyle)
                         {
                             default:
-                                Background.ResizeTo(Vector2.Multiply(initialSize, new Vector2(0, 1)), 500, Easing.OutExpo);
+                                background.ResizeTo(Vector2.Multiply(initialSize, new Vector2(0, 1)), 500, Easing.OutExpo);
                                 this.FadeOut(500);
                                 break;
 
                             case 1:
-                                Background.ResizeTo(Vector2.Multiply(initialSize, new Vector2(0, 1)), 400, Easing.InSine);
+                                background.ResizeTo(Vector2.Multiply(initialSize, new Vector2(0, 1)), 400, Easing.InSine);
                                 this.FadeOut(800);
                                 break;
                         }
@@ -333,13 +330,13 @@ namespace osu.Game.Screens.Menu
 
                     case ButtonState.Expanded:
                         const int expand_duration = 500;
-                        Background.ResizeTo(initialSize, expand_duration, Easing.OutExpo);
+                        background.ResizeTo(initialSize, expand_duration, Easing.OutExpo);
                         this.FadeIn(expand_duration / 6f);
                         break;
 
                     case ButtonState.Exploded:
                         const int explode_duration = 200;
-                        Background.ResizeTo(Vector2.Multiply(initialSize, new Vector2(2, 1)), explode_duration, Easing.OutExpo);
+                        background.ResizeTo(Vector2.Multiply(initialSize, new Vector2(2, 1)), explode_duration, Easing.OutExpo);
                         this.FadeOut(explode_duration / 4f * 3);
                         break;
                 }
