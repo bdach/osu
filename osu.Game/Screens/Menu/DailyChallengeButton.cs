@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Beatmaps.Drawables.Cards;
+using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Metadata;
@@ -23,18 +24,18 @@ using osuTK.Input;
 
 namespace osu.Game.Screens.Menu
 {
-    public partial class BeatmapOfTheDayButton : MainMenuButton, IHasCustomTooltip<APIBeatmapSet?>
+    public partial class DailyChallengeButton : MainMenuButton, IHasCustomTooltip<APIBeatmapSet?>
     {
         public Room? Room { get; private set; }
 
         private readonly UpdateableOnlineBeatmapSetCover cover;
-        private IBindable<BeatmapOfTheDayInfo?> info = null!;
+        private IBindable<DailyChallengeInfo?> info = null!;
 
         [Resolved]
         private IAPIProvider api { get; set; } = null!;
 
-        public BeatmapOfTheDayButton(string sampleName, Color4 colour, Action<MainMenuButton>? clickAction = null, params Key[] triggerKeys)
-            : base("daily challenge", sampleName, colour, clickAction, triggerKeys)
+        public DailyChallengeButton(string sampleName, Color4 colour, Action<MainMenuButton>? clickAction = null, params Key[] triggerKeys)
+            : base(ButtonSystemStrings.DailyChallenge, sampleName, colour, clickAction, triggerKeys)
         {
             Title.Margin = new MarginPadding { Left = -12, Bottom = 7 };
             BaseSize = new Vector2(ButtonSystem.BUTTON_WIDTH * 1.3f, ButtonArea.BUTTON_AREA_HEIGHT);
@@ -53,7 +54,7 @@ namespace osu.Game.Screens.Menu
         [BackgroundDependencyLoader]
         private void load(MetadataClient metadataClient)
         {
-            info = metadataClient.BeatmapOfTheDayInfo.GetBoundCopy();
+            info = metadataClient.DailyChallengeInfo.GetBoundCopy();
         }
 
         protected override void LoadComplete()
@@ -77,7 +78,7 @@ namespace osu.Game.Screens.Menu
             cover.Width = 2 * Background.Width + ButtonSystem.WEDGE_WIDTH;
         }
 
-        private void updateDisplay(ValueChangedEvent<BeatmapOfTheDayInfo?> info)
+        private void updateDisplay(ValueChangedEvent<DailyChallengeInfo?> info)
         {
             UpdateState();
 
@@ -111,11 +112,11 @@ namespace osu.Game.Screens.Menu
             base.UpdateState();
         }
 
-        public ITooltip<APIBeatmapSet?> GetCustomTooltip() => new BeatmapOfTheDayTooltip();
+        public ITooltip<APIBeatmapSet?> GetCustomTooltip() => new DailyChallengeTooltip();
 
         public APIBeatmapSet? TooltipContent { get; private set; }
 
-        internal partial class BeatmapOfTheDayTooltip : CompositeDrawable, ITooltip<APIBeatmapSet?>
+        internal partial class DailyChallengeTooltip : CompositeDrawable, ITooltip<APIBeatmapSet?>
         {
             [Cached]
             private OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Purple);

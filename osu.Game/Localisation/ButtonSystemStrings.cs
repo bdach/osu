@@ -55,9 +55,9 @@ namespace osu.Game.Localisation
         public static LocalisableString Exit => new TranslatableString(getKey(@"exit"), @"exit");
 
         /// <summary>
-        /// "beatmap of the day"
+        /// "daily challenge"
         /// </summary>
-        public static LocalisableString BeatmapOfTheDay => new TranslatableString(getKey(@"beatmap_of_the_day"), @"beatmap of the day");
+        public static LocalisableString DailyChallenge => new TranslatableString(getKey(@"daily_challenge"), @"daily challenge");
 
         private static string getKey(string key) => $@"{prefix}:{key}";
     }

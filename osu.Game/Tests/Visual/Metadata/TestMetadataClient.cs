@@ -21,8 +21,8 @@ namespace osu.Game.Tests.Visual.Metadata
         public override IBindableDictionary<int, UserPresence> UserStates => userStates;
         private readonly BindableDictionary<int, UserPresence> userStates = new BindableDictionary<int, UserPresence>();
 
-        public override IBindable<BeatmapOfTheDayInfo?> BeatmapOfTheDayInfo => beatmapOfTheDayInfo;
-        private readonly Bindable<BeatmapOfTheDayInfo?> beatmapOfTheDayInfo = new Bindable<BeatmapOfTheDayInfo?>();
+        public override IBindable<DailyChallengeInfo?> DailyChallengeInfo => dailyChallengeInfo;
+        private readonly Bindable<DailyChallengeInfo?> dailyChallengeInfo = new Bindable<DailyChallengeInfo?>();
 
         [Resolved]
         private IAPIProvider api { get; set; } = null!;
@@ -81,9 +81,9 @@ namespace osu.Game.Tests.Visual.Metadata
 
         public override Task BeatmapSetsUpdated(BeatmapUpdates updates) => Task.CompletedTask;
 
-        public override Task BeatmapOfTheDayUpdated(BeatmapOfTheDayInfo? info)
+        public override Task DailyChallengeUpdated(DailyChallengeInfo? info)
         {
-            beatmapOfTheDayInfo.Value = info;
+            dailyChallengeInfo.Value = info;
             return Task.CompletedTask;
         }
     }

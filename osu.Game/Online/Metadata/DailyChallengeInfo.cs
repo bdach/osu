@@ -8,7 +8,7 @@ namespace osu.Game.Online.Metadata
 {
     [MessagePackObject]
     [Serializable]
-    public struct BeatmapOfTheDayInfo
+    public struct DailyChallengeInfo
     {
         [Key(0)]
         public long RoomID { get; set; }

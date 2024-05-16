@@ -14,7 +14,7 @@ namespace osu.Game.Online.Rooms
         [Description("Featured Artist")]
         FeaturedArtist,
 
-        [Description("Beatmap of the Day")]
-        BeatmapOfTheDay,
+        [Description("Daily Challenge")]
+        DailyChallenge,
     }
 }

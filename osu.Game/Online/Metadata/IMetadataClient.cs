@@ -24,6 +24,6 @@ namespace osu.Game.Online.Metadata
         /// <summary>
         /// Delivers an update of the current "beatmap of the day" status.
         /// </summary>
-        Task BeatmapOfTheDayUpdated(BeatmapOfTheDayInfo? info);
+        Task DailyChallengeUpdated(DailyChallengeInfo? info);
     }
 }
