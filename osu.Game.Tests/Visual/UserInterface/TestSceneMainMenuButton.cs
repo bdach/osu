@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
@@ -61,7 +62,8 @@ namespace osu.Game.Tests.Visual.UserInterface
                             Playlist =
                             {
                                 new PlaylistItem(beatmap)
-                            }
+                            },
+                            EndDate = { Value = DateTimeOffset.Now.AddSeconds(30) }
                         });
                         return true;
 

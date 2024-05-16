@@ -11,9 +11,11 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Threading;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Beatmaps.Drawables.Cards;
 using osu.Game.Graphics;
+using osu.Game.Graphics.Sprites;
 using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
@@ -30,6 +32,9 @@ namespace osu.Game.Screens.Menu
     {
         public Room? Room { get; private set; }
 
+        private readonly OsuSpriteText countdown;
+        private ScheduledDelegate? scheduledCountdownUpdate;
+
         private UpdateableOnlineBeatmapSetCover cover = null!;
         private IBindable<DailyChallengeInfo?> info = null!;
         private BufferedContainer background = null!;
@@ -41,6 +46,21 @@ namespace osu.Game.Screens.Menu
             : base(ButtonSystemStrings.DailyChallenge, sampleName, OsuIcon.DailyChallenge, colour, clickAction, triggerKeys)
         {
             BaseSize = new Vector2(ButtonSystem.BUTTON_WIDTH * 1.3f, ButtonArea.BUTTON_AREA_HEIGHT);
+
+            Content.Add(countdown = new OsuSpriteText
+            {
+                Shadow = true,
+                AllowMultiline = false,
+                Anchor = Anchor.BottomCentre,
+                Origin = Anchor.BottomCentre,
+                Margin = new MarginPadding
+                {
+                    Left = -3,
+                    Bottom = 22,
+                },
+                Font = OsuFont.Default.With(size: 12),
+                Alpha = 0,
+            });
         }
 
         protected override Drawable CreateBackground(Colour4 accentColour) => background = new BufferedContainer
@@ -98,6 +118,9 @@ namespace osu.Game.Screens.Menu
         {
             UpdateState();
 
+            scheduledCountdownUpdate?.Cancel();
+            scheduledCountdownUpdate = null;
+
             if (info.NewValue == null)
             {
                 Room = null;
@@ -111,8 +134,31 @@ namespace osu.Game.Screens.Menu
                 {
                     Room = room;
                     cover.OnlineInfo = TooltipContent = room.Playlist.FirstOrDefault()?.Beatmap.BeatmapSet as APIBeatmapSet;
+
+                    updateCountdown();
+                    Scheduler.AddDelayed(updateCountdown, 1000, true);
                 };
                 api.Queue(roomRequest);
+            }
+        }
+
+        private void updateCountdown()
+        {
+            if (Room == null)
+                return;
+
+            var remaining = (Room.EndDate.Value - DateTimeOffset.Now) ?? TimeSpan.Zero;
+
+            if (remaining <= TimeSpan.Zero)
+            {
+                countdown.FadeOut(250, Easing.OutQuint);
+            }
+            else
+            {
+                if (countdown.Alpha == 0)
+                    countdown.FadeIn(250, Easing.OutQuint);
+
+                countdown.Text = remaining.ToString(@"hh\:mm\:ss");
             }
         }
 
