@@ -7,6 +7,7 @@ using osu.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
+using osu.Framework.Audio.Track;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -17,8 +18,10 @@ using osuTK.Input;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Game.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
+using osu.Game.Beatmaps.ControlPoints;
 
 namespace osu.Game.Screens.Menu
 {
@@ -38,19 +41,6 @@ namespace osu.Game.Screens.Menu
         protected override Container<Drawable> Content => content;
         private readonly Container content;
 
-        public Vector2 BaseSize { get; init; } = new Vector2(ButtonSystem.BUTTON_WIDTH, ButtonArea.BUTTON_AREA_HEIGHT);
-
-        public new MarginPadding Padding
-        {
-            get => Content.Padding;
-            set => Content.Padding = value;
-        }
-
-        private Vector2 initialSize => BaseSize + Padding.Total;
-
-        private readonly Box boxHoverLayer;
-        private readonly string sampleName;
-
         /// <summary>
         /// The menu state for which we are visible for (assuming only one).
         /// </summary>
@@ -66,11 +56,26 @@ namespace osu.Game.Screens.Menu
         public ButtonSystemState VisibleStateMin = ButtonSystemState.TopLevel;
         public ButtonSystemState VisibleStateMax = ButtonSystemState.TopLevel;
 
+        public new MarginPadding Padding
+        {
+            get => Content.Padding;
+            set => Content.Padding = value;
+        }
+
+        protected Vector2 BaseSize { get; init; } = new Vector2(ButtonSystem.BUTTON_WIDTH, ButtonArea.BUTTON_AREA_HEIGHT);
+
         protected OsuSpriteText Title { get; private set; }
 
         protected Container Background { get; }
 
         private readonly Action<MainMenuButton>? clickAction;
+
+        private readonly Box boxHoverLayer;
+        private readonly SpriteIcon icon;
+
+        private Vector2 initialSize => BaseSize + Padding.Total;
+
+        private readonly string sampleName;
         private Sample? sampleClick;
         private Sample? sampleHover;
         private SampleChannel? sampleChannel;
@@ -81,7 +86,7 @@ namespace osu.Game.Screens.Menu
 
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => Background.ReceivePositionalInputAt(screenSpacePos);
 
-        public MainMenuButton(LocalisableString text, string sampleName, Color4 colour, Action<MainMenuButton>? clickAction = null, params Key[] triggerKeys)
+        public MainMenuButton(LocalisableString text, string sampleName, IconUsage symbol, Color4 colour, Action<MainMenuButton>? clickAction = null, params Key[] triggerKeys)
         {
             this.sampleName = sampleName;
             this.clickAction = clickAction;
@@ -145,6 +150,16 @@ namespace osu.Game.Screens.Menu
                                 Bottom = 7,
                             },
                             Text = text
+                        },
+                        icon = new SpriteIcon
+                        {
+                            Shadow = true,
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            Size = new Vector2(32),
+                            Position = new Vector2(0, 0),
+                            Margin = new MarginPadding { Top = -4 },
+                            Icon = symbol
                         }
                     }
                 }
@@ -163,6 +178,12 @@ namespace osu.Game.Screens.Menu
         {
             if (State != ButtonState.Expanded) return true;
 
+            double duration = TimeUntilNextBeat;
+
+            icon.ClearTransforms();
+            icon.RotateTo(rightward ? -BOUNCE_ROTATION : BOUNCE_ROTATION, duration, Easing.InOutSine);
+            icon.ScaleTo(new Vector2(HOVER_SCALE, HOVER_SCALE * BOUNCE_COMPRESSION), duration, Easing.Out);
+
             sampleHover?.Play();
             Background.ResizeTo(Vector2.Multiply(initialSize, new Vector2(1.5f, 1)), 500, Easing.OutElastic);
 
@@ -173,6 +194,11 @@ namespace osu.Game.Screens.Menu
         {
             if (State == ButtonState.Expanded)
                 Background.ResizeTo(initialSize, 500, Easing.OutElastic);
+
+            icon.ClearTransforms();
+            icon.RotateTo(0, 500, Easing.Out);
+            icon.MoveTo(Vector2.Zero, 500, Easing.Out);
+            icon.ScaleTo(Vector2.One, 200, Easing.Out);
         }
 
         [BackgroundDependencyLoader]
@@ -212,6 +238,29 @@ namespace osu.Game.Screens.Menu
             }
 
             return false;
+        }
+
+        private bool rightward;
+
+        protected override void OnNewBeat(int beatIndex, TimingControlPoint timingPoint, EffectControlPoint effectPoint, ChannelAmplitudes amplitudes)
+        {
+            base.OnNewBeat(beatIndex, timingPoint, effectPoint, amplitudes);
+
+            if (!IsHovered) return;
+
+            double duration = timingPoint.BeatLength / 2;
+
+            icon.RotateTo(rightward ? BOUNCE_ROTATION : -BOUNCE_ROTATION, duration * 2, Easing.InOutSine);
+
+            icon.Animate(
+                i => i.MoveToY(-10, duration, Easing.Out),
+                i => i.ScaleTo(HOVER_SCALE, duration, Easing.Out)
+            ).Then(
+                i => i.MoveToY(0, duration, Easing.In),
+                i => i.ScaleTo(new Vector2(HOVER_SCALE, HOVER_SCALE * BOUNCE_COMPRESSION), duration, Easing.In)
+            );
+
+            rightward = !rightward;
         }
 
         private void trigger()

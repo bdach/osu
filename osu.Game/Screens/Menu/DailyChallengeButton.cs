@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Beatmaps.Drawables.Cards;
+using osu.Game.Graphics;
 using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
@@ -35,9 +36,8 @@ namespace osu.Game.Screens.Menu
         private IAPIProvider api { get; set; } = null!;
 
         public DailyChallengeButton(string sampleName, Color4 colour, Action<MainMenuButton>? clickAction = null, params Key[] triggerKeys)
-            : base(ButtonSystemStrings.DailyChallenge, sampleName, colour, clickAction, triggerKeys)
+            : base(ButtonSystemStrings.DailyChallenge, sampleName, OsuIcon.DailyChallenge, colour, clickAction, triggerKeys)
         {
-            Title.Margin = new MarginPadding { Left = -12, Bottom = 7 };
             BaseSize = new Vector2(ButtonSystem.BUTTON_WIDTH * 1.3f, ButtonArea.BUTTON_AREA_HEIGHT);
 
             Background.Add(cover = new UpdateableOnlineBeatmapSetCover
