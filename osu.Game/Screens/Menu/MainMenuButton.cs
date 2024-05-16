@@ -116,6 +116,8 @@ namespace osu.Game.Screens.Menu
                         {
                             bg.RelativeSizeAxes = Axes.Y;
                             bg.X = -ButtonSystem.WEDGE_WIDTH;
+                            bg.Anchor = Anchor.Centre;
+                            bg.Origin = Anchor.Centre;
                         }),
                         boxHoverLayer = new Box
                         {
@@ -179,6 +181,13 @@ namespace osu.Game.Screens.Menu
 
             background.Size = initialSize;
             background.Shear = new Vector2(ButtonSystem.WEDGE_WIDTH / initialSize.Y, 0);
+
+            // for whatever reason, attempting to size the background "just in time" to cover the visible width
+            // results in gaps when the width changes are quick (only visible when testing menu at 100% speed, not visible slowed down).
+            // to ensure there's no missing backdrop, just use a ballpark that should be enough to always cover the width and then some.
+            // note that while on a code inspections it would seem that `1.5 * initialSize.X` would be enough, elastic usings are used in this button
+            // (which can exceed the [0;1] range during interpolation).
+            backgroundContent.Width = 2 * initialSize.X;
             backgroundContent.Shear = -background.Shear;
         }
 
@@ -291,7 +300,6 @@ namespace osu.Game.Screens.Menu
         protected override void Update()
         {
             content.Alpha = Math.Clamp((background.Width / initialSize.X - 0.5f) / 0.3f, 0, 1);
-            backgroundContent.Width = background.Width + ButtonSystem.WEDGE_WIDTH;
             base.Update();
         }
 
