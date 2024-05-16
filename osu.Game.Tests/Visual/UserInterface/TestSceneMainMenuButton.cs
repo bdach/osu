@@ -75,7 +75,6 @@ namespace osu.Game.Tests.Visual.UserInterface
             AddStep("beatmap of the day active", () => metadataClient.DailyChallengeUpdated(new DailyChallengeInfo
             {
                 RoomID = 1234,
-                BeatmapID = 1001,
             }));
 
             AddStep("beatmap of the day not active", () => metadataClient.DailyChallengeUpdated(null));

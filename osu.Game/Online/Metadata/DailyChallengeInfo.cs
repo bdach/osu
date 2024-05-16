@@ -12,8 +12,5 @@ namespace osu.Game.Online.Metadata
     {
         [Key(0)]
         public long RoomID { get; set; }
-
-        [Key(1)]
-        public int BeatmapID { get; set; }
     }
 }
