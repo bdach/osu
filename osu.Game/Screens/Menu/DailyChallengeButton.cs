@@ -10,6 +10,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.Shapes;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Beatmaps.Drawables.Cards;
 using osu.Game.Graphics;
@@ -29,8 +30,9 @@ namespace osu.Game.Screens.Menu
     {
         public Room? Room { get; private set; }
 
-        private readonly UpdateableOnlineBeatmapSetCover cover;
+        private UpdateableOnlineBeatmapSetCover cover = null!;
         private IBindable<DailyChallengeInfo?> info = null!;
+        private BufferedContainer background = null!;
 
         [Resolved]
         private IAPIProvider api { get; set; } = null!;
@@ -39,17 +41,33 @@ namespace osu.Game.Screens.Menu
             : base(ButtonSystemStrings.DailyChallenge, sampleName, OsuIcon.DailyChallenge, colour, clickAction, triggerKeys)
         {
             BaseSize = new Vector2(ButtonSystem.BUTTON_WIDTH * 1.3f, ButtonArea.BUTTON_AREA_HEIGHT);
-
-            Background.Add(cover = new UpdateableOnlineBeatmapSetCover
-            {
-                RelativeSizeAxes = Axes.Y,
-                Colour = ColourInfo.GradientVertical(Colour4.White, Colour4.White.Opacity(0)),
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-                RelativePositionAxes = Axes.X,
-                X = -0.5f,
-            });
         }
+
+        protected override Drawable CreateBackground(Colour4 accentColour) => background = new BufferedContainer
+        {
+            Children = new Drawable[]
+            {
+                cover = new UpdateableOnlineBeatmapSetCover
+                {
+                    RelativeSizeAxes = Axes.Y,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativePositionAxes = Axes.X,
+                    X = -0.5f,
+                },
+                new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Colour = ColourInfo.GradientVertical(accentColour.Opacity(0), accentColour),
+                    Blending = BlendingParameters.Additive,
+                },
+                new Box
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Colour = accentColour.Opacity(0.7f)
+                },
+            },
+        };
 
         [BackgroundDependencyLoader]
         private void load(MetadataClient metadataClient)
@@ -64,8 +82,6 @@ namespace osu.Game.Screens.Menu
             info.BindValueChanged(updateDisplay, true);
             FinishTransforms(true);
 
-            cover.Shear = -Background.Shear;
-
             cover.MoveToX(-0.5f, 10000, Easing.InOutSine)
                  .Then().MoveToX(0.5f, 10000, Easing.InOutSine)
                  .Loop();
@@ -75,7 +91,7 @@ namespace osu.Game.Screens.Menu
         {
             base.Update();
 
-            cover.Width = 2 * Background.Width + ButtonSystem.WEDGE_WIDTH;
+            cover.Width = 2 * background.DrawWidth;
         }
 
         private void updateDisplay(ValueChangedEvent<DailyChallengeInfo?> info)

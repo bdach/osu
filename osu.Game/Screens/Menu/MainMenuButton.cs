@@ -70,6 +70,7 @@ namespace osu.Game.Screens.Menu
 
         private readonly Action<MainMenuButton>? clickAction;
 
+        private readonly Drawable backgroundContent;
         private readonly Box boxHoverLayer;
         private readonly SpriteIcon icon;
 
@@ -114,12 +115,11 @@ namespace osu.Game.Screens.Menu
                     Origin = Anchor.Centre,
                     Children = new[]
                     {
-                        new Box
+                        backgroundContent = CreateBackground(colour).With(bg =>
                         {
-                            EdgeSmoothness = new Vector2(1.5f, 0),
-                            RelativeSizeAxes = Axes.Both,
-                            Colour = colour,
-                        },
+                            bg.RelativeSizeAxes = Axes.Y;
+                            bg.X = -ButtonSystem.WEDGE_WIDTH;
+                        }),
                         boxHoverLayer = new Box
                         {
                             EdgeSmoothness = new Vector2(1.5f, 0),
@@ -166,12 +166,23 @@ namespace osu.Game.Screens.Menu
             });
         }
 
+        protected virtual Drawable CreateBackground(Colour4 accentColour) => new Container
+        {
+            Child = new Box
+            {
+                EdgeSmoothness = new Vector2(1.5f, 0),
+                RelativeSizeAxes = Axes.Both,
+                Colour = accentColour,
+            }
+        };
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
             Background.Size = initialSize;
             Background.Shear = new Vector2(ButtonSystem.WEDGE_WIDTH / initialSize.Y, 0);
+            backgroundContent.Shear = -Background.Shear;
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -283,6 +294,7 @@ namespace osu.Game.Screens.Menu
         protected override void Update()
         {
             content.Alpha = Math.Clamp((Background.Width / initialSize.X - 0.5f) / 0.3f, 0, 1);
+            backgroundContent.Width = Background.Width + ButtonSystem.WEDGE_WIDTH;
             base.Update();
         }
 
