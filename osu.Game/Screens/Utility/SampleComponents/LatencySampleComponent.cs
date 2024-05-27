@@ -3,6 +3,7 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input;
 using osu.Framework.Input.States;
@@ -38,7 +39,7 @@ namespace osu.Game.Screens.Utility.SampleComponents
         {
             base.LoadComplete();
 
-            inputManager = GetContainingInputManager();
+            inputManager = GetContainingInputManager().AsNonNull();
             IsActive.BindTo(latencyArea.IsActiveArea);
         }
 

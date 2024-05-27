@@ -86,7 +86,7 @@ namespace osu.Game.Tests.Visual.Editing
             {
                 base.LoadComplete();
 
-                updatePosition(GetContainingInputManager().CurrentState.Mouse.Position);
+                updatePosition(GetContainingInputManager()!.CurrentState.Mouse.Position);
             }
 
             protected override bool OnMouseMove(MouseMoveEvent e)

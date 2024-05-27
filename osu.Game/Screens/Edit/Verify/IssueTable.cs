@@ -6,6 +6,7 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
@@ -53,7 +54,7 @@ namespace osu.Game.Screens.Edit.Verify
                             if (issue.Time != null)
                             {
                                 clock.Seek(issue.Time.Value);
-                                editor.OnPressed(new KeyBindingPressEvent<GlobalAction>(GetContainingInputManager().CurrentState, GlobalAction.EditorComposeMode));
+                                editor.OnPressed(new KeyBindingPressEvent<GlobalAction>(GetContainingInputManager().AsNonNull().CurrentState, GlobalAction.EditorComposeMode));
                             }
 
                             if (!issue.HitObjects.Any())
