@@ -5,6 +5,7 @@ using Humanizer;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Localisation;
 using osu.Framework.Screens;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
@@ -20,7 +21,7 @@ namespace osu.Game.Screens.OnlinePlay
         private readonly ScreenStack? stack;
         private readonly MultiHeaderTitle title;
 
-        public Header(string mainTitle, ScreenStack? stack)
+        public Header(LocalisableString mainTitle, ScreenStack? stack)
         {
             this.stack = stack;
 
@@ -53,10 +54,14 @@ namespace osu.Game.Screens.OnlinePlay
 
             public IOnlinePlaySubScreen? Screen
             {
-                set => pageTitle.Text = value?.ShortTitle.Titleize() ?? string.Empty;
+                set
+                {
+                    pageTitle.Text = value?.ShortTitle.Titleize() ?? default(LocalisableString);
+                    dot.Alpha = pageTitle.Text == default ? 0 : 1;
+                }
             }
 
-            public MultiHeaderTitle(string mainTitle)
+            public MultiHeaderTitle(LocalisableString mainTitle)
             {
                 AutoSizeAxes = Axes.Both;
 
@@ -81,14 +86,14 @@ namespace osu.Game.Screens.OnlinePlay
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
                                 Font = OsuFont.TorusAlternate.With(size: 24),
-                                Text = "·"
+                                Text = "·",
+                                Alpha = 0,
                             },
                             pageTitle = new OsuSpriteText
                             {
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
                                 Font = OsuFont.TorusAlternate.With(size: 24),
-                                Text = "Lounge"
                             }
                         }
                     },
