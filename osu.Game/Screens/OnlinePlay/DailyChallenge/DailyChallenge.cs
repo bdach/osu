@@ -90,6 +90,8 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         {
             sampleStart = audio.Samples.Get(@"SongSelect/confirm-selection");
 
+            FillFlowContainer footerButtons;
+
             InternalChild = waves = new OnlinePlayScreenWaveContainer
             {
                 RelativeSizeAxes = Axes.Both,
@@ -208,9 +210,13 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                             ],
                             null,
                             [
-                                new Container // TODO: this footer doesn't take up entire screen width, fix this
+                                new Container
                                 {
                                     RelativeSizeAxes = Axes.Both,
+                                    Padding = new MarginPadding
+                                    {
+                                        Horizontal = -WaveOverlayContainer.WIDTH_PADDING,
+                                    },
                                     Children = new Drawable[]
                                     {
                                         new Box
@@ -218,7 +224,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                             RelativeSizeAxes = Axes.Both,
                                             Colour = Color4Extensions.FromHex(@"28242d") // Temporary.
                                         },
-                                        new FillFlowContainer
+                                        footerButtons = new FillFlowContainer
                                         {
                                             RelativeSizeAxes = Axes.Both,
                                             Direction = FillDirection.Horizontal,
@@ -226,15 +232,6 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                             Spacing = new Vector2(10),
                                             Children = new Drawable[]
                                             {
-                                                new UserModSelectButton
-                                                {
-                                                    Text = "Free mods",
-                                                    Anchor = Anchor.Centre,
-                                                    Origin = Anchor.Centre,
-                                                    RelativeSizeAxes = Axes.Y,
-                                                    Size = new Vector2(250, 1),
-                                                    Action = () => userModsSelectOverlay.Show(),
-                                                },
                                                 new PlaylistsReadyButton
                                                 {
                                                     Anchor = Anchor.Centre,
@@ -258,6 +255,18 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                 SelectedMods = { BindTarget = userMods },
                 IsValidMod = _ => false
             });
+
+            if (playlistItem.AllowedMods.Any())
+            {
+                footerButtons.Insert(0, new UserModSelectButton
+                {
+                    Text = "Free mods",
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    RelativeSizeAxes = Axes.Y,
+                    Size = new Vector2(250, 1),
+                });
+            }
         }
 
         protected override void LoadComplete()
