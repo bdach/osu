@@ -162,7 +162,10 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                             {
                                                 new Drawable?[]
                                                 {
-                                                    null,
+                                                    new DailyChallengeTimeRemainingRing
+                                                    {
+                                                        RelativeSizeAxes = Axes.Both,
+                                                    },
                                                     null,
                                                     // Middle column (leaderboard)
                                                     new GridContainer
