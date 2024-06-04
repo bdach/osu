@@ -16,18 +16,17 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 {
     public partial class DailyChallengeCarousel : Container
     {
-        private const int switch_interval = 5_500;
+        private const int switch_interval = 20_500;
 
-        private Container content = null!;
-        private FillFlowContainer<NavigationDot> navigationFlow = null!;
+        private readonly Container content;
+        private readonly FillFlowContainer<NavigationDot> navigationFlow;
 
         protected override Container<Drawable> Content => content;
 
         private double clockStartTime;
         private int lastDisplayed = -1;
 
-        [BackgroundDependencyLoader]
-        private void load()
+        public DailyChallengeCarousel()
         {
             InternalChildren = new Drawable[]
             {
