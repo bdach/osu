@@ -1,11 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Input.Events;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
 using osuTK;
 
@@ -13,6 +16,8 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 {
     public partial class DailyChallengeCarousel : Container
     {
+        private const int switch_interval = 5_500;
+
         private Container content = null!;
         private FillFlowContainer<NavigationDot> navigationFlow = null!;
 
@@ -51,7 +56,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
             base.Add(drawable);
 
-            navigationFlow.Add(new NavigationDot());
+            navigationFlow.Add(new NavigationDot { Clicked = onManualNavigation });
         }
 
         public override bool Remove(Drawable drawable, bool disposeImmediately)
@@ -81,8 +86,6 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                 return;
             }
 
-            const int switch_interval = 5_500;
-
             double elapsed = Clock.CurrentTime - clockStartTime;
 
             int currentDisplay = (int)(elapsed / switch_interval) % content.Count;
@@ -107,8 +110,20 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             lastDisplayed = currentDisplay;
         }
 
+        private void onManualNavigation(NavigationDot obj)
+        {
+            int index = navigationFlow.IndexOf(obj);
+
+            if (index < 0)
+                return;
+
+            clockStartTime = Clock.CurrentTime - index * switch_interval;
+        }
+
         private partial class NavigationDot : CompositeDrawable
         {
+            public Action<NavigationDot>? Clicked { get; set; }
+
             public BindableBool Active { get; set; } = new BindableBool();
 
             private double progress;
@@ -137,33 +152,37 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             {
                 Size = new Vector2(20);
 
-                InternalChild = new CircularContainer()
+                InternalChildren = new Drawable[]
                 {
-                    RelativeSizeAxes = Axes.Both,
-                    Masking = true,
-                    Children = new Drawable[]
+                    new CircularContainer
                     {
-                        background = new Box
+                        RelativeSizeAxes = Axes.Both,
+                        Masking = true,
+                        Children = new Drawable[]
                         {
-                            RelativeSizeAxes = Axes.Both,
-                            Colour = colourProvider.Light4,
-                        },
-                        progressLayer = new Box
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Width = 0,
-                            Colour = colourProvider.Highlight1,
-                            Blending = BlendingParameters.Additive,
-                            Alpha = 0,
-                        },
-                        hoverLayer = new Box
-                        {
-                            RelativeSizeAxes = Axes.Both,
-                            Colour = Colour4.White,
-                            Blending = BlendingParameters.Additive,
-                            Alpha = 0,
+                            background = new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = colourProvider.Light4,
+                            },
+                            progressLayer = new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Width = 0,
+                                Colour = colourProvider.Highlight1,
+                                Blending = BlendingParameters.Additive,
+                                Alpha = 0,
+                            },
+                            hoverLayer = new Box
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Colour = Colour4.White,
+                                Blending = BlendingParameters.Additive,
+                                Alpha = 0,
+                            }
                         }
-                    }
+                    },
+                    new HoverClickSounds()
                 };
             }
 
@@ -187,6 +206,29 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                         progressLayer.FadeOut(250, Easing.OutQuint);
                     }
                 }, true);
+            }
+
+            protected override bool OnHover(HoverEvent e)
+            {
+                base.OnHover(e);
+                hoverLayer.FadeTo(0.2f, 250, Easing.OutQuint);
+                return true;
+            }
+
+            protected override void OnHoverLost(HoverLostEvent e)
+            {
+                hoverLayer.FadeOut(250, Easing.OutQuint);
+                base.OnHoverLost(e);
+            }
+
+            protected override bool OnClick(ClickEvent e)
+            {
+                Clicked?.Invoke(this);
+
+                hoverLayer.FadeTo(1)
+                          .Then().FadeTo(IsHovered ? 0.2f : 0, 250, Easing.OutQuint);
+
+                return true;
             }
         }
     }
