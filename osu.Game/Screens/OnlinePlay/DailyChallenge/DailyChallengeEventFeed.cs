@@ -9,6 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Scoring;
 using osu.Game.Users.Drawables;
@@ -23,14 +24,23 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         [BackgroundDependencyLoader]
         private void load()
         {
-            InternalChild = flow = new DailyChallengeEventFeedFlow
+            InternalChildren = new Drawable[]
             {
-                RelativeSizeAxes = Axes.Both,
-                Direction = FillDirection.Vertical,
-                Origin = Anchor.BottomCentre,
-                Anchor = Anchor.BottomCentre,
-                Spacing = new Vector2(5),
-                Masking = true,
+                new SectionHeader("Events"),
+                new Container
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Padding = new MarginPadding { Top = 35 },
+                    Child = flow = new DailyChallengeEventFeedFlow
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Direction = FillDirection.Vertical,
+                        Origin = Anchor.BottomCentre,
+                        Anchor = Anchor.BottomCentre,
+                        Spacing = new Vector2(5),
+                        Masking = true,
+                    }
+                }
             };
         }
 

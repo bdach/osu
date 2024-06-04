@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
 using osu.Game.Scoring;
 using osuTK;
@@ -28,11 +29,13 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         {
             InternalChildren = new Drawable[]
             {
+                new SectionHeader("Score breakdown"),
                 barsContainer = new FillFlowContainer<Bar>
                 {
                     Direction = FillDirection.Horizontal,
                     RelativeSizeAxes = Axes.Both,
                     Height = 0.9f,
+                    Padding = new MarginPadding { Top = 35 },
                     Anchor = Anchor.BottomCentre,
                     Origin = Anchor.BottomCentre,
                 }
