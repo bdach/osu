@@ -17,6 +17,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Screens;
 using osu.Game.Beatmaps;
 using osu.Game.Graphics.Containers;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
@@ -162,9 +163,39 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                             {
                                                 new Drawable?[]
                                                 {
-                                                    new DailyChallengeTimeRemainingRing
+                                                    new GridContainer
                                                     {
                                                         RelativeSizeAxes = Axes.Both,
+                                                        Anchor = Anchor.Centre,
+                                                        Origin = Anchor.Centre,
+                                                        RowDimensions =
+                                                        [
+                                                            new Dimension(),
+                                                            new Dimension()
+                                                        ],
+                                                        Content = new[]
+                                                        {
+                                                            new Drawable[]
+                                                            {
+                                                                new DailyChallengeCarousel
+                                                                {
+                                                                    RelativeSizeAxes = Axes.Both,
+                                                                    Anchor = Anchor.Centre,
+                                                                    Origin = Anchor.Centre,
+                                                                    Children = new Drawable[]
+                                                                    {
+                                                                        new DailyChallengeTimeRemainingRing(),
+                                                                        new DailyChallengeScoreBreakdown(), // TODO: feed it data
+                                                                    }
+                                                                }
+                                                            },
+                                                            [
+                                                                new DailyChallengeEventFeed // TODO: feed it data
+                                                                {
+                                                                    RelativeSizeAxes = Axes.Both,
+                                                                }
+                                                            ],
+                                                        },
                                                     },
                                                     null,
                                                     // Middle column (leaderboard)
@@ -175,7 +206,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                                         {
                                                             new Drawable[]
                                                             {
-                                                                new OverlinedHeader("Leaderboard")
+                                                                new SectionHeader("Leaderboard")
                                                             },
                                                             [leaderboard = new MatchLeaderboard { RelativeSizeAxes = Axes.Both }],
                                                         },
@@ -195,7 +226,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                                         {
                                                             new Drawable[]
                                                             {
-                                                                new OverlinedHeader("Chat")
+                                                                new SectionHeader("Chat")
                                                             },
                                                             [new MatchChatDisplay(room) { RelativeSizeAxes = Axes.Both }]
                                                         },
