@@ -65,10 +65,10 @@ namespace osu.Game.Tests.Visual.DailyChallenge
         [Test]
         public void TestIntegration()
         {
+            GridContainer grid = null!;
             DailyChallengeCarousel carousel = null!;
             DailyChallengeEventFeed feed = null!;
             DailyChallengeScoreBreakdown breakdown = null!;
-
             AddStep("create content", () => Children = new Drawable[]
             {
                 new Box
@@ -76,28 +76,50 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                     RelativeSizeAxes = Axes.Both,
                     Colour = colourProvider.Background4,
                 },
-                carousel = new DailyChallengeCarousel
+                grid = new GridContainer
                 {
                     RelativeSizeAxes = Axes.Both,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    Children = new Drawable[]
+                    RowDimensions =
+                    [
+                        new Dimension(),
+                        new Dimension()
+                    ],
+                    Content = new[]
                     {
-                        new DailyChallengeTimeRemainingRing(),
-                        feed = new DailyChallengeEventFeed(),
-                        breakdown = new DailyChallengeScoreBreakdown(),
+                        new Drawable[]
+                        {
+                            carousel = new DailyChallengeCarousel
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                                Anchor = Anchor.Centre,
+                                Origin = Anchor.Centre,
+                                Children = new Drawable[]
+                                {
+                                    new DailyChallengeTimeRemainingRing(),
+                                    breakdown = new DailyChallengeScoreBreakdown(),
+                                }
+                            }
+                        },
+                        [
+                            feed = new DailyChallengeEventFeed
+                            {
+                                RelativeSizeAxes = Axes.Both,
+                            }
+                        ],
                     }
-                }
+                },
             });
             AddSliderStep("adjust width", 0.1f, 1, 1, width =>
             {
-                if (carousel.IsNotNull())
-                    carousel.Width = width;
+                if (grid.IsNotNull())
+                    grid.Width = width;
             });
             AddSliderStep("adjust height", 0.1f, 1, 1, height =>
             {
-                if (carousel.IsNotNull())
-                    carousel.Height = height;
+                if (grid.IsNotNull())
+                    grid.Height = height;
             });
             AddSliderStep("update time remaining", 0f, 1f, 0f, progress =>
             {

@@ -38,7 +38,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                 navigationFlow = new FillFlowContainer<NavigationDot>
                 {
                     AutoSizeAxes = Axes.X,
-                    Height = 20,
+                    Height = 15,
                     Anchor = Anchor.BottomCentre,
                     Origin = Anchor.BottomCentre,
                     Spacing = new Vector2(10),
@@ -149,7 +149,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             [BackgroundDependencyLoader]
             private void load()
             {
-                Size = new Vector2(20);
+                Size = new Vector2(15);
 
                 InternalChildren = new Drawable[]
                 {
@@ -194,14 +194,14 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                     if (val.NewValue)
                     {
                         background.FadeColour(colourProvider.Highlight1, 250, Easing.OutQuint);
-                        this.ResizeWidthTo(40, 250, Easing.OutQuint);
+                        this.ResizeWidthTo(30, 250, Easing.OutQuint);
                         progressLayer.Width = 0;
                         progressLayer.Alpha = 0.5f;
                     }
                     else
                     {
                         background.FadeColour(colourProvider.Light4, 250, Easing.OutQuint);
-                        this.ResizeWidthTo(20, 250, Easing.OutQuint);
+                        this.ResizeWidthTo(15, 250, Easing.OutQuint);
                         progressLayer.FadeOut(250, Easing.OutQuint);
                     }
                 }, true);

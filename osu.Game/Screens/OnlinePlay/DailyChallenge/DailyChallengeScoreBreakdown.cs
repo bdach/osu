@@ -77,16 +77,20 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                 Font = OsuFont.Default.With(size: 30),
                 RelativePositionAxes = Axes.X,
                 X = (targetBin + 0.5f) / bin_count - 0.5f,
-                Y = ToLocalSpace(barsContainer[targetBin].CircularBar.ScreenSpaceDrawQuad.TopLeft).Y,
-                Margin = new MarginPadding { Bottom = 5, }
+                Alpha = 0,
             };
             AddInternal(text);
 
-            //text.FadeOut(2500, Easing.OutQuint).Expire();
-            text.ScaleTo(new Vector2(0.8f), 500, Easing.OutElasticHalf)
-                .MoveToOffset(new Vector2(0, -50), 2500, Easing.OutQuint)
-                .FadeOut(2500, Easing.OutQuint)
-                .Expire();
+            Scheduler.AddDelayed(() =>
+            {
+                float startY = ToLocalSpace(barsContainer[targetBin].CircularBar.ScreenSpaceDrawQuad.TopLeft).Y;
+                text.FadeInFromZero()
+                    .ScaleTo(new Vector2(0.8f), 500, Easing.OutElasticHalf)
+                    .MoveToY(startY)
+                    .MoveToOffset(new Vector2(0, -50), 2500, Easing.OutQuint)
+                    .FadeOut(2500, Easing.OutQuint)
+                    .Expire();
+            }, 150);
         }
 
         public void SetInitialCounts(long[] counts)
@@ -112,7 +116,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             private long count;
             private long max;
 
-            public Circle CircularBar { get; private set; } = null!;
+            public Container CircularBar { get; private set; } = null!;
 
             public Bar(LocalisableString? label = null)
             {
@@ -135,13 +139,19 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                     Anchor = Anchor.BottomCentre,
                     Origin = Anchor.BottomCentre,
                     Masking = true,
-                    Child = CircularBar = new Circle
+                    Child = CircularBar = new Container
                     {
                         RelativeSizeAxes = Axes.Both,
                         Anchor = Anchor.BottomCentre,
                         Origin = Anchor.BottomCentre,
                         Height = 0.01f,
-                        Colour = colourProvider.Highlight1
+                        Masking = true,
+                        CornerRadius = 10,
+                        Colour = colourProvider.Highlight1,
+                        Child = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                        }
                     }
                 });
 

@@ -35,13 +35,13 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                 {
                     RelativeSizeAxes = Axes.Both,
                     Padding = new MarginPadding { Top = 35 },
-                    TargetDrawSize = new Vector2(300),
+                    TargetDrawSize = new Vector2(200),
                     Strategy = DrawSizePreservationStrategy.Minimum,
                     Children = new Drawable[]
                     {
                         new CircularProgress
                         {
-                            Size = new Vector2(270),
+                            Size = new Vector2(180),
                             InnerRadius = 0.1f,
                             Progress = 1,
                             Anchor = Anchor.Centre,
@@ -50,7 +50,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                         },
                         progress = new CircularProgress
                         {
-                            Size = new Vector2(270),
+                            Size = new Vector2(180),
                             InnerRadius = 0.1f,
                             Progress = 1,
                             Anchor = Anchor.Centre,
@@ -74,7 +74,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                 new OsuSpriteText
                                 {
                                     Text = "remaining",
-                                    Font = OsuFont.Default.With(size: 16),
+                                    Font = OsuFont.Default.With(size: 20),
                                     Anchor = Anchor.Centre,
                                     Origin = Anchor.Centre,
                                 }
