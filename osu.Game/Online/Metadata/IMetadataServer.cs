@@ -44,7 +44,7 @@ namespace osu.Game.Online.Metadata
         /// </summary>
         Task EndWatchingUserPresence();
 
-        Task<MultiplayerRoomStateAggregate> BeginWatchingMultiplayerRoom(long id);
+        Task<MultiplayerPlaylistItemStats[]> BeginWatchingMultiplayerRoom(long id);
 
         Task EndWatchingMultiplayerRoom(long id);
     }

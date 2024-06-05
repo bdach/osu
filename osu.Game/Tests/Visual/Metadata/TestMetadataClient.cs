@@ -87,8 +87,8 @@ namespace osu.Game.Tests.Visual.Metadata
             return Task.CompletedTask;
         }
 
-        public override Task<MultiplayerRoomStateAggregate> BeginWatchingMultiplayerRoom(long id)
-            => Task.FromResult(new MultiplayerRoomStateAggregate()); // TODO: probably change around so that this can be tested later
+        public override Task<MultiplayerPlaylistItemStats[]> BeginWatchingMultiplayerRoom(long id)
+            => Task.FromResult(new MultiplayerPlaylistItemStats[MultiplayerPlaylistItemStats.TOTAL_SCORE_DISTRIBUTION_BINS]); // TODO: probably change around so that this can be tested later
 
         public override Task EndWatchingMultiplayerRoom(long id) => Task.CompletedTask;
     }

@@ -8,11 +8,14 @@ namespace osu.Game.Online.Metadata
 {
     [MessagePackObject]
     [Serializable]
-    public class MultiplayerRoomStateAggregate
+    public class MultiplayerPlaylistItemStats
     {
-        public const int TOTAL_SCORE_DISTRIBUTION_BINS = 12;
+        public const int TOTAL_SCORE_DISTRIBUTION_BINS = 13;
 
         [Key(0)]
+        public long PlaylistItemID { get; set; }
+
+        [Key(1)]
         public long[] TotalScoreDistribution { get; set; } = new long[TOTAL_SCORE_DISTRIBUTION_BINS];
     }
 }

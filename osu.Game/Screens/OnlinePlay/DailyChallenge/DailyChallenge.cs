@@ -9,6 +9,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -17,17 +18,18 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Screens;
 using osu.Game.Beatmaps;
+using osu.Game.Database;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Metadata;
-using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
-using osu.Game.Overlays.Notifications;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.OnlinePlay.Components;
+using osu.Game.Screens.OnlinePlay.DailyChallenge.Events;
 using osu.Game.Screens.OnlinePlay.Match;
 using osu.Game.Screens.OnlinePlay.Match.Components;
 using osu.Game.Screens.OnlinePlay.Playlists;
@@ -51,6 +53,9 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         private RoomModSelectOverlay userModsSelectOverlay = null!;
         private Sample? sampleStart;
         private IDisposable? userModsSelectOverlayRegistration;
+
+        private DailyChallengeScoreBreakdown breakdown = null!;
+        private DailyChallengeEventFeed feed = null!;
 
         [Cached]
         private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Plum);
@@ -77,7 +82,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         private MetadataClient metadataClient { get; set; } = null!;
 
         [Resolved]
-        private INotificationOverlay? notificationOverlay { get; set; }
+        private UserLookupCache userLookupCache { get; set; } = null!;
 
         public override bool DisallowExternalBeatmapRulesetChanges => true;
 
@@ -195,12 +200,12 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                                                     Children = new Drawable[]
                                                                     {
                                                                         new DailyChallengeTimeRemainingRing(),
-                                                                        new DailyChallengeScoreBreakdown(), // TODO: feed it data
+                                                                        breakdown = new DailyChallengeScoreBreakdown(),
                                                                     }
                                                                 }
                                                             },
                                                             [
-                                                                new DailyChallengeEventFeed // TODO: feed it data
+                                                                feed = new DailyChallengeEventFeed
                                                                 {
                                                                     RelativeSizeAxes = Axes.Both,
                                                                 }
@@ -317,8 +322,21 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
         private void onRoomScoreSet(MultiplayerRoomScoreSetEvent e)
         {
-            if (e.RoomID == room.RoomID.Value)
-                notificationOverlay?.Post(new SimpleNotification { Text = "someone else set a score here! :D" });
+            if (e.RoomID != room.RoomID.Value || e.PlaylistItemID != playlistItem.ID)
+                return;
+
+            userLookupCache.GetUserAsync(e.UserID).ContinueWith(t =>
+            {
+                APIUser? user = t.GetResultSafely();
+                if (user == null) return;
+
+                var ev = new NewScoreEvent(e.ScoreID, user, e.TotalScore, null); // TODO: new rank
+                Schedule(() =>
+                {
+                    breakdown.AddNewScore(ev);
+                    feed.AddNewScore(ev);
+                });
+            });
         }
 
         protected override void LoadComplete()
@@ -335,7 +353,15 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
             waves.Show();
             roomManager.JoinRoom(room);
-            metadataClient.BeginWatchingMultiplayerRoom(room.RoomID.Value!.Value).FireAndForget();
+
+            metadataClient.BeginWatchingMultiplayerRoom(room.RoomID.Value!.Value).ContinueWith(t =>
+            {
+                MultiplayerPlaylistItemStats[] stats = t.GetResultSafely();
+                var itemStats = stats.SingleOrDefault(item => item.PlaylistItemID == playlistItem.ID);
+                if (itemStats == null) return;
+
+                Schedule(() => breakdown.SetInitialCounts(itemStats.TotalScoreDistribution));
+            });
 
             beatmapAvailabilityTracker.SelectedItem.Value = playlistItem;
             beatmapAvailabilityTracker.Availability.BindValueChanged(_ => trySetDailyChallengeBeatmap(), true);

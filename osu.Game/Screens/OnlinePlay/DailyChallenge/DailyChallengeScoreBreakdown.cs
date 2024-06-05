@@ -12,7 +12,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
-using osu.Game.Scoring;
+using osu.Game.Screens.OnlinePlay.DailyChallenge.Events;
 using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.DailyChallenge
@@ -63,15 +63,15 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             }
         }
 
-        public void AddNewScore(IScoreInfo scoreInfo)
+        public void AddNewScore(NewScoreEvent newScoreEvent)
         {
-            int targetBin = (int)Math.Clamp(Math.Floor((float)scoreInfo.TotalScore / 100000), 0, bin_count - 1);
+            int targetBin = (int)Math.Clamp(Math.Floor((float)newScoreEvent.TotalScore / 100000), 0, bin_count - 1);
             bins[targetBin] += 1;
             updateCounts();
 
             var text = new OsuSpriteText
             {
-                Text = scoreInfo.TotalScore.ToString(@"N0"),
+                Text = newScoreEvent.TotalScore.ToString(@"N0"),
                 Anchor = Anchor.TopCentre,
                 Origin = Anchor.BottomCentre,
                 Font = OsuFont.Default.With(size: 30),

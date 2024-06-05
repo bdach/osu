@@ -70,7 +70,7 @@ namespace osu.Game.Online.Metadata
 
         #region Multiplayer room watching
 
-        public abstract Task<MultiplayerRoomStateAggregate> BeginWatchingMultiplayerRoom(long id);
+        public abstract Task<MultiplayerPlaylistItemStats[]> BeginWatchingMultiplayerRoom(long id);
 
         public abstract Task EndWatchingMultiplayerRoom(long id);
 

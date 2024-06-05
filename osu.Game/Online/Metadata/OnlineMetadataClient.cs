@@ -241,13 +241,13 @@ namespace osu.Game.Online.Metadata
             return Task.CompletedTask;
         }
 
-        public override async Task<MultiplayerRoomStateAggregate> BeginWatchingMultiplayerRoom(long id)
+        public override async Task<MultiplayerPlaylistItemStats[]> BeginWatchingMultiplayerRoom(long id)
         {
             if (connector?.IsConnected.Value != true)
                 throw new OperationCanceledException();
 
             Debug.Assert(connection != null);
-            return await connection.InvokeAsync<MultiplayerRoomStateAggregate>(nameof(IMetadataServer.BeginWatchingMultiplayerRoom), id).ConfigureAwait(false);
+            return await connection.InvokeAsync<MultiplayerPlaylistItemStats[]>(nameof(IMetadataServer.BeginWatchingMultiplayerRoom), id).ConfigureAwait(false);
         }
 
         public override async Task EndWatchingMultiplayerRoom(long id)
