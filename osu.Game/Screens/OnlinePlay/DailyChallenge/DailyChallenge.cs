@@ -11,6 +11,7 @@ using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Extensions.LocalisationExtensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -19,8 +20,11 @@ using osu.Game.Beatmaps;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Localisation;
+using osu.Game.Online.Metadata;
+using osu.Game.Online.Multiplayer;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
+using osu.Game.Overlays.Notifications;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Screens.OnlinePlay.Components;
@@ -68,6 +72,12 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
         [Resolved]
         private IOverlayManager? overlayManager { get; set; }
+
+        [Resolved]
+        private MetadataClient metadataClient { get; set; } = null!;
+
+        [Resolved]
+        private INotificationOverlay? notificationOverlay { get; set; }
 
         public override bool DisallowExternalBeatmapRulesetChanges => true;
 
@@ -301,6 +311,14 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                     Size = new Vector2(250, 1),
                 });
             }
+
+            metadataClient.MultiplayerRoomScoreSet += onRoomScoreSet;
+        }
+
+        private void onRoomScoreSet(MultiplayerRoomScoreSetEvent e)
+        {
+            if (e.RoomID == room.RoomID.Value)
+                notificationOverlay?.Post(new SimpleNotification { Text = "someone else set a score here! :D" });
         }
 
         protected override void LoadComplete()
@@ -317,6 +335,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
             waves.Show();
             roomManager.JoinRoom(room);
+            metadataClient.BeginWatchingMultiplayerRoom(room.RoomID.Value!.Value).FireAndForget();
 
             beatmapAvailabilityTracker.SelectedItem.Value = playlistItem;
             beatmapAvailabilityTracker.Availability.BindValueChanged(_ => trySetDailyChallengeBeatmap(), true);
@@ -327,6 +346,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
         {
             var beatmap = beatmapManager.QueryBeatmap(b => b.OnlineID == playlistItem.Beatmap.OnlineID);
             Beatmap.Value = beatmapManager.GetWorkingBeatmap(beatmap); // this will gracefully fall back to dummy beatmap if missing locally.
+            Ruleset.Value = rulesets.GetRuleset(playlistItem.RulesetID);
             musicController.EnsurePlayingSomething();
         }
 
@@ -372,6 +392,9 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             base.Dispose(isDisposing);
 
             userModsSelectOverlayRegistration?.Dispose();
+
+            if (metadataClient.IsNotNull())
+                metadataClient.MultiplayerRoomScoreSet -= onRoomScoreSet;
         }
     }
 }
