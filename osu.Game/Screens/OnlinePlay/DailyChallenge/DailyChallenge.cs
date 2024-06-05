@@ -330,7 +330,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                 APIUser? user = t.GetResultSafely();
                 if (user == null) return;
 
-                var ev = new NewScoreEvent(e.ScoreID, user, e.TotalScore, null); // TODO: new rank
+                var ev = new NewScoreEvent(e.ScoreID, user, e.TotalScore, e.NewRank);
                 Schedule(() =>
                 {
                     breakdown.AddNewScore(ev);

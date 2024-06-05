@@ -24,5 +24,8 @@ namespace osu.Game.Online.Metadata
 
         [Key(4)]
         public long TotalScore { get; set; }
+
+        [Key(5)]
+        public int? NewRank { get; set; }
     }
 }
