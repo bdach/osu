@@ -314,7 +314,12 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                     Origin = Anchor.Centre,
                     RelativeSizeAxes = Axes.Y,
                     Size = new Vector2(250, 1),
+                    Action = () => userModsSelectOverlay.Show(),
                 });
+
+                var rulesetInstance = rulesets.GetRuleset(playlistItem.RulesetID)!.CreateInstance();
+                var allowedMods = playlistItem.AllowedMods.Select(m => m.ToMod(rulesetInstance));
+                userModsSelectOverlay.IsValidMod = m => allowedMods.Any(a => a.GetType() == m.GetType());
             }
 
             metadataClient.MultiplayerRoomScoreSet += onRoomScoreSet;
