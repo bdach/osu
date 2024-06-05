@@ -26,5 +26,7 @@ namespace osu.Game.Online.Metadata
         /// Null value means there is no "daily challenge" currently active.
         /// </summary>
         Task DailyChallengeUpdated(DailyChallengeInfo? info);
+
+        Task MultiplayerRoomScoreSet(MultiplayerRoomScoreSetEvent roomScoreSetEvent);
     }
 }

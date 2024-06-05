@@ -86,5 +86,10 @@ namespace osu.Game.Tests.Visual.Metadata
             dailyChallengeInfo.Value = info;
             return Task.CompletedTask;
         }
+
+        public override Task<MultiplayerRoomStateAggregate> BeginWatchingMultiplayerRoom(long id)
+            => Task.FromResult(new MultiplayerRoomStateAggregate()); // TODO: probably change around so that this can be tested later
+
+        public override Task EndWatchingMultiplayerRoom(long id) => Task.CompletedTask;
     }
 }
