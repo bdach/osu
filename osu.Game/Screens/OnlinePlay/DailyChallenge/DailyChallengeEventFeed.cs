@@ -20,6 +20,8 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
     {
         private FillFlowContainer flow = null!;
 
+        public Action<long>? PresentScore { get; init; }
+
         [BackgroundDependencyLoader]
         private void load()
         {
@@ -49,6 +51,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
             {
                 Anchor = Anchor.BottomCentre,
                 Origin = Anchor.BottomCentre,
+                PresentScore = PresentScore,
             };
             flow.Add(row);
             row.Delay(15000).Then().FadeOut(300, Easing.OutQuint).Expire();

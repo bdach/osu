@@ -208,6 +208,11 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                                                 feed = new DailyChallengeEventFeed
                                                                 {
                                                                     RelativeSizeAxes = Axes.Both,
+                                                                    PresentScore = id =>
+                                                                    {
+                                                                        if (this.IsCurrentScreen())
+                                                                            this.Push(new DailyChallengeResultsScreen(room.RoomID.Value!.Value, playlistItem, id));
+                                                                    }
                                                                 }
                                                             ],
                                                         },
