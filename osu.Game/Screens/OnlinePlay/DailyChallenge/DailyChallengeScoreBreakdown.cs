@@ -104,7 +104,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
 
         private void updateCounts()
         {
-            long max = bins.Max();
+            long max = Math.Max(bins.Max(), 1);
             for (int i = 0; i < bin_count; ++i)
                 barsContainer[i].UpdateCounts(bins[i], max);
         }
