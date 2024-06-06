@@ -345,6 +345,10 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                 {
                     breakdown.AddNewScore(ev);
                     feed.AddNewScore(ev);
+
+                    // TODO: this may not be the best idea.
+                    if (e.NewRank <= 50)
+                        Schedule(() => leaderboard.RefetchScores());
                 });
             });
         }
