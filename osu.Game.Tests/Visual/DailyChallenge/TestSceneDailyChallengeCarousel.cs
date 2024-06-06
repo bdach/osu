@@ -11,10 +11,11 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Utils;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Screens.OnlinePlay.DailyChallenge;
-using osu.Game.Tests.Resources;
+using osu.Game.Screens.OnlinePlay.DailyChallenge.Events;
 
 namespace osu.Game.Tests.Visual.DailyChallenge
 {
@@ -66,7 +67,6 @@ namespace osu.Game.Tests.Visual.DailyChallenge
         public void TestIntegration()
         {
             GridContainer grid = null!;
-            DailyChallengeCarousel carousel = null!;
             DailyChallengeEventFeed feed = null!;
             DailyChallengeScoreBreakdown breakdown = null!;
             AddStep("create content", () => Children = new Drawable[]
@@ -90,7 +90,7 @@ namespace osu.Game.Tests.Visual.DailyChallenge
                     {
                         new Drawable[]
                         {
-                            carousel = new DailyChallengeCarousel
+                            new DailyChallengeCarousel
                             {
                                 RelativeSizeAxes = Axes.Both,
                                 Anchor = Anchor.Centre,
@@ -129,19 +129,27 @@ namespace osu.Game.Tests.Visual.DailyChallenge
             });
             AddStep("add normal score", () =>
             {
-                var testScore = TestResources.CreateTestScoreInfo();
-                testScore.TotalScore = RNG.Next(1_000_000);
+                var ev = new NewScoreEvent(1, new APIUser
+                {
+                    Id = 2,
+                    Username = "peppy",
+                    CoverUrl = "https://osu.ppy.sh/images/headers/profile-covers/c3.jpg",
+                }, RNG.Next(1_000_000), null);
 
-                feed.AddNewScore(new DailyChallengeEventFeed.NewScoreEvent(testScore, null));
-                breakdown.AddNewScore(testScore);
+                feed.AddNewScore(ev);
+                breakdown.AddNewScore(ev);
             });
             AddStep("add new user best", () =>
             {
-                var testScore = TestResources.CreateTestScoreInfo();
-                testScore.TotalScore = RNG.Next(1_000_000);
+                var ev = new NewScoreEvent(1, new APIUser
+                {
+                    Id = 2,
+                    Username = "peppy",
+                    CoverUrl = "https://osu.ppy.sh/images/headers/profile-covers/c3.jpg",
+                }, RNG.Next(1_000_000), RNG.Next(1, 1000));
 
-                feed.AddNewScore(new DailyChallengeEventFeed.NewScoreEvent(testScore, RNG.Next(1, 1000)));
-                breakdown.AddNewScore(testScore);
+                feed.AddNewScore(ev);
+                breakdown.AddNewScore(ev);
             });
         }
 
