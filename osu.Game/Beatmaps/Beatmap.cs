@@ -9,6 +9,7 @@ using System.Linq;
 using osu.Game.Beatmaps.ControlPoints;
 using Newtonsoft.Json;
 using osu.Game.IO.Serialization.Converters;
+using osu.Game.Rulesets.Difficulty;
 
 namespace osu.Game.Beatmaps
 {
@@ -73,7 +74,7 @@ namespace osu.Game.Beatmaps
 
         IReadOnlyList<T> IBeatmap<T>.HitObjects => HitObjects;
 
-        IReadOnlyList<HitObject> IBeatmap.HitObjects => HitObjects;
+        IReadOnlyList<HitObject> IDifficultyCalculatorBeatmap.HitObjects => HitObjects;
 
         public virtual IEnumerable<BeatmapStatistic> GetStatistics() => Enumerable.Empty<BeatmapStatistic>();
 

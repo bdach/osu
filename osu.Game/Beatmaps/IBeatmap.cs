@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Beatmaps.Timing;
+using osu.Game.Rulesets.Difficulty;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Scoring;
@@ -16,7 +17,7 @@ namespace osu.Game.Beatmaps
     /// A materialised beatmap.
     /// Generally this interface will be implemented alongside <see cref="IBeatmap{T}"/>, which exposes the ruleset-typed hit objects.
     /// </summary>
-    public interface IBeatmap
+    public interface IBeatmap : IDifficultyCalculatorBeatmap
     {
         /// <summary>
         /// This beatmap's info.
@@ -31,7 +32,7 @@ namespace osu.Game.Beatmaps
         /// <summary>
         /// This beatmap's difficulty settings.
         /// </summary>
-        public BeatmapDifficulty Difficulty { get; set; }
+        new BeatmapDifficulty Difficulty { get; set; }
 
         /// <summary>
         /// The control points in this beatmap.
@@ -55,12 +56,7 @@ namespace osu.Game.Beatmaps
         double TotalBreakTime { get; }
 
         /// <summary>
-        /// The hitobjects contained by this beatmap.
-        /// </summary>
-        IReadOnlyList<HitObject> HitObjects { get; }
-
-        /// <summary>
-        /// Returns statistics for the <see cref="HitObjects"/> contained in this beatmap.
+        /// Returns statistics for the <see cref="IDifficultyCalculatorBeatmap.HitObjects"/> contained in this beatmap.
         /// </summary>
         IEnumerable<BeatmapStatistic> GetStatistics();
 
@@ -130,7 +126,7 @@ namespace osu.Game.Beatmaps
         /// <summary>
         /// Finds the maximum achievable combo by hitting all <see cref="HitObject"/>s in a beatmap.
         /// </summary>
-        public static int GetMaxCombo(this IBeatmap beatmap)
+        public static int GetMaxCombo(this IDifficultyCalculatorBeatmap beatmap)
         {
             int combo = 0;
             foreach (var h in beatmap.HitObjects)
