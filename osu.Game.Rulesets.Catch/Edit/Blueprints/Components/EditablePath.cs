@@ -104,6 +104,7 @@ namespace osu.Game.Rulesets.Catch.Edit.Blueprints.Components
             // The value is clamped here by the bindable min and max values.
             // In case the required velocity is too large, the path is not preserved.
             svBindable.Value = Math.Ceiling(requiredVelocity / svToVelocityFactor);
+            hitObject.TickDistanceMultiplier = svBindable.Value;
 
             path.ConvertToSliderPath(hitObject.Path, hitObject.LegacyConvertedY, hitObject.Velocity);
 
