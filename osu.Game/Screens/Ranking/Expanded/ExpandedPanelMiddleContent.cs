@@ -79,7 +79,7 @@ namespace osu.Game.Screens.Ranking.Expanded
 
             var bottomStatistics = new List<HitResultStatistic>();
 
-            foreach (var result in score.GetStatisticsForDisplay())
+            foreach (var result in score.GetStatisticsForDisplay(rulesets))
                 bottomStatistics.Add(new HitResultStatistic(result));
 
             statisticDisplays.AddRange(topStatistics);

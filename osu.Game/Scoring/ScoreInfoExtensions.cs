@@ -76,5 +76,37 @@ namespace osu.Game.Scoring
             var ruleset = rulesets.GetRuleset(score.Ruleset.ShortName)!.CreateInstance();
             return score.Mods.Select(m => m.ToMod(ruleset));
         }
+
+        public static IEnumerable<HitResultDisplayStatistic> GetStatisticsForDisplay(this IScoreInfo score, RulesetStore rulesets)
+        {
+            var ruleset = rulesets.GetRuleset(score.Ruleset.ShortName)!.CreateInstance();
+
+            foreach (var r in ruleset.GetHitResults())
+            {
+                int value = score.Statistics.GetValueOrDefault(r.result);
+
+                switch (r.result)
+                {
+                    case HitResult.SmallTickHit:
+                    case HitResult.LargeTickHit:
+                    case HitResult.SliderTailHit:
+                    case HitResult.LargeBonus:
+                    case HitResult.SmallBonus:
+                        if (score.MaximumStatistics.TryGetValue(r.result, out int count) && count > 0)
+                            yield return new HitResultDisplayStatistic(r.result, value, count, r.displayName);
+
+                        break;
+
+                    case HitResult.SmallTickMiss:
+                    case HitResult.LargeTickMiss:
+                        break;
+
+                    default:
+                        yield return new HitResultDisplayStatistic(r.result, value, null, r.displayName);
+
+                        break;
+                }
+            }
+        }
     }
 }

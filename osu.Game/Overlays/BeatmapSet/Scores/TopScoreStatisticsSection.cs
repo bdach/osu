@@ -19,6 +19,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Resources.Localisation.Web;
+using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
@@ -45,6 +46,9 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
 
         [Resolved]
         private ScoreManager scoreManager { get; set; }
+
+        [Resolved]
+        private RulesetStore rulesets { get; set; }
 
         public TopScoreStatisticsSection()
         {
@@ -145,7 +149,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                 else
                     ppColumn.Text = pp.ToLocalisableString(@"N0");
 
-                statisticsColumns.ChildrenEnumerable = value.GetStatisticsForDisplay().Select(createStatisticsColumn);
+                statisticsColumns.ChildrenEnumerable = value.GetStatisticsForDisplay(rulesets).Select(createStatisticsColumn);
                 modsColumn.Mods = value.Mods;
 
                 if (scoreManager != null)

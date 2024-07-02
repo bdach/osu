@@ -25,6 +25,7 @@ using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Resources.Localisation.Web;
+using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 
 namespace osu.Game.Overlays.BeatmapSet.Scores
@@ -37,6 +38,9 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
 
         [Resolved]
         private ScoreManager scoreManager { get; set; }
+
+        [Resolved]
+        private RulesetStore rulesets { get; set; }
 
         private readonly FillFlowContainer backgroundFlow;
 
@@ -101,7 +105,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
             };
 
             // All statistics across all scores, unordered.
-            var allScoreStatistics = scores.SelectMany(s => s.GetStatisticsForDisplay().Select(stat => stat.Result)).ToHashSet();
+            var allScoreStatistics = scores.SelectMany(s => s.GetStatisticsForDisplay(rulesets).Select(stat => stat.Result)).ToHashSet();
 
             var ruleset = scores.First().Ruleset.CreateInstance();
 
@@ -167,7 +171,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
 #pragma warning restore 618
             };
 
-            var availableStatistics = score.GetStatisticsForDisplay().ToDictionary(tuple => tuple.Result);
+            var availableStatistics = score.GetStatisticsForDisplay(rulesets).ToDictionary(tuple => tuple.Result);
 
             foreach (var result in statisticResultTypes)
             {

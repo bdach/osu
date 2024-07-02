@@ -17,6 +17,7 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.UI;
 using osu.Framework.Bindables;
 using osu.Game.Configuration;
+using osu.Game.Rulesets;
 
 namespace osu.Game.Online.Leaderboards
 {
@@ -27,6 +28,9 @@ namespace osu.Game.Online.Leaderboards
         private FillFlowContainer<HitResultCell> bottomScoreStatistics = null!;
         private FillFlowContainer<ModCell> modStatistics = null!;
         private readonly Bindable<bool> prefer24HourTime = new Bindable<bool>();
+
+        [Resolved]
+        private RulesetStore rulesets { get; set; } = null!;
 
         public LeaderboardScoreTooltip()
         {
@@ -123,7 +127,7 @@ namespace osu.Game.Online.Leaderboards
                 modStatistics.Add(new ModCell(mod));
             }
 
-            foreach (var result in score.GetStatisticsForDisplay())
+            foreach (var result in score.GetStatisticsForDisplay(rulesets))
             {
                 if (result.Result > HitResult.Perfect)
                     bottomScoreStatistics.Add(new HitResultCell(result));
