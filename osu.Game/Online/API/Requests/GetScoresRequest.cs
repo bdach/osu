@@ -61,5 +61,13 @@ namespace osu.Game.Online.API.Requests
                    && ruleset.Equals(other.ruleset)
                    && mods.SequenceEqual(other.mods);
         }
+
+        protected override void PostProcess()
+        {
+            base.PostProcess();
+
+            if (Response != null)
+                Response.UserScore.Score.Position = Response.UserScore.Position;
+        }
     }
 }

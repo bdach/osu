@@ -120,7 +120,7 @@ namespace osu.Game.Screens.Ranking
             Score = score;
             displayWithFlair = isNewLocalScore;
 
-            ScorePosition.Value = score.Position;
+            ScorePosition.Value = (score as IOnlineScoreInfo)?.Position;
         }
 
         [BackgroundDependencyLoader]

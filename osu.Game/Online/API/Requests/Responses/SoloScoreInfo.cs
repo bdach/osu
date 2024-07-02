@@ -16,7 +16,7 @@ using osu.Game.Users;
 namespace osu.Game.Online.API.Requests.Responses
 {
     [Serializable]
-    public class SoloScoreInfo : IScoreInfo
+    public class SoloScoreInfo : IOnlineScoreInfo
     {
         [JsonProperty("beatmap_id")]
         public int BeatmapID { get; set; }
@@ -117,6 +117,9 @@ namespace osu.Game.Online.API.Requests.Responses
 
         [JsonProperty("has_replay")]
         public bool HasReplay { get; set; }
+
+        [JsonIgnore]
+        public int? Position { get; set; }
 
         [JsonProperty("ranked")]
         public bool Ranked { get; set; }
