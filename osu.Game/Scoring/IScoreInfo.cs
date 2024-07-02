@@ -41,5 +41,7 @@ namespace osu.Game.Scoring
         IReadOnlyDictionary<HitResult, int> Statistics { get; }
 
         IReadOnlyDictionary<HitResult, int> MaximumStatistics { get; }
+
+        bool IsLegacyScore { get; }
     }
 }
