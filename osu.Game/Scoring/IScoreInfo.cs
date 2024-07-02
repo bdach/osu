@@ -11,7 +11,7 @@ using osu.Game.Users;
 
 namespace osu.Game.Scoring
 {
-    public interface IScoreInfo : IHasOnlineID<long>
+    public interface IScoreInfo : IHasOnlineID<long>, IEquatable<IScoreInfo>
     {
         IUser User { get; }
 

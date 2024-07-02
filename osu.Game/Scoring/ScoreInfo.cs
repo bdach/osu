@@ -366,6 +366,8 @@ namespace osu.Game.Scoring
 
         #endregion
 
+        public bool Equals(IScoreInfo? other) => other is ScoreInfo scoreInfo && Equals(scoreInfo);
+
         public bool Equals(ScoreInfo? other) => other?.ID == ID;
 
         public override string ToString() => this.GetDisplayTitle();

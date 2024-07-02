@@ -107,7 +107,7 @@ namespace osu.Game.Online.Leaderboards
             prefer24HourTime.BindValueChanged(_ => updateTimestampLabel(), true);
         }
 
-        private ScoreInfo? displayedScore;
+        private IScoreInfo? displayedScore;
 
         public void SetContent(ScoreInfo score)
         {

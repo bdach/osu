@@ -7,6 +7,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using osu.Game.Beatmaps;
+using osu.Game.Extensions;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
@@ -259,5 +260,7 @@ namespace osu.Game.Online.API.Requests.Responses
             Statistics = score.Statistics.Where(kvp => kvp.Value != 0).ToDictionary(),
             MaximumStatistics = score.MaximumStatistics.Where(kvp => kvp.Value != 0).ToDictionary(),
         };
+
+        public bool Equals(IScoreInfo? other) => other is SoloScoreInfo && this.MatchesOnlineID(other);
     }
 }
