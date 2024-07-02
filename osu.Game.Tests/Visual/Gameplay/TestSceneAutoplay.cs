@@ -11,6 +11,7 @@ using osu.Game.Rulesets;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Scoring;
+using osu.Game.Scoring;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.Break;
 using osu.Game.Screens.Ranking;
@@ -47,7 +48,7 @@ namespace osu.Game.Tests.Visual.Gameplay
             seekTo(referenceBeatmap.HitObjects[^1].GetEndTime());
             AddUntilStep("results displayed", () => getResultsScreen()?.IsLoaded == true);
 
-            AddAssert("score has combo", () => getResultsScreen().Score!.Combo > 100);
+            AddAssert("score has combo", () => ((ScoreInfo)getResultsScreen().Score!).Combo > 100);
             AddAssert("score has no misses", () => getResultsScreen().Score!.Statistics[HitResult.Miss] == 0);
 
             AddUntilStep("avatar displayed", () => getAvatar() != null);

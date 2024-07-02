@@ -135,7 +135,7 @@ namespace osu.Game.Tests.Visual.UserInterface
         [Test]
         public void TestDeleteViaRightClick()
         {
-            ScoreInfo scoreBeingDeleted = null;
+            IScoreInfo scoreBeingDeleted = null;
             AddStep("open menu for top score", () =>
             {
                 var leaderboardScore = leaderboard.ChildrenOfType<LeaderboardScore>().First();

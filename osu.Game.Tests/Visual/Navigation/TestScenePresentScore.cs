@@ -173,7 +173,7 @@ namespace osu.Game.Tests.Visual.Navigation
             AddUntilStep("correct score displayed", () =>
             {
                 var score = ((ResultsScreen)Game.ScreenStack.CurrentScreen).Score!;
-                return score.OnlineID == 3 && score.Hash == "deadbeef";
+                return score.OnlineID == 3 && ((ScoreInfo)score).Hash == "deadbeef";
             });
         }
 

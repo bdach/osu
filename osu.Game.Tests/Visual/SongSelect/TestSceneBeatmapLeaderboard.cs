@@ -461,7 +461,7 @@ namespace osu.Game.Tests.Visual.SongSelect
         private partial class FailableLeaderboard : BeatmapLeaderboard
         {
             public new void SetErrorState(LeaderboardState state) => base.SetErrorState(state);
-            public new void SetScores(IEnumerable<ScoreInfo>? scores, ScoreInfo? userScore = null) => base.SetScores(scores, userScore);
+            public new void SetScores(IEnumerable<IScoreInfo>? scores, IScoreInfo? userScore = null) => base.SetScores(scores, userScore);
         }
     }
 }

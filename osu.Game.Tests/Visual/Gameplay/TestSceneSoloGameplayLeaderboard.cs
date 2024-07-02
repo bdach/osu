@@ -25,7 +25,7 @@ namespace osu.Game.Tests.Visual.Gameplay
         [Cached(typeof(ScoreProcessor))]
         private readonly ScoreProcessor scoreProcessor = TestGameplayState.Create(new OsuRuleset()).ScoreProcessor;
 
-        private readonly BindableList<ScoreInfo> scores = new BindableList<ScoreInfo>();
+        private readonly BindableList<IScoreInfo> scores = new BindableList<IScoreInfo>();
 
         private readonly Bindable<bool> configVisibility = new Bindable<bool>();
         private readonly Bindable<PlayBeatmapDetailArea.TabType> beatmapTabType = new Bindable<PlayBeatmapDetailArea.TabType>();

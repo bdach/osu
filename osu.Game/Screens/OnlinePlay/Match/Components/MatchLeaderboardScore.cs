@@ -10,6 +10,7 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Scoring;
+using osu.Game.Utils;
 
 namespace osu.Game.Screens.OnlinePlay.Match.Components
 {
@@ -31,9 +32,9 @@ namespace osu.Game.Screens.OnlinePlay.Match.Components
             RankContainer.Alpha = 0;
         }
 
-        protected override IEnumerable<LeaderboardScoreStatistic> GetStatistics(ScoreInfo model) => new[]
+        protected override IEnumerable<LeaderboardScoreStatistic> GetStatistics(IScoreInfo model) => new[]
         {
-            new LeaderboardScoreStatistic(FontAwesome.Solid.Crosshairs, RankingsStrings.StatAccuracy, model.DisplayAccuracy),
+            new LeaderboardScoreStatistic(FontAwesome.Solid.Crosshairs, RankingsStrings.StatAccuracy, model.Accuracy.FormatAccuracy()),
             new LeaderboardScoreStatistic(FontAwesome.Solid.Sync, RankingsStrings.StatPlayCount, score.TotalAttempts.ToString()),
             new LeaderboardScoreStatistic(FontAwesome.Solid.Check, "Completed Beatmaps", score.CompletedBeatmaps.ToString()),
         };

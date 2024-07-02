@@ -1132,7 +1132,7 @@ namespace osu.Game.Tests.Visual.SongSelect
                     User = new APIUser { Username = "woo" },
                     BeatmapInfo = getPresentBeatmap(),
                     Ruleset = getPresentBeatmap().Ruleset
-                });
+                }, getPresentBeatmap());
             });
 
             waitForDismissed();
@@ -1161,7 +1161,7 @@ namespace osu.Game.Tests.Visual.SongSelect
                 // this beatmap change should be overridden by the present.
                 Beatmap.Value = manager.GetWorkingBeatmap(getSwitchBeatmap());
 
-                songSelect!.PresentScore(TestResources.CreateTestScoreInfo(getPresentBeatmap()));
+                songSelect!.PresentScore(TestResources.CreateTestScoreInfo(getPresentBeatmap()), getPresentBeatmap());
             });
 
             waitForDismissed();
@@ -1392,7 +1392,7 @@ namespace osu.Game.Tests.Visual.SongSelect
             public new BeatmapCarousel Carousel => base.Carousel;
             public new ModSelectOverlay ModSelect => base.ModSelect;
 
-            public new void PresentScore(ScoreInfo score) => base.PresentScore(score);
+            public new void PresentScore(IScoreInfo score, BeatmapInfo beatmapInfo) => base.PresentScore(score, beatmapInfo);
 
             protected override bool OnStart()
             {
