@@ -116,7 +116,6 @@ namespace osu.Game.Screens.Ranking
                                     StatisticsPanel = createStatisticsPanel().With(panel =>
                                     {
                                         panel.RelativeSizeAxes = Axes.Both;
-                                        panel.Score.BindTarget = SelectedScore;
                                     }),
                                     ScorePanelList = new ScorePanelList
                                     {
@@ -213,6 +212,7 @@ namespace osu.Game.Screens.Ranking
             if (req != null)
                 api.Queue(req);
 
+            SelectedScore.BindValueChanged(_ => StatisticsPanel.Score.Value = SelectedScore.Value as ScoreInfo, true);
             StatisticsPanel.State.BindValueChanged(onStatisticsStateChanged, true);
         }
 
