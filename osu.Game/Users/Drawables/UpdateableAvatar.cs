@@ -1,9 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using osu.Framework.Allocation;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
+using osu.Framework.Logging;
+using osu.Game.Database;
 using osu.Game.Online.API.Requests.Responses;
 
 namespace osu.Game.Users.Drawables
@@ -13,11 +17,42 @@ namespace osu.Game.Users.Drawables
     /// </summary>
     public partial class UpdateableAvatar : ModelBackedDrawable<APIUser?>
     {
-        public APIUser? User
+        [Resolved]
+        private UserLookupCache lookupCache { get; set; } = null!;
+
+        public IUser? User
         {
             get => Model;
-            set => Model = value;
+            set
+            {
+                switch (value)
+                {
+                    case APIUser apiUser:
+                        Model = apiUser;
+                        break;
+
+                    case null:
+                        Model = null;
+                        break;
+
+                    default:
+                        lookupUser(value);
+                        break;
+                }
+            }
         }
+
+        private void lookupUser(IUser user) =>
+            lookupCache.GetUserAsync(user.OnlineID).ContinueWith(t =>
+            {
+                if (t.Exception != null)
+                {
+                    Logger.Log($"Error when looking up user for {nameof(UpdateableAvatar)}: {t.Exception}", LoggingTarget.Network);
+                    return;
+                }
+
+                Model = t.GetResultSafely();
+            });
 
         public new bool Masking
         {
@@ -59,7 +94,7 @@ namespace osu.Game.Users.Drawables
         /// Only has an effect if <see cref="isInteractive"/> is true.
         /// </param>
         /// <param name="showGuestOnNull">Whether to show a default guest representation on null user (as opposed to nothing).</param>
-        public UpdateableAvatar(APIUser? user = null, bool isInteractive = true, bool showUserPanelOnHover = false, bool showGuestOnNull = true)
+        public UpdateableAvatar(IUser? user = null, bool isInteractive = true, bool showUserPanelOnHover = false, bool showGuestOnNull = true)
         {
             this.isInteractive = isInteractive;
             this.showGuestOnNull = showGuestOnNull;

@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
@@ -10,7 +8,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
-using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Users;
 using osu.Game.Users.Drawables;
 using osuTK;
 
@@ -21,18 +19,18 @@ namespace osu.Game.Screens.Ranking.Expanded
     /// </summary>
     public partial class ExpandedPanelTopContent : CompositeDrawable
     {
-        private readonly APIUser user;
+        private readonly IUser user;
 
-        private Sample appearanceSample;
+        private Sample? appearanceSample;
 
         private readonly bool playAppearanceSound;
 
         /// <summary>
         /// Creates a new <see cref="ExpandedPanelTopContent"/>.
         /// </summary>
-        /// <param name="user">The <see cref="APIUser"/> to display.</param>
+        /// <param name="user">The <see cref="IUser"/> to display.</param>
         /// <param name="playAppearanceSound">Whether the appearance sample should play</param>
-        public ExpandedPanelTopContent(APIUser user, bool playAppearanceSound = false)
+        public ExpandedPanelTopContent(IUser user, bool playAppearanceSound = false)
         {
             this.user = user;
             this.playAppearanceSound = playAppearanceSound;
