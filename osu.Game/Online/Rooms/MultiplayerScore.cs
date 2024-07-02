@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -13,7 +12,6 @@ using osu.Game.Beatmaps;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 
@@ -46,6 +44,10 @@ namespace osu.Game.Online.Rooms
         [JsonProperty("statistics")]
         public Dictionary<HitResult, int> Statistics = new Dictionary<HitResult, int>();
 
+        // TODO: check that this really exists, im spitballing rn
+        [JsonProperty("maximum_statistics")]
+        public Dictionary<HitResult, int> MaximumStatistics = new Dictionary<HitResult, int>();
+
         [JsonProperty("passed")]
         public bool Passed { get; set; }
 
@@ -68,34 +70,28 @@ namespace osu.Game.Online.Rooms
         [CanBeNull]
         public MultiplayerScoresAround ScoresAround { get; set; }
 
-        public ScoreInfo CreateScoreInfo(ScoreManager scoreManager, RulesetStore rulesets, PlaylistItem playlistItem, [NotNull] BeatmapInfo beatmap)
+        public IScoreInfo CreateScoreInfo(ScoreManager scoreManager, RulesetStore rulesets, PlaylistItem playlistItem, [NotNull] BeatmapInfo beatmap)
         {
             var ruleset = rulesets.GetRuleset(playlistItem.RulesetID);
             if (ruleset == null)
                 throw new InvalidOperationException($"Couldn't create score with unknown ruleset: {playlistItem.RulesetID}");
 
-            var rulesetInstance = ruleset.CreateInstance();
-
-            var scoreInfo = new ScoreInfo
+            return new SoloScoreInfo
             {
-                OnlineID = ID,
+                ID = (ulong?)ID,
                 TotalScore = TotalScore,
                 MaxCombo = MaxCombo,
-                BeatmapInfo = beatmap,
-                Ruleset = rulesets.GetRuleset(playlistItem.RulesetID) ?? throw new InvalidOperationException($"Ruleset with ID of {playlistItem.RulesetID} not found locally"),
+                Beatmap = playlistItem.Beatmap,
+                RulesetID = playlistItem.RulesetID,
                 Statistics = Statistics,
                 User = User,
                 Accuracy = Accuracy,
-                Date = EndedAt,
-                HasOnlineReplay = HasReplay,
+                EndedAt = EndedAt,
+                HasReplay = HasReplay,
                 Rank = Rank,
-                Mods = Mods?.Select(m => m.ToMod(rulesetInstance)).ToArray() ?? Array.Empty<Mod>(),
+                Mods = Mods,
                 Position = Position,
             };
-
-            scoreManager.PopulateMaximumStatistics(scoreInfo);
-
-            return scoreInfo;
         }
     }
 }

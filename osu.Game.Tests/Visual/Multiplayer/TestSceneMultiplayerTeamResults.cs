@@ -46,7 +46,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     { 1, new BindableLong(team2Score) }
                 };
 
-                Stack.Push(screen = new MultiplayerTeamResultsScreen(score, 1, new PlaylistItem(beatmapInfo), teamScores));
+                Stack.Push(screen = new MultiplayerTeamResultsScreen(score, 1, new PlaylistItem(CreateAPIBeatmap(beatmapInfo)), teamScores));
             });
 
             AddUntilStep("wait for loaded", () => screen.IsLoaded);

@@ -87,7 +87,7 @@ namespace osu.Game.Tests.Online
             Realm.Write(r => r.RemoveAll<BeatmapSetInfo>());
             Realm.Write(r => r.RemoveAll<BeatmapInfo>());
 
-            selectedItem.Value = new PlaylistItem(testBeatmapInfo)
+            selectedItem.Value = new PlaylistItem(CreateAPIBeatmap(testBeatmapInfo))
             {
                 RulesetID = testBeatmapInfo.Ruleset.OnlineID,
             };

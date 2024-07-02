@@ -56,7 +56,7 @@ namespace osu.Game.Tests.Visual.Playlists
             AddStep("set name", () => SelectedRoom.Value.Name.Value = "Room name");
             AddAssert("button disabled", () => !settings.ApplyButton.Enabled.Value);
 
-            AddStep("set beatmap", () => SelectedRoom.Value.Playlist.Add(new PlaylistItem(CreateBeatmap(Ruleset.Value).BeatmapInfo)));
+            AddStep("set beatmap", () => SelectedRoom.Value.Playlist.Add(new PlaylistItem(CreateAPIBeatmap(Ruleset.Value))));
             AddAssert("button enabled", () => settings.ApplyButton.Enabled.Value);
 
             AddStep("clear name", () => SelectedRoom.Value.Name.Value = "");
@@ -75,7 +75,7 @@ namespace osu.Game.Tests.Visual.Playlists
             {
                 settings.NameField.Current.Value = expected_name;
                 settings.DurationField.Current.Value = expectedDuration;
-                SelectedRoom.Value.Playlist.Add(new PlaylistItem(CreateBeatmap(Ruleset.Value).BeatmapInfo));
+                SelectedRoom.Value.Playlist.Add(new PlaylistItem(CreateAPIBeatmap(Ruleset.Value)));
 
                 RoomManager.CreateRequested = r =>
                 {
@@ -98,7 +98,7 @@ namespace osu.Game.Tests.Visual.Playlists
 
             AddStep("setup", () =>
             {
-                var beatmap = CreateBeatmap(Ruleset.Value).BeatmapInfo;
+                var beatmap = CreateAPIBeatmap(Ruleset.Value);
 
                 SelectedRoom.Value.Name.Value = "Test Room";
                 SelectedRoom.Value.Playlist.Add(new PlaylistItem(beatmap));
@@ -128,7 +128,7 @@ namespace osu.Game.Tests.Visual.Playlists
             AddStep("setup", () =>
             {
                 SelectedRoom.Value.Name.Value = "Test Room";
-                SelectedRoom.Value.Playlist.Add(new PlaylistItem(CreateBeatmap(Ruleset.Value).BeatmapInfo));
+                SelectedRoom.Value.Playlist.Add(new PlaylistItem(CreateAPIBeatmap(Ruleset.Value)));
 
                 RoomManager.CreateRequested = _ => failText;
             });

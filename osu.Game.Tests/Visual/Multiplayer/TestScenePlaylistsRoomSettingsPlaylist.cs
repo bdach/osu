@@ -135,7 +135,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
                 for (int i = 0; i < 20; i++)
                 {
-                    playlist.Items.Add(new PlaylistItem(i % 2 == 1
+                    playlist.Items.Add(new PlaylistItem(CreateAPIBeatmap(i % 2 == 1
                         ? new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo
                         : new BeatmapInfo
                         {
@@ -146,7 +146,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                                 Title = "Long title used to check background colour",
                             },
                             BeatmapSet = new BeatmapSetInfo()
-                        })
+                        }))
                     {
                         ID = i,
                         OwnerID = 2,

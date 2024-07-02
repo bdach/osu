@@ -112,7 +112,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
                 beatmapAvailability.Value = BeatmapAvailability.LocallyAvailable();
 
-                var playlistItem = new PlaylistItem(Beatmap.Value.BeatmapInfo)
+                var playlistItem = new PlaylistItem(CreateAPIBeatmap(Beatmap.Value.BeatmapInfo))
                 {
                     RulesetID = Beatmap.Value.BeatmapInfo.Ruleset.OnlineID
                 };

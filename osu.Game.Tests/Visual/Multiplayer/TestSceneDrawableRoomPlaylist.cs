@@ -256,7 +256,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 p.Items.Clear();
                 p.Items.AddRange(new[]
                 {
-                    new PlaylistItem(new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo)
+                    new PlaylistItem(CreateAPIBeatmap(new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo))
                     {
                         ID = 0,
                         RulesetID = new OsuRuleset().RulesetInfo.OnlineID,
@@ -268,7 +268,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                             new APIMod(new OsuModAutoplay())
                         }
                     },
-                    new PlaylistItem(new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo)
+                    new PlaylistItem(CreateAPIBeatmap(new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo))
                     {
                         ID = 1,
                         RulesetID = new OsuRuleset().RulesetInfo.OnlineID,
@@ -361,7 +361,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             foreach (var b in beatmaps())
             {
-                p.Items.Add(new PlaylistItem(b)
+                p.Items.Add(new PlaylistItem(CreateAPIBeatmap(b))
                 {
                     ID = index++,
                     OwnerID = 2,
@@ -393,7 +393,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
                 for (int i = 0; i < 20; i++)
                 {
-                    playlist.Items.Add(new PlaylistItem(i % 2 == 1
+                    playlist.Items.Add(new PlaylistItem(CreateAPIBeatmap(i % 2 == 1
                         ? new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo
                         : new BeatmapInfo
                         {
@@ -404,7 +404,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                                 Title = "Long title used to check background colour",
                             },
                             BeatmapSet = new BeatmapSetInfo()
-                        })
+                        }))
                     {
                         ID = i,
                         OwnerID = 2,

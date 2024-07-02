@@ -209,7 +209,7 @@ namespace osu.Game.Tests.Visual.Playlists
         {
             AddStep("load results", () =>
             {
-                LoadScreen(resultsScreen = new TestResultsScreen(getScore?.Invoke(), 1, new PlaylistItem(new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo)
+                LoadScreen(resultsScreen = new TestResultsScreen(getScore?.Invoke(), 1, new PlaylistItem(CreateAPIBeatmap(new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo))
                 {
                     RulesetID = new OsuRuleset().RulesetInfo.OnlineID
                 }));

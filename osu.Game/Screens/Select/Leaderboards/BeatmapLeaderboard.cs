@@ -77,9 +77,6 @@ namespace osu.Game.Screens.Select.Leaderboards
         private IAPIProvider api { get; set; } = null!;
 
         [Resolved]
-        private RulesetStore rulesets { get; set; } = null!;
-
-        [Resolved]
         private RealmAccess realm { get; set; } = null!;
 
         private IDisposable? scoreSubscription;
@@ -161,8 +158,8 @@ namespace osu.Game.Screens.Select.Leaderboards
                     return;
 
                 SetScores(
-                    response.Scores.Select(s => s.ToScoreInfo(rulesets, fetchBeatmapInfo)).OrderByTotalScore(),
-                    response.UserScore?.CreateScoreInfo(rulesets, fetchBeatmapInfo)
+                    response.Scores.OrderByTotalScore(),
+                    response.UserScore?.Score
                 );
             });
 

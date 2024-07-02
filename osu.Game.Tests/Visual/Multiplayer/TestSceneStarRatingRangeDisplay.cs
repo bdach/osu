@@ -35,8 +35,8 @@ namespace osu.Game.Tests.Visual.Multiplayer
             {
                 SelectedRoom.Value.Playlist.AddRange(new[]
                 {
-                    new PlaylistItem(new BeatmapInfo { StarRating = min }),
-                    new PlaylistItem(new BeatmapInfo { StarRating = max }),
+                    new PlaylistItem(CreateAPIBeatmap(new BeatmapInfo { StarRating = min })),
+                    new PlaylistItem(CreateAPIBeatmap(new BeatmapInfo { StarRating = max })),
                 });
             });
         }

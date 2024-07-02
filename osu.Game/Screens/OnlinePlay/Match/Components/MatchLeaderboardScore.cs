@@ -14,6 +14,7 @@ using osu.Game.Utils;
 
 namespace osu.Game.Screens.OnlinePlay.Match.Components
 {
+    // TODO: this needs to go COMPLETELY. its a stupid and bad hack to make faster. redo properly (and dont use `IScoreInfo` prolly either).
     public partial class MatchLeaderboardScore : LeaderboardScore
     {
         private readonly APIUserScoreAggregate score;

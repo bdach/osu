@@ -4,11 +4,11 @@
 #nullable disable
 
 using System;
-using osu.Game.Beatmaps;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
 using osu.Game.Rulesets;
 using osu.Game.Screens.OnlinePlay.Components;
+using osu.Game.Tests.Beatmaps;
 
 namespace osu.Game.Tests.Visual.OnlinePlay
 {
@@ -50,7 +50,7 @@ namespace osu.Game.Tests.Visual.OnlinePlay
                         RulesetIDs = new[] { ruleset.OnlineID },
                     };
 
-                    room.Playlist.Add(new PlaylistItem(new BeatmapInfo { Metadata = new BeatmapMetadata() })
+                    room.Playlist.Add(new PlaylistItem(OsuTestScene.CreateAPIBeatmap(new TestBeatmap(ruleset).BeatmapInfo))
                     {
                         RulesetID = ruleset.OnlineID,
                     });

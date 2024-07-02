@@ -4,7 +4,6 @@
 #nullable disable
 
 using osu.Game.Online.Rooms;
-using osu.Game.Tests.Beatmaps;
 using osu.Game.Tests.Visual.OnlinePlay;
 using osu.Game.Tests.Visual.Spectator;
 
@@ -41,7 +40,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                 Type = { Value = MatchType.HeadToHead },
                 Playlist =
                 {
-                    new PlaylistItem(new TestBeatmap(Ruleset.Value).BeatmapInfo)
+                    new PlaylistItem(CreateAPIBeatmap())
                     {
                         RulesetID = Ruleset.Value.OnlineID
                     }

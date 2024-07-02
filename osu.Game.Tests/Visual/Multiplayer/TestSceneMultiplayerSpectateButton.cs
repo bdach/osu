@@ -56,7 +56,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
                 importedSet = beatmaps.GetAllUsableBeatmapSets().First();
                 Beatmap.Value = beatmaps.GetWorkingBeatmap(importedSet.Beatmaps.First());
-                selectedItem.Value = new PlaylistItem(Beatmap.Value.BeatmapInfo)
+                selectedItem.Value = new PlaylistItem(CreateAPIBeatmap(Beatmap.Value.BeatmapInfo))
                 {
                     RulesetID = Beatmap.Value.BeatmapInfo.Ruleset.OnlineID,
                 };

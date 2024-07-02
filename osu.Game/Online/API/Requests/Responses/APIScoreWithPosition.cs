@@ -4,9 +4,6 @@
 #nullable disable
 
 using Newtonsoft.Json;
-using osu.Game.Beatmaps;
-using osu.Game.Rulesets;
-using osu.Game.Scoring;
 
 namespace osu.Game.Online.API.Requests.Responses
 {
@@ -17,12 +14,5 @@ namespace osu.Game.Online.API.Requests.Responses
 
         [JsonProperty(@"score")]
         public SoloScoreInfo Score;
-
-        public ScoreInfo CreateScoreInfo(RulesetStore rulesets, BeatmapInfo beatmap = null)
-        {
-            var score = Score.ToScoreInfo(rulesets, beatmap);
-            score.Position = Position;
-            return score;
-        }
     }
 }

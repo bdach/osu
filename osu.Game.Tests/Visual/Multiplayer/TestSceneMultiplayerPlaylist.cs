@@ -167,11 +167,11 @@ namespace osu.Game.Tests.Visual.Multiplayer
                     Name = { Value = "test name" },
                     Playlist =
                     {
-                        new PlaylistItem(new TestBeatmap(Ruleset.Value).BeatmapInfo)
+                        new PlaylistItem(CreateAPIBeatmap(new TestBeatmap(Ruleset.Value).BeatmapInfo))
                         {
                             RulesetID = Ruleset.Value.OnlineID
                         },
-                        new PlaylistItem(new TestBeatmap(Ruleset.Value).BeatmapInfo)
+                        new PlaylistItem(CreateAPIBeatmap(new TestBeatmap(Ruleset.Value).BeatmapInfo))
                         {
                             RulesetID = Ruleset.Value.OnlineID,
                             Expired = true
@@ -215,7 +215,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
         /// </summary>
         private void addItemStep(bool expired = false, int? userId = null) => AddStep("add item", () =>
         {
-            MultiplayerClient.AddUserPlaylistItem(userId ?? API.LocalUser.Value.OnlineID, TestMultiplayerClient.CreateMultiplayerPlaylistItem(new PlaylistItem(importedBeatmap)
+            MultiplayerClient.AddUserPlaylistItem(userId ?? API.LocalUser.Value.OnlineID, TestMultiplayerClient.CreateMultiplayerPlaylistItem(new PlaylistItem(CreateAPIBeatmap(importedBeatmap))
             {
                 Expired = expired,
                 PlayedAt = DateTimeOffset.Now

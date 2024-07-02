@@ -58,13 +58,13 @@ namespace osu.Game.Tests.Visual.Multiplayer
                             Type = { Value = MatchType.HeadToHead },
                             Playlist =
                             {
-                                new PlaylistItem(new TestBeatmap(new OsuRuleset().RulesetInfo)
+                                new PlaylistItem(CreateAPIBeatmap(new TestBeatmap(new OsuRuleset().RulesetInfo)
                                 {
                                     BeatmapInfo =
                                     {
                                         StarRating = 2.5
                                     }
-                                }.BeatmapInfo)
+                                }.BeatmapInfo))
                             }
                         }),
                         createLoungeRoom(new Room
@@ -76,7 +76,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                             Type = { Value = MatchType.HeadToHead },
                             Playlist =
                             {
-                                new PlaylistItem(new TestBeatmap(new OsuRuleset().RulesetInfo)
+                                new PlaylistItem(CreateAPIBeatmap(new TestBeatmap(new OsuRuleset().RulesetInfo)
                                 {
                                     BeatmapInfo =
                                     {
@@ -89,7 +89,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
                                             TitleUnicode = "very very very very very very very very very very very long title",
                                         }
                                     }
-                                }.BeatmapInfo)
+                                }.BeatmapInfo))
                             }
                         }),
                         createLoungeRoom(new Room
@@ -99,20 +99,20 @@ namespace osu.Game.Tests.Visual.Multiplayer
                             EndDate = { Value = DateTimeOffset.Now.AddDays(1) },
                             Playlist =
                             {
-                                new PlaylistItem(new TestBeatmap(new OsuRuleset().RulesetInfo)
+                                new PlaylistItem(CreateAPIBeatmap(new TestBeatmap(new OsuRuleset().RulesetInfo)
                                 {
                                     BeatmapInfo =
                                     {
                                         StarRating = 2.5
                                     }
-                                }.BeatmapInfo),
-                                new PlaylistItem(new TestBeatmap(new OsuRuleset().RulesetInfo)
+                                }.BeatmapInfo)),
+                                new PlaylistItem(CreateAPIBeatmap(new TestBeatmap(new OsuRuleset().RulesetInfo)
                                 {
                                     BeatmapInfo =
                                     {
                                         StarRating = 4.5
                                     }
-                                }.BeatmapInfo)
+                                }.BeatmapInfo))
                             }
                         }),
                         createLoungeRoom(new Room

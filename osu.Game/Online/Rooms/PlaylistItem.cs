@@ -6,7 +6,6 @@ using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osu.Framework.Bindables;
-using osu.Game.Beatmaps;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Utils;
@@ -72,7 +71,7 @@ namespace osu.Game.Online.Rooms
         /// In many cases, this will *not* contain any usable information apart from OnlineID.
         /// </summary>
         [JsonIgnore]
-        public IBeatmapInfo Beatmap { get; private set; }
+        public APIBeatmap Beatmap { get; private set; }
 
         [JsonIgnore]
         public IBindable<bool> Valid => valid;
@@ -85,7 +84,7 @@ namespace osu.Game.Online.Rooms
         {
         }
 
-        public PlaylistItem(IBeatmapInfo beatmap)
+        public PlaylistItem(APIBeatmap beatmap)
         {
             Beatmap = beatmap;
         }
@@ -120,7 +119,7 @@ namespace osu.Game.Online.Rooms
 
         #endregion
 
-        public PlaylistItem With(Optional<IBeatmapInfo> beatmap = default, Optional<ushort?> playlistOrder = default) => new PlaylistItem(beatmap.GetOr(Beatmap))
+        public PlaylistItem With(Optional<APIBeatmap> beatmap = default, Optional<ushort?> playlistOrder = default) => new PlaylistItem(beatmap.GetOr(Beatmap))
         {
             ID = ID,
             OwnerID = OwnerID,

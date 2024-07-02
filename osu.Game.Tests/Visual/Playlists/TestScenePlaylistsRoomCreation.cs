@@ -69,7 +69,7 @@ namespace osu.Game.Tests.Visual.Playlists
                 room.Host.Value = API.LocalUser.Value;
                 room.RecentParticipants.Add(room.Host.Value);
                 room.EndDate.Value = DateTimeOffset.Now.AddMinutes(5);
-                room.Playlist.Add(new PlaylistItem(importedBeatmap.Beatmaps.First())
+                room.Playlist.Add(new PlaylistItem(CreateAPIBeatmap(importedBeatmap.Beatmaps.First()))
                 {
                     RulesetID = new OsuRuleset().RulesetInfo.OnlineID
                 });
@@ -93,7 +93,7 @@ namespace osu.Game.Tests.Visual.Playlists
                 room.Host.Value = API.LocalUser.Value;
                 room.RecentParticipants.Add(room.Host.Value);
                 room.EndDate.Value = DateTimeOffset.Now.AddMinutes(5);
-                room.Playlist.Add(new PlaylistItem(importedBeatmap.Beatmaps.First())
+                room.Playlist.Add(new PlaylistItem(CreateAPIBeatmap(importedBeatmap.Beatmaps.First()))
                 {
                     RulesetID = new OsuRuleset().RulesetInfo.OnlineID
                 });
@@ -109,7 +109,7 @@ namespace osu.Game.Tests.Visual.Playlists
             {
                 room.Name.Value = "my awesome room";
                 room.Host.Value = API.LocalUser.Value;
-                room.Playlist.Add(new PlaylistItem(importedBeatmap.Beatmaps.First())
+                room.Playlist.Add(new PlaylistItem(CreateAPIBeatmap(importedBeatmap.Beatmaps.First()))
                 {
                     RulesetID = new OsuRuleset().RulesetInfo.OnlineID
                 });
@@ -160,7 +160,7 @@ namespace osu.Game.Tests.Visual.Playlists
             {
                 room.Name.Value = "my awesome room";
                 room.Host.Value = API.LocalUser.Value;
-                room.Playlist.Add(new PlaylistItem(new BeatmapInfo
+                room.Playlist.Add(new PlaylistItem(CreateAPIBeatmap(new BeatmapInfo
                 {
                     MD5Hash = realHash,
                     OnlineID = realOnlineId,
@@ -169,7 +169,7 @@ namespace osu.Game.Tests.Visual.Playlists
                     {
                         OnlineID = realOnlineSetId,
                     }
-                })
+                }))
                 {
                     RulesetID = new OsuRuleset().RulesetInfo.OnlineID
                 });

@@ -4,6 +4,7 @@
 using System.Linq;
 using osu.Framework.Screens;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
 using osu.Game.Screens.OnlinePlay.Components;
 using osu.Game.Screens.Select;
@@ -42,7 +43,7 @@ namespace osu.Game.Screens.OnlinePlay.Playlists
 
         private void createNewItem()
         {
-            PlaylistItem item = new PlaylistItem(Beatmap.Value.BeatmapInfo)
+            PlaylistItem item = new PlaylistItem(new APIBeatmap { OnlineID = Beatmap.Value.BeatmapInfo.OnlineID }) // TODO: prolly needs more but im just barrelling thru
             {
                 ID = Playlist.Count == 0 ? 0 : Playlist.Max(p => p.ID) + 1,
                 RulesetID = Ruleset.Value.OnlineID,

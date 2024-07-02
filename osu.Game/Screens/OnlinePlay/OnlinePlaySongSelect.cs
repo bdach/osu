@@ -13,6 +13,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Screens;
 using osu.Game.Beatmaps;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Mods;
@@ -85,15 +86,8 @@ namespace osu.Game.Screens.OnlinePlay
 
             if (initialItem != null)
             {
-                // Prefer using a local databased beatmap lookup since OnlineId may be -1 for an invalid beatmap selection.
-                BeatmapInfo? beatmapInfo = initialItem.Beatmap as BeatmapInfo;
-
-                // And in the case that this isn't a local databased beatmap, query by online ID.
-                if (beatmapInfo == null)
-                {
-                    int onlineId = initialItem.Beatmap.OnlineID;
-                    beatmapInfo = beatmapManager.QueryBeatmap(b => b.OnlineID == onlineId);
-                }
+                int onlineId = initialItem.Beatmap.OnlineID;
+                BeatmapInfo? beatmapInfo = beatmapManager.QueryBeatmap(b => b.OnlineID == onlineId);
 
                 if (beatmapInfo != null)
                     Beatmap.Value = beatmapManager.GetWorkingBeatmap(beatmapInfo);
@@ -135,7 +129,7 @@ namespace osu.Game.Screens.OnlinePlay
 
         protected sealed override bool OnStart()
         {
-            var item = new PlaylistItem(Beatmap.Value.BeatmapInfo)
+            var item = new PlaylistItem(new APIBeatmap { OnlineID = Beatmap.Value.BeatmapInfo.OnlineID }) // TODO: prolly needs more but wjatevber
             {
                 RulesetID = Ruleset.Value.OnlineID,
                 RequiredMods = Mods.Value.Select(m => new APIMod(m)).ToArray(),
