@@ -5,9 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Game.Rulesets.Difficulty;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
-using osu.Game.Rulesets.Taiko.Objects;
 using osu.Game.Scoring;
 
 namespace osu.Game.Rulesets.Taiko.Difficulty
@@ -27,7 +25,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
         {
         }
 
-        protected override PerformanceAttributes CreatePerformanceAttributes(ScoreInfo score, DifficultyAttributes attributes)
+        protected override PerformanceAttributes CreatePerformanceAttributes(IScoreInfo score, DifficultyAttributes attributes)
         {
             var taikoAttributes = (TaikoDifficultyAttributes)attributes;
 
@@ -42,14 +40,14 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
                 effectiveMissCount = Math.Max(1.0, 1000.0 / totalSuccessfulHits) * countMiss;
 
             // TODO: The detection of rulesets is temporary until the leftover old skills have been reworked.
-            bool isConvert = score.BeatmapInfo!.Ruleset.OnlineID != 1;
+            bool isConvert = score.Beatmap!.Ruleset.OnlineID != 1;
 
             double multiplier = 1.13;
 
-            if (score.Mods.Any(m => m is ModHidden))
+            if (score.Mods.Any(m => m.Acronym == "HD"))
                 multiplier *= 1.075;
 
-            if (score.Mods.Any(m => m is ModEasy))
+            if (score.Mods.Any(m => m.Acronym == "EZ"))
                 multiplier *= 0.975;
 
             double difficultyValue = computeDifficultyValue(score, taikoAttributes, isConvert);
@@ -69,7 +67,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             };
         }
 
-        private double computeDifficultyValue(ScoreInfo score, TaikoDifficultyAttributes attributes, bool isConvert)
+        private double computeDifficultyValue(IScoreInfo score, TaikoDifficultyAttributes attributes, bool isConvert)
         {
             double difficultyValue = Math.Pow(5 * Math.Max(1.0, attributes.StarRating / 0.115) - 4.0, 2.25) / 1150.0;
 
@@ -78,22 +76,22 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
             difficultyValue *= Math.Pow(0.986, effectiveMissCount);
 
-            if (score.Mods.Any(m => m is ModEasy))
+            if (score.Mods.Any(m => m.Acronym == "EZ"))
                 difficultyValue *= 0.985;
 
-            if (score.Mods.Any(m => m is ModHidden) && !isConvert)
+            if (score.Mods.Any(m => m.Acronym == "HD") && !isConvert)
                 difficultyValue *= 1.025;
 
-            if (score.Mods.Any(m => m is ModHardRock))
+            if (score.Mods.Any(m => m.Acronym == "HR"))
                 difficultyValue *= 1.050;
 
-            if (score.Mods.Any(m => m is ModFlashlight<TaikoHitObject>))
+            if (score.Mods.Any(m => m.Acronym == "FL"))
                 difficultyValue *= 1.050 * lengthBonus;
 
             return difficultyValue * Math.Pow(accuracy, 2.0);
         }
 
-        private double computeAccuracyValue(ScoreInfo score, TaikoDifficultyAttributes attributes, bool isConvert)
+        private double computeAccuracyValue(IScoreInfo score, TaikoDifficultyAttributes attributes, bool isConvert)
         {
             if (attributes.GreatHitWindow <= 0)
                 return 0;
@@ -104,7 +102,7 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
             accuracyValue *= lengthBonus;
 
             // Slight HDFL Bonus for accuracy. A clamp is used to prevent against negative values.
-            if (score.Mods.Any(m => m is ModFlashlight<TaikoHitObject>) && score.Mods.Any(m => m is ModHidden) && !isConvert)
+            if (score.Mods.Any(m => m.Acronym == "FL") && score.Mods.Any(m => m.Acronym == "HD") && !isConvert)
                 accuracyValue *= Math.Max(1.0, 1.1 * lengthBonus);
 
             return accuracyValue;

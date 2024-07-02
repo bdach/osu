@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using osu.Game.Rulesets.Difficulty;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Scoring;
 using osu.Game.Scoring.Legacy;
 
@@ -23,7 +22,7 @@ namespace osu.Game.Rulesets.Catch.Difficulty
         {
         }
 
-        protected override PerformanceAttributes CreatePerformanceAttributes(ScoreInfo score, DifficultyAttributes attributes)
+        protected override PerformanceAttributes CreatePerformanceAttributes(IScoreInfo score, DifficultyAttributes attributes)
         {
             var catchAttributes = (CatchDifficultyAttributes)attributes;
 
@@ -61,7 +60,7 @@ namespace osu.Game.Rulesets.Catch.Difficulty
 
             value *= approachRateFactor;
 
-            if (score.Mods.Any(m => m is ModHidden))
+            if (score.Mods.Any(m => m.Acronym == "HD"))
             {
                 // Hiddens gives almost nothing on max approach rate, and more the lower it is
                 if (approachRate <= 10.0)
@@ -70,12 +69,12 @@ namespace osu.Game.Rulesets.Catch.Difficulty
                     value *= 1.01 + 0.04 * (11.0 - Math.Min(11.0, approachRate)); // 5% at AR 10, 1% at AR 11
             }
 
-            if (score.Mods.Any(m => m is ModFlashlight))
+            if (score.Mods.Any(m => m.Acronym == "FL"))
                 value *= 1.35 * lengthBonus;
 
             value *= Math.Pow(accuracy(), 5.5);
 
-            if (score.Mods.Any(m => m is ModNoFail))
+            if (score.Mods.Any(m => m.Acronym == "NF"))
                 value *= 0.90;
 
             return new CatchPerformanceAttributes

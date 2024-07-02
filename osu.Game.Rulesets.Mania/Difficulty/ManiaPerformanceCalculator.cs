@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Game.Rulesets.Difficulty;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 
@@ -26,7 +25,7 @@ namespace osu.Game.Rulesets.Mania.Difficulty
         {
         }
 
-        protected override PerformanceAttributes CreatePerformanceAttributes(ScoreInfo score, DifficultyAttributes attributes)
+        protected override PerformanceAttributes CreatePerformanceAttributes(IScoreInfo score, DifficultyAttributes attributes)
         {
             var maniaAttributes = (ManiaDifficultyAttributes)attributes;
 
@@ -42,9 +41,9 @@ namespace osu.Game.Rulesets.Mania.Difficulty
             // The specific number has no intrinsic meaning and can be adjusted as needed.
             double multiplier = 8.0;
 
-            if (score.Mods.Any(m => m is ModNoFail))
+            if (score.Mods.Any(m => m.Acronym == "NF"))
                 multiplier *= 0.75;
-            if (score.Mods.Any(m => m is ModEasy))
+            if (score.Mods.Any(m => m.Acronym == "EZ"))
                 multiplier *= 0.5;
 
             double difficultyValue = computeDifficultyValue(maniaAttributes);
