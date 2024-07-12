@@ -96,6 +96,8 @@ namespace osu.Game.Online.Metadata
             return Task.CompletedTask;
         }
 
+        public abstract Task SendHeader(string key, string value);
+
         #endregion
     }
 }

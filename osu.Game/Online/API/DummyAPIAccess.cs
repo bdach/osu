@@ -39,6 +39,10 @@ namespace osu.Game.Online.API
 
         public string AccessToken => "token";
 
+#pragma warning disable CS0067 // The event is never used
+        public event Action<string>? NewAccessTokenIssued;
+#pragma warning restore CS0067
+
         /// <seealso cref="APIAccess.IsLoggedIn"/>
         public bool IsLoggedIn => State.Value > APIState.Offline;
 

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Game.Online.API;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays.Notifications;
@@ -24,6 +25,9 @@ namespace osu.Game.Online.Multiplayer
     {
         private readonly string endpoint;
 
+        [Resolved]
+        private IAPIProvider api { get; set; } = null!;
+
         private IHubClientConnector? connector;
 
         public override IBindable<bool> IsConnected { get; } = new BindableBool();
@@ -36,7 +40,7 @@ namespace osu.Game.Online.Multiplayer
         }
 
         [BackgroundDependencyLoader]
-        private void load(IAPIProvider api)
+        private void load()
         {
             // Importantly, we are intentionally not using MessagePack here to correctly support derived class serialization.
             // More information on the limitations / reasoning can be found in osu-server-spectator's initialisation code.
@@ -73,6 +77,8 @@ namespace osu.Game.Online.Multiplayer
 
                 IsConnected.BindTo(connector.IsConnected);
             }
+
+            api.NewAccessTokenIssued += onNewTokenIssued;
         }
 
         protected override async Task<MultiplayerRoom> JoinRoom(long roomId, string? password = null)
@@ -274,10 +280,30 @@ namespace osu.Game.Online.Multiplayer
             return connector.Disconnect();
         }
 
+        private void onNewTokenIssued(string token)
+        {
+            if (!string.IsNullOrEmpty(token))
+                SendHeader(IStatefulServer.TOKEN_HEADER, token);
+        }
+
+        public Task SendHeader(string key, string value)
+        {
+            if (!IsConnected.Value)
+                return Task.CompletedTask;
+
+            Debug.Assert(connection != null);
+
+            return connection.SendAsync(nameof(IStatefulServer.SendHeader), key, value);
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
+
             connector?.Dispose();
+
+            if (api.IsNotNull())
+                api.NewAccessTokenIssued -= onNewTokenIssued;
         }
     }
 }

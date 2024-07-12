@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Game.Online.API;
 using osu.Game.Online.Multiplayer;
 
@@ -15,6 +16,9 @@ namespace osu.Game.Online.Spectator
     public partial class OnlineSpectatorClient : SpectatorClient
     {
         private readonly string endpoint;
+
+        [Resolved]
+        private IAPIProvider api { get; set; } = null!;
 
         private IHubClientConnector? connector;
 
@@ -28,7 +32,7 @@ namespace osu.Game.Online.Spectator
         }
 
         [BackgroundDependencyLoader]
-        private void load(IAPIProvider api)
+        private void load()
         {
             connector = api.GetHubConnector(nameof(SpectatorClient), endpoint);
 
@@ -47,6 +51,8 @@ namespace osu.Game.Online.Spectator
 
                 IsConnected.BindTo(connector.IsConnected);
             }
+
+            api.NewAccessTokenIssued += onNewTokenIssued;
         }
 
         protected override async Task BeginPlayingInternal(long? scoreToken, SpectatorState state)

@@ -2,13 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Threading.Tasks;
+using osu.Game.Online.Multiplayer;
 
 namespace osu.Game.Online.Spectator
 {
     /// <summary>
     /// An interface defining the spectator server instance.
     /// </summary>
-    public interface ISpectatorServer
+    public interface ISpectatorServer : IStatefulServer
     {
         /// <summary>
         /// Signal the start of a new play session.

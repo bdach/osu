@@ -91,5 +91,7 @@ namespace osu.Game.Tests.Visual.Metadata
             => Task.FromResult(new MultiplayerPlaylistItemStats[MultiplayerPlaylistItemStats.TOTAL_SCORE_DISTRIBUTION_BINS]);
 
         public override Task EndWatchingMultiplayerRoom(long id) => Task.CompletedTask;
+
+        public override Task SendHeader(string key, string value) => Task.CompletedTask;
     }
 }

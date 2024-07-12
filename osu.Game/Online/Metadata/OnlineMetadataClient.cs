@@ -8,10 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Logging;
 using osu.Game.Configuration;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Online.Multiplayer;
 using osu.Game.Users;
 
 namespace osu.Game.Online.Metadata
@@ -35,6 +37,9 @@ namespace osu.Game.Online.Metadata
 
         private Bindable<int> lastQueueId = null!;
 
+        [Resolved]
+        private IAPIProvider api { get; set; } = null!;
+
         private IBindable<APIUser> localUser = null!;
         private IBindable<UserActivity?> userActivity = null!;
         private IBindable<UserStatus?>? userStatus;
@@ -47,7 +52,7 @@ namespace osu.Game.Online.Metadata
         }
 
         [BackgroundDependencyLoader]
-        private void load(IAPIProvider api, OsuConfigManager config)
+        private void load(OsuConfigManager config)
         {
             // Importantly, we are intentionally not using MessagePack here to correctly support derived class serialization.
             // More information on the limitations / reasoning can be found in osu-server-spectator's initialisation code.
@@ -71,6 +76,8 @@ namespace osu.Game.Online.Metadata
             }
 
             lastQueueId = config.GetBindable<int>(OsuSetting.LastProcessedMetadataId);
+
+            api.NewAccessTokenIssued += onNewTokenIssued;
 
             localUser = api.LocalUser.GetBoundCopy();
             userActivity = api.Activity.GetBoundCopy()!;
@@ -266,10 +273,29 @@ namespace osu.Game.Online.Metadata
                 await connector.Disconnect().ConfigureAwait(false);
         }
 
+        private void onNewTokenIssued(string token)
+        {
+            if (!string.IsNullOrEmpty(token))
+                SendHeader(IStatefulServer.TOKEN_HEADER, token);
+        }
+
+        public override Task SendHeader(string key, string value)
+        {
+            if (connector?.IsConnected.Value != true)
+                return Task.CompletedTask;
+
+            Debug.Assert(connection != null);
+            return connection.SendAsync(nameof(IStatefulServer.SendHeader), key, value);
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
+
             connector?.Dispose();
+
+            if (api.IsNotNull())
+                api.NewAccessTokenIssued -= onNewTokenIssued;
         }
     }
 }

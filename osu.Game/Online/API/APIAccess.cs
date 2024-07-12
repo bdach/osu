@@ -158,7 +158,13 @@ namespace osu.Game.Online.API
             return connector;
         }
 
-        private void onTokenChanged(ValueChangedEvent<OAuthToken> e) => config.SetValue(OsuSetting.Token, config.Get<bool>(OsuSetting.SavePassword) ? authentication.TokenString : string.Empty);
+        public event Action<string> NewAccessTokenIssued;
+
+        private void onTokenChanged(ValueChangedEvent<OAuthToken> e)
+        {
+            config.SetValue(OsuSetting.Token, config.Get<bool>(OsuSetting.SavePassword) ? authentication.TokenString : string.Empty);
+            NewAccessTokenIssued?.Invoke(AccessToken);
+        }
 
         internal new void Schedule(Action action) => base.Schedule(action);
 

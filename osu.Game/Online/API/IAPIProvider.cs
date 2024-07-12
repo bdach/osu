@@ -45,6 +45,11 @@ namespace osu.Game.Online.API
         string AccessToken { get; }
 
         /// <summary>
+        /// Invoked when <see cref="AccessToken"/> is rotated (due to expiration or otherwise).
+        /// </summary>
+        event Action<string>? NewAccessTokenIssued;
+
+        /// <summary>
         /// Returns whether the local user is logged in.
         /// </summary>
         bool IsLoggedIn { get; }

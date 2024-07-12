@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Threading.Tasks;
+using osu.Game.Online.Multiplayer;
 using osu.Game.Users;
 
 namespace osu.Game.Online.Metadata
@@ -14,7 +15,7 @@ namespace osu.Game.Online.Metadata
     /// <item>other real-time happenings, such as current "daily challenge" status.</item>
     /// </list>
     /// </summary>
-    public interface IMetadataServer
+    public interface IMetadataServer : IStatefulServer
     {
         /// <summary>
         /// Get any changes since a specific point in the queue.
