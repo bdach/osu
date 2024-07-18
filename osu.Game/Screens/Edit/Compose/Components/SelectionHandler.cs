@@ -410,7 +410,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
                 if (SelectedBlueprints.Count == 1)
                     items.AddRange(SelectedBlueprints[0].ContextMenuItems);
 
-                items.Add(new OsuMenuItem(CommonStrings.ButtonsDelete, MenuItemType.Destructive, DeleteSelected));
+                items.Add(new OsuMenuItem(CommonStrings.ButtonsDelete, MenuItemType.Destructive, DeleteSelected) { Hotkey = new Hotkey(PlatformAction.Delete) });
 
                 return items.ToArray();
             }

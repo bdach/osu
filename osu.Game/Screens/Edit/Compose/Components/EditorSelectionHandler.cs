@@ -8,6 +8,7 @@ using Humanizer;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input.Bindings;
 using osu.Game.Audio;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Graphics.UserInterface;
@@ -352,7 +353,11 @@ namespace osu.Game.Screens.Edit.Compose.Components
         {
             if (SelectedBlueprints.All(b => b.Item is IHasComboInformation))
             {
-                yield return new TernaryStateToggleMenuItem("New combo") { State = { BindTarget = SelectionNewComboState } };
+                yield return new TernaryStateToggleMenuItem("New combo")
+                {
+                    State = { BindTarget = SelectionNewComboState },
+                    Hotkey = new Hotkey(new KeyCombination(InputKey.Q))
+                };
             }
 
             yield return new OsuMenuItem("Sample")
