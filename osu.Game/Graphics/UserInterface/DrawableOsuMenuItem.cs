@@ -21,12 +21,12 @@ namespace osu.Game.Graphics.UserInterface
 {
     public partial class DrawableOsuMenuItem : Menu.DrawableMenuItem
     {
-        public const int MARGIN_HORIZONTAL = 17;
+        public const int MARGIN_HORIZONTAL = 10;
         public const int MARGIN_VERTICAL = 4;
         private const int text_size = 17;
         private const int transition_length = 80;
 
-        private TextContainer text;
+        protected TextContainer Text { get; private set; }
         private HotkeyDisplay hotkey;
         private HoverClickSounds hoverClickSounds;
 
@@ -46,33 +46,27 @@ namespace osu.Game.Graphics.UserInterface
                 Alpha = 0,
                 Anchor = Anchor.CentreRight,
                 Origin = Anchor.CentreRight,
-                Margin = new MarginPadding { Right = MARGIN_HORIZONTAL, Top = 1 },
+                Margin = new MarginPadding { Right = 10, Top = 1 },
             });
             AddInternal(hoverClickSounds = new HoverClickSounds());
 
             updateText();
 
-            bool hasSubmenu = Item.Items.Any();
-
-            // Only add right chevron if direction of menu items is vertical (i.e. width is relative size, see `DrawableMenuItem.SetFlowDirection()`).
-            if (hasSubmenu && RelativeSizeAxes == Axes.X)
+            if (showChevron)
             {
                 AddInternal(new SpriteIcon
                 {
-                    Margin = new MarginPadding(6),
+                    Margin = new MarginPadding { Horizontal = 10, },
                     Size = new Vector2(8),
                     Icon = FontAwesome.Solid.ChevronRight,
                     Anchor = Anchor.CentreRight,
                     Origin = Anchor.CentreRight,
                 });
-
-                text.Padding = new MarginPadding
-                {
-                    // Add some padding for the chevron above.
-                    Right = 5,
-                };
             }
         }
+
+        // Only add right chevron if direction of menu items is vertical (i.e. width is relative size, see `DrawableMenuItem.SetFlowDirection()`).
+        private bool showChevron => Item.Items.Any() && RelativeSizeAxes == Axes.X;
 
         protected override void LoadComplete()
         {
@@ -90,15 +84,15 @@ namespace osu.Game.Graphics.UserInterface
             {
                 default:
                 case MenuItemType.Standard:
-                    text.Colour = Color4.White;
+                    Text.Colour = Color4.White;
                     break;
 
                 case MenuItemType.Destructive:
-                    text.Colour = Color4.Red;
+                    Text.Colour = Color4.Red;
                     break;
 
                 case MenuItemType.Highlighted:
-                    text.Colour = Color4Extensions.FromHex(@"ffcc22");
+                    Text.Colour = Color4Extensions.FromHex(@"ffcc22");
                     break;
             }
 
@@ -113,8 +107,7 @@ namespace osu.Game.Graphics.UserInterface
             // this hack ensures that the menu can auto-size while leaving enough space for the hotkey display.
             // the gist of it is that while the hotkey display is not in the text / "content" that determines sizing,
             // enough padding to fit the hotkey with _its_ spacing is added as padding of the text to compensate.
-            if (hotkey.Alpha > 0)
-                text.Padding = new MarginPadding { Right = hotkey.DrawWidth + MARGIN_HORIZONTAL };
+            Text.Padding = new MarginPadding { Right = hotkey.Alpha > 0 || showChevron ? hotkey.DrawWidth + 15 : 0 };
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -136,20 +129,20 @@ namespace osu.Game.Graphics.UserInterface
 
             if (IsHovered && IsActionable)
             {
-                text.BoldText.FadeIn(transition_length, Easing.OutQuint);
-                text.NormalText.FadeOut(transition_length, Easing.OutQuint);
+                Text.BoldText.FadeIn(transition_length, Easing.OutQuint);
+                Text.NormalText.FadeOut(transition_length, Easing.OutQuint);
             }
             else
             {
-                text.BoldText.FadeOut(transition_length, Easing.OutQuint);
-                text.NormalText.FadeIn(transition_length, Easing.OutQuint);
+                Text.BoldText.FadeOut(transition_length, Easing.OutQuint);
+                Text.NormalText.FadeIn(transition_length, Easing.OutQuint);
             }
         }
 
-        protected sealed override Drawable CreateContent() => text = CreateTextContainer();
+        protected sealed override Drawable CreateContent() => Text = CreateTextContainer();
         protected virtual TextContainer CreateTextContainer() => new TextContainer();
 
-        protected partial class TextContainer : FillFlowContainer, IHasText
+        protected partial class TextContainer : Container, IHasText
         {
             public LocalisableString Text
             {
@@ -163,43 +156,54 @@ namespace osu.Game.Graphics.UserInterface
 
             public readonly SpriteText NormalText;
             public readonly SpriteText BoldText;
+            public readonly Container CheckboxContainer;
 
             public TextContainer()
             {
-                Anchor = Anchor.CentreLeft;
-                Origin = Anchor.CentreLeft;
-
                 AutoSizeAxes = Axes.Both;
-                Spacing = new Vector2(10);
-                Direction = FillDirection.Horizontal;
 
-                Children = new Drawable[]
+                Child = new FillFlowContainer
                 {
-                    new Container
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
+
+                    AutoSizeAxes = Axes.Both,
+                    Spacing = new Vector2(10),
+                    Direction = FillDirection.Horizontal,
+                    Padding = new MarginPadding { Horizontal = MARGIN_HORIZONTAL, Vertical = MARGIN_VERTICAL, },
+
+                    Children = new Drawable[]
                     {
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                        AutoSizeAxes = Axes.Both,
-                        Margin = new MarginPadding { Horizontal = MARGIN_HORIZONTAL, Vertical = MARGIN_VERTICAL },
-                        Children = new Drawable[]
+                        CheckboxContainer = new Container
                         {
-                            NormalText = new OsuSpriteText
+                            RelativeSizeAxes = Axes.Y,
+                            Width = MARGIN_HORIZONTAL,
+                        },
+                        new Container
+                        {
+                            Anchor = Anchor.CentreLeft,
+                            Origin = Anchor.CentreLeft,
+                            AutoSizeAxes = Axes.Both,
+                            Children = new Drawable[]
                             {
-                                AlwaysPresent = true, // ensures that the menu item does not change width when switching between normal and bold text.
-                                Anchor = Anchor.CentreLeft,
-                                Origin = Anchor.CentreLeft,
-                                Font = OsuFont.GetFont(size: text_size),
-                            },
-                            BoldText = new OsuSpriteText
-                            {
-                                AlwaysPresent = true, // ensures that the menu item does not change width when switching between normal and bold text.
-                                Alpha = 0,
-                                Anchor = Anchor.CentreLeft,
-                                Origin = Anchor.CentreLeft,
-                                Font = OsuFont.GetFont(size: text_size, weight: FontWeight.Bold),
+                                NormalText = new OsuSpriteText
+                                {
+                                    AlwaysPresent = true, // ensures that the menu item does not change width when switching between normal and bold text.
+                                    Anchor = Anchor.CentreLeft,
+                                    Origin = Anchor.CentreLeft,
+                                    Font = OsuFont.GetFont(size: text_size),
+                                },
+                                BoldText = new OsuSpriteText
+                                {
+                                    AlwaysPresent = true, // ensures that the menu item does not change width when switching between normal and bold text.
+                                    Alpha = 0,
+                                    Anchor = Anchor.CentreLeft,
+                                    Origin = Anchor.CentreLeft,
+                                    Font = OsuFont.GetFont(size: text_size, weight: FontWeight.Bold),
+                                }
                             }
-                        }
-                    },
+                        },
+                    }
                 };
             }
         }
