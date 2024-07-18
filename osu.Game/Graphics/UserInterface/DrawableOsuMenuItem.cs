@@ -27,6 +27,7 @@ namespace osu.Game.Graphics.UserInterface
         private const int transition_length = 80;
 
         private TextContainer text;
+        private HotkeyDisplay hotkey;
         private HoverClickSounds hoverClickSounds;
 
         public DrawableOsuMenuItem(MenuItem item)
@@ -40,6 +41,13 @@ namespace osu.Game.Graphics.UserInterface
             BackgroundColour = Color4.Transparent;
             BackgroundColourHover = Color4Extensions.FromHex(@"172023");
 
+            AddInternal(hotkey = new HotkeyDisplay
+            {
+                Alpha = 0,
+                Anchor = Anchor.CentreRight,
+                Origin = Anchor.CentreRight,
+                Margin = new MarginPadding { Right = MARGIN_HORIZONTAL, Top = 1 },
+            });
             AddInternal(hoverClickSounds = new HoverClickSounds());
 
             updateText();
@@ -94,7 +102,19 @@ namespace osu.Game.Graphics.UserInterface
                     break;
             }
 
-            text.Hotkey = osuMenuItem?.Hotkey ?? default;
+            hotkey.Hotkey = osuMenuItem?.Hotkey ?? default;
+            hotkey.Alpha = EqualityComparer<Hotkey>.Default.Equals(hotkey.Hotkey, default) ? 0 : 1;
+        }
+
+        protected override void UpdateAfterChildren()
+        {
+            base.UpdateAfterChildren();
+
+            // this hack ensures that the menu can auto-size while leaving enough space for the hotkey display.
+            // the gist of it is that while the hotkey display is not in the text / "content" that determines sizing,
+            // enough padding to fit the hotkey with _its_ spacing is added as padding of the text to compensate.
+            if (hotkey.Alpha > 0)
+                text.Padding = new MarginPadding { Right = hotkey.DrawWidth + MARGIN_HORIZONTAL };
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -141,18 +161,8 @@ namespace osu.Game.Graphics.UserInterface
                 }
             }
 
-            public Hotkey Hotkey
-            {
-                set
-                {
-                    hotkeyDisplay.Hotkey = value;
-                    hotkeyDisplay.Alpha = EqualityComparer<Hotkey>.Default.Equals(value, default) ? 0 : 1;
-                }
-            }
-
             public readonly SpriteText NormalText;
             public readonly SpriteText BoldText;
-            private readonly HotkeyDisplay hotkeyDisplay;
 
             public TextContainer()
             {
@@ -190,13 +200,6 @@ namespace osu.Game.Graphics.UserInterface
                             }
                         }
                     },
-                    hotkeyDisplay = new HotkeyDisplay
-                    {
-                        Alpha = 0,
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                        Margin = new MarginPadding { Left = -MARGIN_HORIZONTAL, Right = MARGIN_HORIZONTAL, Top = 1 },
-                    }
                 };
             }
         }
