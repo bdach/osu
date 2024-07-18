@@ -483,8 +483,10 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 
                 curveTypeItems = new List<MenuItem>();
 
-                foreach (PathType? type in path_types)
+                for (int i = 0; i < path_types.Length; ++i)
                 {
+                    var type = path_types[i];
+
                     // special inherit case
                     if (type == null)
                     {
@@ -494,7 +496,7 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
                         curveTypeItems.Add(new OsuMenuItemSpacer());
                     }
 
-                    curveTypeItems.Add(createMenuItemForPathType(type));
+                    curveTypeItems.Add(createMenuItemForPathType(type, InputKey.Number1 + i));
                 }
 
                 if (selectedPieces.Any(piece => piece.ControlPoint.Type?.Type == SplineType.Catmull))
@@ -528,7 +530,15 @@ namespace osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders.Components
 
                 return menuItems.ToArray();
 
-                CurveTypeMenuItem createMenuItemForPathType(PathType? type) => new CurveTypeMenuItem(type, _ => updatePathTypeOfSelectedPieces(type));
+                CurveTypeMenuItem createMenuItemForPathType(PathType? type, InputKey? key = null)
+                {
+                    Hotkey hotkey = default;
+
+                    if (key != null)
+                        hotkey = new Hotkey(new KeyCombination(InputKey.Alt, key.Value));
+
+                    return new CurveTypeMenuItem(type, _ => updatePathTypeOfSelectedPieces(type)) { Hotkey = hotkey };
+                }
             }
         }
 
