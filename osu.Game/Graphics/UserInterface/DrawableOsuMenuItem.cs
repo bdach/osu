@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.Color4Extensions;
@@ -41,7 +42,7 @@ namespace osu.Game.Graphics.UserInterface
 
             AddInternal(hoverClickSounds = new HoverClickSounds());
 
-            updateTextColour();
+            updateText();
 
             bool hasSubmenu = Item.Items.Any();
 
@@ -73,9 +74,11 @@ namespace osu.Game.Graphics.UserInterface
             FinishTransforms();
         }
 
-        private void updateTextColour()
+        private void updateText()
         {
-            switch ((Item as OsuMenuItem)?.Type)
+            var osuMenuItem = Item as OsuMenuItem;
+
+            switch (osuMenuItem?.Type)
             {
                 default:
                 case MenuItemType.Standard:
@@ -90,6 +93,8 @@ namespace osu.Game.Graphics.UserInterface
                     text.Colour = Color4Extensions.FromHex(@"ffcc22");
                     break;
             }
+
+            text.Hotkey = osuMenuItem?.Hotkey ?? default;
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -136,8 +141,18 @@ namespace osu.Game.Graphics.UserInterface
                 }
             }
 
+            public Hotkey Hotkey
+            {
+                set
+                {
+                    hotkeyDisplay.Hotkey = value;
+                    hotkeyDisplay.Alpha = EqualityComparer<Hotkey>.Default.Equals(value, default) ? 0 : 1;
+                }
+            }
+
             public readonly SpriteText NormalText;
             public readonly SpriteText BoldText;
+            private readonly HotkeyDisplay hotkeyDisplay;
 
             public TextContainer()
             {
@@ -148,29 +163,39 @@ namespace osu.Game.Graphics.UserInterface
                 Spacing = new Vector2(10);
                 Direction = FillDirection.Horizontal;
 
-                Child = new Container
+                Children = new Drawable[]
                 {
-                    Anchor = Anchor.CentreLeft,
-                    Origin = Anchor.CentreLeft,
-                    AutoSizeAxes = Axes.Both,
-                    Margin = new MarginPadding { Horizontal = MARGIN_HORIZONTAL, Vertical = MARGIN_VERTICAL },
-                    Children = new Drawable[]
+                    new Container
                     {
-                        NormalText = new OsuSpriteText
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
+                        AutoSizeAxes = Axes.Both,
+                        Margin = new MarginPadding { Horizontal = MARGIN_HORIZONTAL, Vertical = MARGIN_VERTICAL },
+                        Children = new Drawable[]
                         {
-                            AlwaysPresent = true, // ensures that the menu item does not change width when switching between normal and bold text.
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                            Font = OsuFont.GetFont(size: text_size),
-                        },
-                        BoldText = new OsuSpriteText
-                        {
-                            AlwaysPresent = true, // ensures that the menu item does not change width when switching between normal and bold text.
-                            Alpha = 0,
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                            Font = OsuFont.GetFont(size: text_size, weight: FontWeight.Bold),
+                            NormalText = new OsuSpriteText
+                            {
+                                AlwaysPresent = true, // ensures that the menu item does not change width when switching between normal and bold text.
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Font = OsuFont.GetFont(size: text_size),
+                            },
+                            BoldText = new OsuSpriteText
+                            {
+                                AlwaysPresent = true, // ensures that the menu item does not change width when switching between normal and bold text.
+                                Alpha = 0,
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Font = OsuFont.GetFont(size: text_size, weight: FontWeight.Bold),
+                            }
                         }
+                    },
+                    hotkeyDisplay = new HotkeyDisplay
+                    {
+                        Alpha = 0,
+                        Anchor = Anchor.CentreLeft,
+                        Origin = Anchor.CentreLeft,
+                        Margin = new MarginPadding { Left = -MARGIN_HORIZONTAL, Right = MARGIN_HORIZONTAL, Top = 1 },
                     }
                 };
             }
