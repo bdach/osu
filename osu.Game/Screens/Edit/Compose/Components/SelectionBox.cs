@@ -8,9 +8,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Input.Bindings;
 using osu.Framework.Input.Events;
+using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Graphics.UserInterface;
+using osu.Game.Input.Bindings;
 using osuTK;
 using osuTK.Input;
 
@@ -233,13 +237,26 @@ namespace osu.Game.Screens.Edit.Compose.Components
             if (CanFlipX) addXFlipComponents();
             if (CanFlipY) addYFlipComponents();
             if (canRotate.Value) addRotationComponents();
-            if (CanReverse) reverseButton = addButton(FontAwesome.Solid.Backward, "Reverse pattern (Ctrl-G)", () => OnReverse?.Invoke());
+
+            if (CanReverse)
+            {
+                reverseButton = addButton(FontAwesome.Solid.Backward,
+                    "Reverse pattern",
+                    new Hotkey(new KeyCombination(InputKey.Control, InputKey.G)),
+                    () => OnReverse?.Invoke());
+            }
         }
 
         private void addRotationComponents()
         {
-            rotateCounterClockwiseButton = addButton(FontAwesome.Solid.Undo, "Rotate 90 degrees counter-clockwise (Ctrl-<)", () => rotationHandler?.Rotate(-90));
-            rotateClockwiseButton = addButton(FontAwesome.Solid.Redo, "Rotate 90 degrees clockwise (Ctrl->)", () => rotationHandler?.Rotate(90));
+            rotateCounterClockwiseButton = addButton(FontAwesome.Solid.Undo,
+                "Rotate 90 degrees counter-clockwise",
+                new Hotkey(new KeyCombination(InputKey.Control, InputKey.Comma)),
+                () => rotationHandler?.Rotate(-90));
+            rotateClockwiseButton = addButton(FontAwesome.Solid.Redo,
+                "Rotate 90 degrees clockwise",
+                new Hotkey(new KeyCombination(InputKey.Control, InputKey.Period)),
+                () => rotationHandler?.Rotate(90));
 
             addRotateHandle(Anchor.TopLeft);
             addRotateHandle(Anchor.TopRight);
@@ -269,18 +286,25 @@ namespace osu.Game.Screens.Edit.Compose.Components
 
         private void addXFlipComponents()
         {
-            addButton(FontAwesome.Solid.ArrowsAltH, "Flip horizontally", () => OnFlip?.Invoke(Direction.Horizontal, false));
+            addButton(FontAwesome.Solid.ArrowsAltH,
+                "Flip horizontally",
+                new Hotkey(GlobalAction.EditorFlipHorizontally),
+                () => OnFlip?.Invoke(Direction.Horizontal, false));
         }
 
         private void addYFlipComponents()
         {
-            addButton(FontAwesome.Solid.ArrowsAltV, "Flip vertically", () => OnFlip?.Invoke(Direction.Vertical, false));
+            addButton(FontAwesome.Solid.ArrowsAltV,
+                "Flip vertically",
+                new Hotkey(GlobalAction.EditorFlipVertically),
+                () => OnFlip?.Invoke(Direction.Vertical, false));
         }
 
-        private SelectionBoxButton addButton(IconUsage icon, string tooltip, Action action)
+        private SelectionBoxButton addButton(IconUsage icon, LocalisableString tooltip, Hotkey hotkey, Action action)
         {
-            var button = new SelectionBoxButton(icon, tooltip)
+            var button = new SelectionBoxButton(icon)
             {
+                TooltipContent = [(hotkey, tooltip)],
                 Action = action
             };
 
