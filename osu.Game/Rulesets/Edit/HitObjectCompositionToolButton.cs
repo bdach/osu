@@ -17,6 +17,7 @@ namespace osu.Game.Rulesets.Edit
             Tool = tool;
 
             TooltipText = tool.TooltipText;
+            Hotkeys = tool.Hotkeys;
         }
     }
 }

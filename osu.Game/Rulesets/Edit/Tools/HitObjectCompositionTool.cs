@@ -3,6 +3,7 @@
 
 using osu.Framework.Graphics;
 using osu.Framework.Localisation;
+using osu.Game.Graphics.UserInterface;
 
 namespace osu.Game.Rulesets.Edit.Tools
 {
@@ -11,6 +12,8 @@ namespace osu.Game.Rulesets.Edit.Tools
         public readonly string Name;
 
         public LocalisableString TooltipText { get; init; }
+
+        public (Hotkey, LocalisableString)[]? Hotkeys { get; init; }
 
         protected HitObjectCompositionTool(string name)
         {

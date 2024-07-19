@@ -2,7 +2,9 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics;
+using osu.Framework.Input.Bindings;
 using osu.Game.Beatmaps;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Edit.Tools;
 using osu.Game.Rulesets.Osu.Edit.Blueprints.Sliders;
@@ -15,13 +17,15 @@ namespace osu.Game.Rulesets.Osu.Edit
         public SliderCompositionTool()
             : base(nameof(Slider))
         {
-            TooltipText = """
-                Left click for new point.
-                Left click twice or S key for new segment.
-                Tab, Shift-Tab, or Alt-1~4 to change current segment type.
-                Right click to finish.
-                Click and drag for drawing mode.
-                """;
+            Hotkeys =
+            [
+                (new Hotkey(new KeyCombination(InputKey.MouseLeft)), "to place new point."),
+                (new Hotkey(new KeyCombination(InputKey.MouseLeft)), "twice for new segment."),
+                (new Hotkey(new KeyCombination(InputKey.S)), "for new segment."),
+                (new Hotkey(new KeyCombination(InputKey.Tab), new KeyCombination(InputKey.Shift, InputKey.Tab), new KeyCombination(InputKey.Alt, InputKey.Number1, InputKey.Number2, InputKey.Number3, InputKey.Number4)), "to change current segment type."),
+                (new Hotkey(new KeyCombination(InputKey.MouseRight)), "to finish."),
+                (new Hotkey(new KeyCombination(InputKey.MouseLeft)), "and drag for drawing mode.")
+            ];
         }
 
         public override Drawable CreateIcon() => new BeatmapStatisticIcon(BeatmapStatisticsIconType.Sliders);

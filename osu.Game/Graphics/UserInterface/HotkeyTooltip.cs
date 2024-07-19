@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
@@ -17,16 +19,16 @@ using osuTK.Graphics;
 
 namespace osu.Game.Graphics.UserInterface
 {
-    public partial class HotkeyTooltip : VisibilityContainer, ITooltip<ICollection<(Hotkey hotkey, LocalisableString description)>>
+    public partial class HotkeyTooltip : VisibilityContainer, ITooltip<HotkeyTooltipContent>
     {
         private readonly Box background;
         private bool instantMovement = true;
-        private IEnumerable<(Hotkey, LocalisableString)>? currentContent;
+        private HotkeyTooltipContent? currentContent;
         private readonly FillFlowContainer verticalFlow;
 
-        public void SetContent(ICollection<(Hotkey, LocalisableString)> content)
+        public void SetContent(HotkeyTooltipContent content)
         {
-            if (currentContent != null && content.SequenceEqual(currentContent)) return;
+            if (currentContent != null && EqualityComparer<HotkeyTooltipContent>.Default.Equals(content, currentContent.Value)) return;
 
             currentContent = content;
             updateContent();
@@ -104,7 +106,9 @@ namespace osu.Game.Graphics.UserInterface
             if (currentContent == null)
                 return;
 
-            foreach (var (hotkey, description) in currentContent)
+            verticalFlow.Add(new OsuSpriteText { Text = currentContent.Value.Description });
+
+            foreach (var (hotkey, description) in currentContent.Value.Hotkeys)
             {
                 verticalFlow.Add(new FillFlowContainer
                 {
@@ -130,5 +134,16 @@ namespace osu.Game.Graphics.UserInterface
                 });
             }
         }
+    }
+
+    public struct HotkeyTooltipContent : IEquatable<HotkeyTooltipContent>
+    {
+        public LocalisableString Description { get; set; }
+        public (Hotkey, LocalisableString)[] Hotkeys { get; set; }
+
+        public bool Equals(HotkeyTooltipContent other) => Description.Equals(other.Description) && Hotkeys.SequenceEqual(other.Hotkeys);
+        public override bool Equals(object? obj) => obj is HotkeyTooltipContent other && Equals(other);
+
+        public override int GetHashCode() => HashCode.Combine(Description, StructuralComparisons.StructuralEqualityComparer.GetHashCode(Hotkeys));
     }
 }

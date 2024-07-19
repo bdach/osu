@@ -304,7 +304,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         {
             var button = new SelectionBoxButton(icon)
             {
-                TooltipContent = [(hotkey, tooltip)],
+                TooltipContent = new HotkeyTooltipContent { Hotkeys = [(hotkey, tooltip)] },
                 Action = action
             };
 

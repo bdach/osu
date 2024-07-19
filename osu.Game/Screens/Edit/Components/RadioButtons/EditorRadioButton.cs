@@ -17,7 +17,7 @@ using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Components.RadioButtons
 {
-    public partial class EditorRadioButton : OsuButton, IHasTooltip
+    public partial class EditorRadioButton : OsuButton, IHasCustomTooltip<HotkeyTooltipContent>
     {
         /// <summary>
         /// Invoked when this <see cref="EditorRadioButton"/> has been selected.
@@ -94,6 +94,12 @@ namespace osu.Game.Screens.Edit.Components.RadioButtons
             X = 40f
         };
 
-        public LocalisableString TooltipText => Button.TooltipText;
+        public ITooltip<HotkeyTooltipContent> GetCustomTooltip() => new HotkeyTooltip();
+
+        public HotkeyTooltipContent TooltipContent => new HotkeyTooltipContent
+        {
+            Description = Button.TooltipText,
+            Hotkeys = Button.Hotkeys ?? Array.Empty<(Hotkey, LocalisableString)>(),
+        };
     }
 }

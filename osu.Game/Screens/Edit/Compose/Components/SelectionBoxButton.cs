@@ -7,14 +7,13 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
-using osu.Framework.Localisation;
 using osu.Game.Graphics.UserInterface;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Compose.Components
 {
-    public sealed partial class SelectionBoxButton : SelectionBoxControl, IHasCustomTooltip<(Hotkey, LocalisableString)[]>
+    public sealed partial class SelectionBoxButton : SelectionBoxControl, IHasCustomTooltip<HotkeyTooltipContent>
     {
         private SpriteIcon icon = null!;
 
@@ -60,8 +59,8 @@ namespace osu.Game.Screens.Edit.Compose.Components
             icon.FadeColour(!IsHeld && IsHovered ? Color4.White : Color4.Black, TRANSFORM_DURATION, Easing.OutQuint);
         }
 
-        public (Hotkey, LocalisableString)[]? TooltipContent { get; init; }
+        public HotkeyTooltipContent TooltipContent { get; init; }
 
-        public ITooltip<(Hotkey, LocalisableString)[]> GetCustomTooltip() => new HotkeyTooltip();
+        public ITooltip<HotkeyTooltipContent> GetCustomTooltip() => new HotkeyTooltip();
     }
 }

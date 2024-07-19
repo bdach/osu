@@ -5,6 +5,7 @@ using System;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Localisation;
+using osu.Game.Graphics.UserInterface;
 
 namespace osu.Game.Screens.Edit.Components.RadioButtons
 {
@@ -55,5 +56,7 @@ namespace osu.Game.Screens.Edit.Components.RadioButtons
 
         // Tooltip text that will be shown when hovered over
         public LocalisableString TooltipText { get; set; } = string.Empty;
+
+        public (Hotkey, LocalisableString)[]? Hotkeys;
     }
 }
