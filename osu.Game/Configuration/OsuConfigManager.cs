@@ -207,6 +207,9 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.EditorTimelineShowTicks, true);
 
             SetDefault(OsuSetting.AlwaysShowHoldForMenuButton, false);
+
+            SetDefault(OsuSetting.EditorSubmissionNotifyOnDiscussionReplies, true);
+            SetDefault(OsuSetting.EditorSubmissionLoadInBrowserAfterSubmission, true);
         }
 
         protected override bool CheckLookupContainsPrivateInformation(OsuSetting lookup)
@@ -431,6 +434,8 @@ namespace osu.Game.Configuration
         HideCountryFlags,
         EditorTimelineShowTimingChanges,
         EditorTimelineShowTicks,
-        AlwaysShowHoldForMenuButton
+        AlwaysShowHoldForMenuButton,
+        EditorSubmissionNotifyOnDiscussionReplies,
+        EditorSubmissionLoadInBrowserAfterSubmission,
     }
 }
