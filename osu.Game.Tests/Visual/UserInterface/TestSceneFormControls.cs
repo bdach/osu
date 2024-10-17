@@ -109,6 +109,17 @@ namespace osu.Game.Tests.Visual.UserInterface
                                 Colour4.Yellow,
                             }
                         },
+                        new FormButton
+                        {
+                            Caption = "No text in button",
+                            Action = () => { },
+                        },
+                        new FormButton
+                        {
+                            Caption = "Text in button which is pretty long and is very likely to wrap",
+                            ButtonText = "Foo the bar",
+                            Action = () => { },
+                        },
                     },
                 },
             }
