@@ -216,6 +216,9 @@ namespace osu.Game.Configuration
 
             SetDefault(OsuSetting.AlwaysShowHoldForMenuButton, false);
             SetDefault(OsuSetting.AlwaysRequireHoldingForPause, false);
+
+            SetDefault(OsuSetting.EditorSubmissionNotifyOnDiscussionReplies, true);
+            SetDefault(OsuSetting.EditorSubmissionLoadInBrowserAfterSubmission, true);
         }
 
         protected override bool CheckLookupContainsPrivateInformation(OsuSetting lookup)
@@ -447,6 +450,8 @@ namespace osu.Game.Configuration
         EditorRotationOrigin,
         EditorTimelineShowBreaks,
         EditorAdjustExistingObjectsOnTimingChanges,
-        AlwaysRequireHoldingForPause
+        AlwaysRequireHoldingForPause,
+        EditorSubmissionNotifyOnDiscussionReplies,
+        EditorSubmissionLoadInBrowserAfterSubmission,
     }
 }
