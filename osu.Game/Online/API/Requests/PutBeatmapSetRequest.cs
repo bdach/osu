@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Net.Http;
 using osu.Framework.IO.Network;
 
 namespace osu.Game.Online.API.Requests
@@ -21,11 +22,12 @@ namespace osu.Game.Online.API.Requests
         protected override WebRequest CreateWebRequest()
         {
             var request = base.CreateWebRequest();
-            request.AddFile($@"{BeatmapSetID}.osz", oszPackage);
+            request.AddFile(@"beatmapArchive", oszPackage);
+            request.Method = HttpMethod.Put;
             return request;
         }
 
-        protected override string Uri => $@"http://localhost/5089/beatmapsets/{BeatmapSetID}";
+        protected override string Uri => $@"http://localhost:5089/beatmapsets/{BeatmapSetID}";
         protected override string Target => throw new NotSupportedException();
     }
 }

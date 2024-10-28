@@ -26,6 +26,8 @@ namespace osu.Game.Online.API.Requests
         {
             var req = base.CreateWebRequest();
             req.Method = HttpMethod.Put;
+            req.ContentType = @"application/json";
+            req.AddRaw(JsonConvert.SerializeObject(this));
             return req;
         }
     }

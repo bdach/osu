@@ -11,6 +11,7 @@ using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Game.Configuration;
 using osu.Game.Database;
+using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
@@ -36,7 +37,7 @@ namespace osu.Game.Screens.Edit.Submission
         private Storage storage { get; set; } = null!;
 
         [Resolved]
-        private APIAccess api { get; set; } = null!;
+        private IAPIProvider api { get; set; } = null!;
 
         [Resolved]
         private OsuConfigManager configManager { get; set; } = null!;
@@ -48,12 +49,13 @@ namespace osu.Game.Screens.Edit.Submission
         private SubmissionStageProgress exportStep = null!;
         private SubmissionStageProgress createSetStep = null!;
         private SubmissionStageProgress uploadStep = null!;
+        private RoundedButton backButton = null!;
 
         private uint? beatmapSetId;
 
         private SubmissionBeatmapExporter legacyBeatmapExporter = null!;
         private ProgressNotification? progressNotification;
-        private MemoryStream beatmapPackageStream;
+        private MemoryStream beatmapPackageStream = null!;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -68,7 +70,7 @@ namespace osu.Game.Screens.Edit.Submission
                     Alpha = 0,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
-                    Width = 0.8f,
+                    Width = 0.6f,
                     Masking = true,
                     CornerRadius = 10,
                     Children = new Drawable[]
@@ -87,9 +89,33 @@ namespace osu.Game.Screens.Edit.Submission
                             Spacing = new Vector2(5),
                             Children = new Drawable[]
                             {
-                                createSetStep = new SubmissionStageProgress { StageDescription = BeatmapSubmissionStrings.CreatingBeatmapSet, },
-                                exportStep = new SubmissionStageProgress { StageDescription = BeatmapSubmissionStrings.ExportingBeatmapSet, },
-                                uploadStep = new SubmissionStageProgress { StageDescription = BeatmapSubmissionStrings.UploadingBeatmapSetContents, },
+                                createSetStep = new SubmissionStageProgress
+                                {
+                                    StageDescription = BeatmapSubmissionStrings.CreatingBeatmapSet,
+                                    Anchor = Anchor.TopCentre,
+                                    Origin = Anchor.TopCentre,
+                                },
+                                exportStep = new SubmissionStageProgress
+                                {
+                                    StageDescription = BeatmapSubmissionStrings.ExportingBeatmapSet,
+                                    Anchor = Anchor.TopCentre,
+                                    Origin = Anchor.TopCentre,
+                                },
+                                uploadStep = new SubmissionStageProgress
+                                {
+                                    StageDescription = BeatmapSubmissionStrings.UploadingBeatmapSetContents,
+                                    Anchor = Anchor.TopCentre,
+                                    Origin = Anchor.TopCentre,
+                                },
+                                backButton = new RoundedButton
+                                {
+                                    Text = CommonStrings.Back,
+                                    Width = 150,
+                                    Action = this.Exit,
+                                    Enabled = { Value = false },
+                                    Anchor = Anchor.TopCentre,
+                                    Origin = Anchor.TopCentre,
+                                }
                             }
                         }
                     }
@@ -123,7 +149,11 @@ namespace osu.Game.Screens.Edit.Submission
                 legacyBeatmapExporter = new SubmissionBeatmapExporter(storage, response);
                 createBeatmapPackage();
             };
-            createRequest.Failure += _ => createSetStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed; // TODO: probably show & log error
+            createRequest.Failure += _ =>
+            {
+                createSetStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed;
+                backButton.Enabled.Value = true;
+            }; // TODO: probably show & log error
 
             createSetStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
             api.Queue(createRequest);
@@ -135,7 +165,10 @@ namespace osu.Game.Screens.Edit.Submission
                                  .ContinueWith(t =>
                                  {
                                      if (t.IsFaulted)
+                                     {
                                          exportStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed; // TODO: probably show & log error
+                                         Schedule(() => backButton.Enabled.Value = true);
+                                     }
                                      else
                                      {
                                          exportStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
@@ -159,8 +192,19 @@ namespace osu.Game.Screens.Edit.Submission
 
                 if (configManager.Get<bool>(OsuSetting.EditorSubmissionLoadInBrowserAfterSubmission))
                     game?.OpenUrlExternally($"{api.WebsiteRootUrl}/beatmapsets/{beatmapSetId}");
+
+                backButton.Enabled.Value = true;
+                // TODO: probably redownload at this point
             };
-            uploadRequest.Failure += _ => uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed; // TODO: probably show & log error
+            uploadRequest.Failure += _ =>
+            {
+                uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed;
+                backButton.Enabled.Value = true;
+            }; // TODO: probably show & log error
+            uploadRequest.Progressed += (current, total) => uploadStep.Progress.Value = (float)current / total;
+
+            api.Queue(uploadRequest);
+            uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
         }
 
         protected override void Update()
