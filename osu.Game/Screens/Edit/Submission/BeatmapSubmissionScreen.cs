@@ -21,6 +21,7 @@ using osuTK;
 
 namespace osu.Game.Screens.Edit.Submission
 {
+    // TODO: it should be mentioned somewhere that this project is partially destructive due to backwards compatibility
     public partial class BeatmapSubmissionScreen : OsuScreen
     {
         private BeatmapSubmissionOverlay overlay = null!;
