@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
+using osu.Game.Beatmaps.Drawables.Cards;
 using osu.Game.Configuration;
 using osu.Game.Database;
 using osu.Game.Graphics.UserInterfaceV2;
@@ -50,6 +51,8 @@ namespace osu.Game.Screens.Edit.Submission
         private SubmissionStageProgress exportStep = null!;
         private SubmissionStageProgress createSetStep = null!;
         private SubmissionStageProgress uploadStep = null!;
+        private Container successContainer = null!;
+        private Box flashLayer = null!;
         private RoundedButton backButton = null!;
 
         private uint? beatmapSetId;
@@ -107,6 +110,23 @@ namespace osu.Game.Screens.Edit.Submission
                                     StageDescription = BeatmapSubmissionStrings.UploadingBeatmapSetContents,
                                     Anchor = Anchor.TopCentre,
                                     Origin = Anchor.TopCentre,
+                                },
+                                successContainer = new Container
+                                {
+                                    Padding = new MarginPadding(20),
+                                    Anchor = Anchor.TopCentre,
+                                    Origin = Anchor.TopCentre,
+                                    AutoSizeAxes = Axes.Both,
+                                    AutoSizeDuration = 500,
+                                    AutoSizeEasing = Easing.OutQuint,
+                                    Masking = true,
+                                    CornerRadius = BeatmapCard.CORNER_RADIUS,
+                                    Child = flashLayer = new Box
+                                    {
+                                        RelativeSizeAxes = Axes.Both,
+                                        Depth = float.MinValue,
+                                        Alpha = 0,
+                                    }
                                 },
                                 backButton = new RoundedButton
                                 {
@@ -195,6 +215,7 @@ namespace osu.Game.Screens.Edit.Submission
                     game?.OpenUrlExternally($"{api.WebsiteRootUrl}/beatmapsets/{beatmapSetId}");
 
                 backButton.Enabled.Value = true;
+                showBeatmapCard();
                 // TODO: probably redownload at this point
             };
             uploadRequest.Failure += _ =>
@@ -206,6 +227,23 @@ namespace osu.Game.Screens.Edit.Submission
 
             api.Queue(uploadRequest);
             uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
+        }
+
+        private void showBeatmapCard()
+        {
+            Debug.Assert(beatmapSetId != null);
+
+            var getBeatmapSetRequest = new GetBeatmapSetRequest((int)beatmapSetId.Value);
+            getBeatmapSetRequest.Success += beatmapSet =>
+            {
+                LoadComponentAsync(new BeatmapCardExtra(beatmapSet, false), loaded =>
+                {
+                    successContainer.Add(loaded);
+                    flashLayer.FadeOutFromOne(2000, Easing.OutQuint);
+                });
+            };
+
+            api.Queue(getBeatmapSetRequest);
         }
 
         protected override void Update()
