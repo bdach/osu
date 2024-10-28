@@ -1,13 +1,21 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Diagnostics;
+using System.IO;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Platform;
 using osu.Framework.Screens;
+using osu.Game.Configuration;
+using osu.Game.Database;
 using osu.Game.Localisation;
+using osu.Game.Online.API;
+using osu.Game.Online.API.Requests;
 using osu.Game.Overlays;
+using osu.Game.Overlays.Notifications;
 using osuTK;
 
 namespace osu.Game.Screens.Edit.Submission
@@ -21,10 +29,31 @@ namespace osu.Game.Screens.Edit.Submission
         [Cached]
         private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Aquamarine);
 
+        [Resolved]
+        private RealmAccess realmAccess { get; set; } = null!;
+
+        [Resolved]
+        private Storage storage { get; set; } = null!;
+
+        [Resolved]
+        private APIAccess api { get; set; } = null!;
+
+        [Resolved]
+        private OsuConfigManager configManager { get; set; } = null!;
+
+        [Resolved]
+        private OsuGame? game { get; set; }
+
         private Container submissionProgress = null!;
         private SubmissionStageProgress exportStep = null!;
         private SubmissionStageProgress createSetStep = null!;
         private SubmissionStageProgress uploadStep = null!;
+
+        private uint? beatmapSetId;
+
+        private SubmissionBeatmapExporter legacyBeatmapExporter = null!;
+        private ProgressNotification? progressNotification;
+        private MemoryStream beatmapPackageStream;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -58,8 +87,8 @@ namespace osu.Game.Screens.Edit.Submission
                             Spacing = new Vector2(5),
                             Children = new Drawable[]
                             {
-                                exportStep = new SubmissionStageProgress { StageDescription = BeatmapSubmissionStrings.ExportingBeatmapSet, },
                                 createSetStep = new SubmissionStageProgress { StageDescription = BeatmapSubmissionStrings.CreatingBeatmapSet, },
+                                exportStep = new SubmissionStageProgress { StageDescription = BeatmapSubmissionStrings.ExportingBeatmapSet, },
                                 uploadStep = new SubmissionStageProgress { StageDescription = BeatmapSubmissionStrings.UploadingBeatmapSetContents, },
                             }
                         }
@@ -74,14 +103,72 @@ namespace osu.Game.Screens.Edit.Submission
                     if (!overlay.Completed)
                         this.Exit();
                     else
-                        beginSubmission();
+                    {
+                        submissionProgress.FadeIn(200, Easing.OutQuint);
+                        createBeatmapSet();
+                    }
                 }
             });
+            beatmapPackageStream = new MemoryStream();
         }
 
-        private void beginSubmission()
+        private void createBeatmapSet()
         {
-            submissionProgress.FadeIn(200, Easing.OutQuint);
+            var createRequest = new CreateBeatmapSetRequest((uint)Beatmap.Value.BeatmapSetInfo.Beatmaps.Count);
+
+            createRequest.Success += response =>
+            {
+                createSetStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
+                beatmapSetId = response.BeatmapSetId;
+                legacyBeatmapExporter = new SubmissionBeatmapExporter(storage, response);
+                createBeatmapPackage();
+            };
+            createRequest.Failure += _ => createSetStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed; // TODO: probably show & log error
+
+            createSetStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
+            api.Queue(createRequest);
+        }
+
+        private void createBeatmapPackage()
+        {
+            legacyBeatmapExporter.ExportToStreamAsync(Beatmap.Value.BeatmapSetInfo.ToLive(realmAccess), beatmapPackageStream, progressNotification = new ProgressNotification())
+                                 .ContinueWith(t =>
+                                 {
+                                     if (t.IsFaulted)
+                                         exportStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed; // TODO: probably show & log error
+                                     else
+                                     {
+                                         exportStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
+                                         uploadBeatmapSet();
+                                     }
+
+                                     progressNotification = null;
+                                 });
+            exportStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
+        }
+
+        private void uploadBeatmapSet()
+        {
+            Debug.Assert(beatmapSetId != null);
+
+            var uploadRequest = new PutBeatmapSetRequest(beatmapSetId.Value, beatmapPackageStream.ToArray());
+
+            uploadRequest.Success += () =>
+            {
+                uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
+
+                if (configManager.Get<bool>(OsuSetting.EditorSubmissionLoadInBrowserAfterSubmission))
+                    game?.OpenUrlExternally($"{api.WebsiteRootUrl}/beatmapsets/{beatmapSetId}");
+            };
+            uploadRequest.Failure += _ => uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed; // TODO: probably show & log error
+        }
+
+        protected override void Update()
+        {
+            base.Update();
+
+            if (progressNotification != null && progressNotification.Ongoing)
+                exportStep.Progress.Value = progressNotification.Progress;
         }
 
         public override void OnEntering(ScreenTransitionEvent e)

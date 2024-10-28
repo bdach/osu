@@ -15,7 +15,12 @@ namespace osu.Game.Online.API.Requests
         protected override string Target => throw new NotSupportedException();
 
         [JsonProperty("beatmap_count")]
-        public uint BeatmapCount { get; set; }
+        public uint BeatmapCount { get; }
+
+        public CreateBeatmapSetRequest(uint beatmapCount)
+        {
+            BeatmapCount = beatmapCount;
+        }
 
         protected override WebRequest CreateWebRequest()
         {

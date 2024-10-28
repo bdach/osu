@@ -20,7 +20,9 @@ namespace osu.Game.Screens.Edit.Submission
     {
         public LocalisableString StageDescription { get; init; }
 
-        public Bindable<StageStatus> Status { get; } = new Bindable<StageStatus>();
+        public Bindable<StageStatusType> Status { get; } = new Bindable<StageStatusType>();
+
+        public Bindable<float?> Progress { get; } = new Bindable<float?>();
 
         private Container progressBarContainer = null!;
         private Box progressBar = null!;
@@ -92,58 +94,59 @@ namespace osu.Game.Screens.Edit.Submission
         {
             base.LoadComplete();
 
-            Status.BindValueChanged(updateState, true);
+            Status.BindValueChanged(_ => Scheduler.AddOnce(updateStatus), true);
+            Progress.BindValueChanged(_ => Scheduler.AddOnce(updateProgress), true);
         }
 
-        private void updateState(ValueChangedEvent<StageStatus> statusChange)
-        {
-            const float transition_duration = 200;
+        private const float transition_duration = 200;
 
-            bool showProgress = statusChange.NewValue.Type == StageStatusType.InProgress && Status.Value.Progress != null;
+        private void updateProgress()
+        {
+            bool showProgress = Status.Value == StageStatusType.InProgress && Progress.Value != null;
             progressBarContainer.FadeTo(showProgress ? 1 : 0, transition_duration, Easing.OutQuint);
 
-            if (showProgress && statusChange.NewValue.Progress != null)
-                progressBar.ResizeWidthTo(statusChange.NewValue.Progress.Value, transition_duration, Easing.OutQuint);
-
-            if (statusChange.OldValue.Type != statusChange.NewValue.Type)
-            {
-                iconContainer.Clear();
-
-                switch (Status.Value.Type)
-                {
-                    case StageStatusType.InProgress:
-                        iconContainer.Child = new LoadingSpinner
-                        {
-                            Size = new Vector2(16),
-                            State = { Value = Visibility.Visible, },
-                        };
-                        iconContainer.Colour = colours.Orange1;
-                        break;
-
-                    case StageStatusType.Completed:
-                        iconContainer.Child = new SpriteIcon
-                        {
-                            Icon = FontAwesome.Solid.CheckCircle,
-                            Size = new Vector2(16),
-                        };
-                        iconContainer.Colour = colours.Green1;
-                        iconContainer.FlashColour(Colour4.White, 1000, Easing.OutQuint);
-                        break;
-
-                    case StageStatusType.Failed:
-                        iconContainer.Child = new SpriteIcon
-                        {
-                            Icon = FontAwesome.Solid.ExclamationCircle,
-                            Size = new Vector2(16),
-                        };
-                        iconContainer.Colour = colours.Red1;
-                        iconContainer.FlashColour(Colour4.White, 1000, Easing.OutQuint);
-                        break;
-                }
-            }
+            if (showProgress && Progress.Value != null)
+                progressBar.ResizeWidthTo(Progress.Value.Value, transition_duration, Easing.OutQuint);
         }
 
-        public record struct StageStatus(StageStatusType Type, float? Progress = null);
+        private void updateStatus()
+        {
+            updateProgress();
+
+            iconContainer.Clear();
+
+            switch (Status.Value)
+            {
+                case StageStatusType.InProgress:
+                    iconContainer.Child = new LoadingSpinner
+                    {
+                        Size = new Vector2(16),
+                        State = { Value = Visibility.Visible, },
+                    };
+                    iconContainer.Colour = colours.Orange1;
+                    break;
+
+                case StageStatusType.Completed:
+                    iconContainer.Child = new SpriteIcon
+                    {
+                        Icon = FontAwesome.Solid.CheckCircle,
+                        Size = new Vector2(16),
+                    };
+                    iconContainer.Colour = colours.Green1;
+                    iconContainer.FlashColour(Colour4.White, 1000, Easing.OutQuint);
+                    break;
+
+                case StageStatusType.Failed:
+                    iconContainer.Child = new SpriteIcon
+                    {
+                        Icon = FontAwesome.Solid.ExclamationCircle,
+                        Size = new Vector2(16),
+                    };
+                    iconContainer.Colour = colours.Red1;
+                    iconContainer.FlashColour(Colour4.White, 1000, Easing.OutQuint);
+                    break;
+            }
+        }
 
         public enum StageStatusType
         {

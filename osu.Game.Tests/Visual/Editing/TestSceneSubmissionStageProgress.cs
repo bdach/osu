@@ -34,12 +34,13 @@ namespace osu.Game.Tests.Visual.Editing
                     StageDescription = "Frobnicating the foobarator...",
                 }
             });
-            AddStep("not started", () => progress.Status.Value = new SubmissionStageProgress.StageStatus(SubmissionStageProgress.StageStatusType.NotStarted));
-            AddStep("in progress (indeterminate)", () => progress.Status.Value = new SubmissionStageProgress.StageStatus(SubmissionStageProgress.StageStatusType.InProgress));
-            AddStep("in progress (30%)", () => progress.Status.Value = new SubmissionStageProgress.StageStatus(SubmissionStageProgress.StageStatusType.InProgress, 0.3f));
-            AddStep("in progress (70%)", () => progress.Status.Value = new SubmissionStageProgress.StageStatus(SubmissionStageProgress.StageStatusType.InProgress, 0.7f));
-            AddStep("completed", () => progress.Status.Value = new SubmissionStageProgress.StageStatus(SubmissionStageProgress.StageStatusType.Completed));
-            AddStep("failed", () => progress.Status.Value = new SubmissionStageProgress.StageStatus(SubmissionStageProgress.StageStatusType.Failed));
+            AddStep("not started", () => progress.Status.Value = SubmissionStageProgress.StageStatusType.NotStarted);
+            AddStep("in progress", () => progress.Status.Value = SubmissionStageProgress.StageStatusType.InProgress);
+            AddStep("indeterminate progress", () => progress.Progress.Value = null);
+            AddStep("30% progress", () => progress.Progress.Value = 0.3f);
+            AddStep("70% progress", () => progress.Progress.Value = 0.7f);
+            AddStep("completed", () => progress.Status.Value = SubmissionStageProgress.StageStatusType.Completed);
+            AddStep("failed", () => progress.Status.Value = SubmissionStageProgress.StageStatusType.Failed);
         }
     }
 }
