@@ -40,6 +40,26 @@ namespace osu.Game.Localisation
         public static LocalisableString SubmissionSettings => new TranslatableString(getKey(@"submission_settings"), @"Submission settings");
 
         /// <summary>
+        /// "Submit beatmap!"
+        /// </summary>
+        public static LocalisableString ConfirmSubmission => new TranslatableString(getKey(@"confirm_submission"), @"Submit beatmap!");
+
+        /// <summary>
+        /// "Exporting beatmap set in compatibility mode..."
+        /// </summary>
+        public static LocalisableString ExportingBeatmapSet => new TranslatableString(getKey(@"exporting_beatmap_set"), @"Exporting beatmap set in compatibility mode...");
+
+        /// <summary>
+        /// "Creating beatmap set online..."
+        /// </summary>
+        public static LocalisableString CreatingBeatmapSet => new TranslatableString(getKey(@"creating_beatmap_set"), @"Creating beatmap set online...");
+
+        /// <summary>
+        /// "Uploading beatmap set contents..."
+        /// </summary>
+        public static LocalisableString UploadingBeatmapSetContents => new TranslatableString(getKey(@"uploading_beatmap_set_contents"), @"Uploading beatmap set contents...");
+
+        /// <summary>
         /// "Before you continue, we ask you to check whether the content you are uploading has been cleared for upload. Please understand that you are responsible for the content you upload to the platform and if in doubt, should ask permission from the creators before uploading!"
         /// </summary>
         public static LocalisableString ContentPermissionsDisclaimer => new TranslatableString(getKey(@"content_permissions_disclaimer"), @"Before you continue, we ask you to check whether the content you are uploading has been cleared for upload. Please understand that you are responsible for the content you upload to the platform and if in doubt, should ask permission from the creators before uploading!");

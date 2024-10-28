@@ -1367,16 +1367,16 @@ namespace osu.Game.Screens.Edit
                     if (!Save())
                         return false;
 
-                    startEdit();
+                    startSubmission();
                     return true;
                 })));
             }
             else
             {
-                startEdit();
+                startSubmission();
             }
 
-            void startEdit() => this.Push(new BeatmapSubmissionScreen());
+            void startSubmission() => this.Push(new BeatmapSubmissionScreen());
         }
 
         private void exportBeatmap(bool legacy)

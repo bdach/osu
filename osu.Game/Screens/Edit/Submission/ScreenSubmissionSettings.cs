@@ -20,6 +20,8 @@ namespace osu.Game.Screens.Edit.Submission
         private readonly BindableBool notifyOnDiscussionReplies = new BindableBool();
         private readonly BindableBool loadInBrowserAfterSubmission = new BindableBool();
 
+        public override LocalisableString? NextStepText => BeatmapSubmissionStrings.ConfirmSubmission;
+
         [BackgroundDependencyLoader]
         private void load(OsuConfigManager configManager)
         {
