@@ -22,7 +22,7 @@ using osuTK;
 
 namespace osu.Game.Screens.Edit.Submission
 {
-    // TODO: it should be mentioned somewhere that this project is partially destructive due to backwards compatibility
+    // TODO: it should be mentioned somewhere that this process is partially destructive due to backwards compatibility
     public partial class BeatmapSubmissionScreen : OsuScreen
     {
         private BeatmapSubmissionOverlay overlay = null!;
@@ -52,7 +52,7 @@ namespace osu.Game.Screens.Edit.Submission
         private SubmissionStageProgress createSetStep = null!;
         private SubmissionStageProgress uploadStep = null!;
         private Container successContainer = null!;
-        private Box flashLayer = null!;
+        private Container flashLayer = null!;
         private RoundedButton backButton = null!;
 
         private uint? beatmapSetId;
@@ -121,11 +121,17 @@ namespace osu.Game.Screens.Edit.Submission
                                     AutoSizeEasing = Easing.OutQuint,
                                     Masking = true,
                                     CornerRadius = BeatmapCard.CORNER_RADIUS,
-                                    Child = flashLayer = new Box
+                                    Child = flashLayer = new Container
                                     {
                                         RelativeSizeAxes = Axes.Both,
+                                        Masking = true,
+                                        CornerRadius = BeatmapCard.CORNER_RADIUS,
                                         Depth = float.MinValue,
                                         Alpha = 0,
+                                        Child = new Box
+                                        {
+                                            RelativeSizeAxes = Axes.Both,
+                                        }
                                     }
                                 },
                                 backButton = new RoundedButton
