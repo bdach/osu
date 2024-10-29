@@ -3,12 +3,15 @@
 
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
+using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables.Cards;
 using osu.Game.Configuration;
 using osu.Game.Database;
@@ -18,6 +21,7 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Notifications;
+using osu.Game.Screens.Menu;
 using osuTK;
 
 namespace osu.Game.Screens.Edit.Submission
@@ -47,10 +51,14 @@ namespace osu.Game.Screens.Edit.Submission
         [Resolved]
         private OsuGame? game { get; set; }
 
+        [Resolved]
+        private BeatmapManager beatmaps { get; set; } = null!;
+
         private Container submissionProgress = null!;
         private SubmissionStageProgress exportStep = null!;
         private SubmissionStageProgress createSetStep = null!;
         private SubmissionStageProgress uploadStep = null!;
+        private SubmissionStageProgress updateStep = null!;
         private Container successContainer = null!;
         private Container flashLayer = null!;
         private RoundedButton backButton = null!;
@@ -58,8 +66,9 @@ namespace osu.Game.Screens.Edit.Submission
         private uint? beatmapSetId;
 
         private SubmissionBeatmapExporter legacyBeatmapExporter = null!;
-        private ProgressNotification? progressNotification;
+        private ProgressNotification? exportProgressNotification;
         private MemoryStream beatmapPackageStream = null!;
+        private ProgressNotification? updateProgressNotification;
 
         [BackgroundDependencyLoader]
         private void load()
@@ -108,6 +117,12 @@ namespace osu.Game.Screens.Edit.Submission
                                 uploadStep = new SubmissionStageProgress
                                 {
                                     StageDescription = BeatmapSubmissionStrings.UploadingBeatmapSetContents,
+                                    Anchor = Anchor.TopCentre,
+                                    Origin = Anchor.TopCentre,
+                                },
+                                updateStep = new SubmissionStageProgress
+                                {
+                                    StageDescription = BeatmapSubmissionStrings.UpdatingLocalBeatmap,
                                     Anchor = Anchor.TopCentre,
                                     Origin = Anchor.TopCentre,
                                 },
@@ -188,7 +203,7 @@ namespace osu.Game.Screens.Edit.Submission
 
         private void createBeatmapPackage()
         {
-            legacyBeatmapExporter.ExportToStreamAsync(Beatmap.Value.BeatmapSetInfo.ToLive(realmAccess), beatmapPackageStream, progressNotification = new ProgressNotification())
+            legacyBeatmapExporter.ExportToStreamAsync(Beatmap.Value.BeatmapSetInfo.ToLive(realmAccess), beatmapPackageStream, exportProgressNotification = new ProgressNotification())
                                  .ContinueWith(t =>
                                  {
                                      if (t.IsFaulted)
@@ -202,7 +217,7 @@ namespace osu.Game.Screens.Edit.Submission
                                          uploadBeatmapSet();
                                      }
 
-                                     progressNotification = null;
+                                     exportProgressNotification = null;
                                  });
             exportStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
         }
@@ -220,9 +235,7 @@ namespace osu.Game.Screens.Edit.Submission
                 if (configManager.Get<bool>(OsuSetting.EditorSubmissionLoadInBrowserAfterSubmission))
                     game?.OpenUrlExternally($"{api.WebsiteRootUrl}/beatmapsets/{beatmapSetId}");
 
-                backButton.Enabled.Value = true;
-                showBeatmapCard();
-                // TODO: probably redownload at this point
+                updateLocalBeatmap();
             };
             uploadRequest.Failure += _ =>
             {
@@ -233,6 +246,48 @@ namespace osu.Game.Screens.Edit.Submission
 
             api.Queue(uploadRequest);
             uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
+        }
+
+        private void updateLocalBeatmap()
+        {
+            Debug.Assert(beatmapSetId != null);
+
+            beatmaps.ImportAsUpdate(
+                        updateProgressNotification = new ProgressNotification(),
+                        new ImportTask(beatmapPackageStream, $"{beatmapSetId}.osz"),
+                        Beatmap.Value.BeatmapSetInfo)
+                    .ContinueWith(t =>
+                    {
+                        if (t.IsFaulted)
+                        {
+                            updateStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed;
+                            Schedule(() => backButton.Enabled.Value = true);
+                            return; // TODO: probably show & log error
+                        }
+
+                        updateStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
+                        Schedule(() =>
+                        {
+                            backButton.Enabled.Value = true;
+                            backButton.Action = () =>
+                            {
+                                game?.PerformFromScreen(s =>
+                                {
+                                    if (s is OsuScreen osuScreen)
+                                    {
+                                        BeatmapSetInfo importedSet = t.GetResultSafely()!.Value;
+                                        var targetBeatmap = importedSet.Beatmaps.FirstOrDefault(b => b.DifficultyName == Beatmap.Value.BeatmapInfo.DifficultyName) ?? importedSet.Beatmaps.First();
+                                        osuScreen.Beatmap.Value = beatmaps.GetWorkingBeatmap(targetBeatmap);
+                                    }
+
+                                    s.Push(new EditorLoader());
+                                }, [typeof(MainMenu)]);
+                            };
+                        });
+
+                        showBeatmapCard();
+                    });
+            updateStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
         }
 
         private void showBeatmapCard()
@@ -256,8 +311,11 @@ namespace osu.Game.Screens.Edit.Submission
         {
             base.Update();
 
-            if (progressNotification != null && progressNotification.Ongoing)
-                exportStep.Progress.Value = progressNotification.Progress;
+            if (exportProgressNotification != null && exportProgressNotification.Ongoing)
+                exportStep.Progress.Value = exportProgressNotification.Progress;
+
+            if (updateProgressNotification != null && updateProgressNotification.Ongoing)
+                updateStep.Progress.Value = updateProgressNotification.Progress;
         }
 
         public override void OnEntering(ScreenTransitionEvent e)

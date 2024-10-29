@@ -60,6 +60,11 @@ namespace osu.Game.Localisation
         public static LocalisableString UploadingBeatmapSetContents => new TranslatableString(getKey(@"uploading_beatmap_set_contents"), @"Uploading beatmap set contents...");
 
         /// <summary>
+        /// "Updating local beatmap with relevant changes..."
+        /// </summary>
+        public static LocalisableString UpdatingLocalBeatmap => new TranslatableString(getKey(@"updating_local_beatmap"), @"Updating local beatmap with relevant changes...");
+
+        /// <summary>
         /// "Before you continue, we ask you to check whether the content you are uploading has been cleared for upload. Please understand that you are responsible for the content you upload to the platform and if in doubt, should ask permission from the creators before uploading!"
         /// </summary>
         public static LocalisableString ContentPermissionsDisclaimer => new TranslatableString(getKey(@"content_permissions_disclaimer"), @"Before you continue, we ask you to check whether the content you are uploading has been cleared for upload. Please understand that you are responsible for the content you upload to the platform and if in doubt, should ask permission from the creators before uploading!");
