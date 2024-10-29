@@ -182,7 +182,7 @@ namespace osu.Game.Screens.Edit.Submission
 
         private void createBeatmapSet()
         {
-            var createRequest = new CreateBeatmapSetRequest((uint)Beatmap.Value.BeatmapSetInfo.Beatmaps.Count);
+            var createRequest = PutBeatmapSetRequest.CreateNew((uint)Beatmap.Value.BeatmapSetInfo.Beatmaps.Count);
 
             createRequest.Success += response =>
             {
@@ -226,7 +226,7 @@ namespace osu.Game.Screens.Edit.Submission
         {
             Debug.Assert(beatmapSetId != null);
 
-            var uploadRequest = new PutBeatmapSetRequest(beatmapSetId.Value, beatmapPackageStream.ToArray());
+            var uploadRequest = new ReplaceBeatmapSetRequest(beatmapSetId.Value, beatmapPackageStream.ToArray());
 
             uploadRequest.Success += () =>
             {

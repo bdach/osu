@@ -2,32 +2,52 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using Newtonsoft.Json;
 using osu.Framework.IO.Network;
+using osu.Game.Online.API.Requests.Responses;
 
 namespace osu.Game.Online.API.Requests
 {
-    public class PutBeatmapSetRequest : APIUploadRequest
+    public class PutBeatmapSetRequest : APIRequest<CreateBeatmapSetResponse>
     {
-        public uint BeatmapSetID { get; }
+        protected override string Uri => @"http://localhost:5089/beatmapsets";
+        protected override string Target => throw new NotSupportedException();
 
-        private readonly byte[] oszPackage;
+        [JsonProperty("beatmapset_id")]
+        public uint? BeatmapSetID { get; init; }
 
-        public PutBeatmapSetRequest(uint beatmapSetID, byte[] oszPackage)
+        [JsonProperty("beatmaps_to_create")]
+        public uint BeatmapsToCreate { get; init; }
+
+        [JsonProperty("beatmaps_to_keep")]
+        public uint[] BeatmapsToKeep { get; init; } = [];
+
+        private PutBeatmapSetRequest()
         {
-            this.oszPackage = oszPackage;
-            BeatmapSetID = beatmapSetID;
         }
+
+        public static PutBeatmapSetRequest CreateNew(uint beatmapCount) => new PutBeatmapSetRequest
+        {
+            BeatmapsToCreate = beatmapCount,
+        };
+
+        public static PutBeatmapSetRequest UpdateExisting(uint beatmapSetId, IEnumerable<uint> beatmapsToKeep, uint beatmapsToCreate) => new PutBeatmapSetRequest
+        {
+            BeatmapSetID = beatmapSetId,
+            BeatmapsToKeep = beatmapsToKeep.ToArray(),
+            BeatmapsToCreate = beatmapsToCreate,
+        };
 
         protected override WebRequest CreateWebRequest()
         {
-            var request = base.CreateWebRequest();
-            request.AddFile(@"beatmapArchive", oszPackage);
-            request.Method = HttpMethod.Put;
-            return request;
+            var req = base.CreateWebRequest();
+            req.Method = HttpMethod.Put;
+            req.ContentType = @"application/json";
+            req.AddRaw(JsonConvert.SerializeObject(this));
+            return req;
         }
-
-        protected override string Uri => $@"http://localhost:5089/beatmapsets/{BeatmapSetID}";
-        protected override string Target => throw new NotSupportedException();
     }
 }
