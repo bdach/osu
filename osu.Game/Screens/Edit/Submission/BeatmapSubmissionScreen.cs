@@ -9,6 +9,7 @@ using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Framework.Screens;
 using osu.Game.Beatmaps;
@@ -196,11 +197,12 @@ namespace osu.Game.Screens.Edit.Submission
                 legacyBeatmapExporter = new SubmissionBeatmapExporter(storage, response);
                 createBeatmapPackage();
             };
-            createRequest.Failure += _ =>
+            createRequest.Failure += ex =>
             {
                 createSetStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed;
                 backButton.Enabled.Value = true;
-            }; // TODO: probably show & log error
+                Logger.Log($"Beatmap set submission failed on creation: {ex}");
+            }; // TODO: probably show error
 
             createSetStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
             api.Queue(createRequest);
@@ -213,7 +215,8 @@ namespace osu.Game.Screens.Edit.Submission
                                  {
                                      if (t.IsFaulted)
                                      {
-                                         exportStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed; // TODO: probably show & log error
+                                         exportStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed; // TODO: probably show error
+                                         Logger.Log($"Beatmap set submission failed on export: {t.Exception}");
                                          Schedule(() => backButton.Enabled.Value = true);
                                      }
                                      else
@@ -242,11 +245,12 @@ namespace osu.Game.Screens.Edit.Submission
 
                 updateLocalBeatmap();
             };
-            uploadRequest.Failure += _ =>
+            uploadRequest.Failure += ex =>
             {
                 uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed;
+                Logger.Log($"Beatmap submission failed on upload: {ex}");
                 backButton.Enabled.Value = true;
-            }; // TODO: probably show & log error
+            }; // TODO: probably show error
             uploadRequest.Progressed += (current, total) => uploadStep.Progress.Value = (float)current / total;
 
             api.Queue(uploadRequest);
@@ -266,8 +270,9 @@ namespace osu.Game.Screens.Edit.Submission
                         if (t.IsFaulted)
                         {
                             updateStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed;
+                            Logger.Log($"Beatmap submission failed on local update: {t.Exception}");
                             Schedule(() => backButton.Enabled.Value = true);
-                            return; // TODO: probably show & log error
+                            return; // TODO: probably show error
                         }
 
                         updateStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
