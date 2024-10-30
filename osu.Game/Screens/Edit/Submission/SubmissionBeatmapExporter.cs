@@ -28,12 +28,13 @@ namespace osu.Game.Screens.Edit.Submission
             beatmapIds = createBeatmapSetResponse.BeatmapIds.Select(id => (int)id).ToHashSet();
         }
 
-        protected override void MutateBeatmap(IBeatmap playableBeatmap)
+        protected override void MutateBeatmap(BeatmapSetInfo beatmapSet, IBeatmap playableBeatmap)
         {
-            base.MutateBeatmap(playableBeatmap);
+            base.MutateBeatmap(beatmapSet, playableBeatmap);
 
             if (beatmapSetId != null && beatmapIds != null)
             {
+                playableBeatmap.BeatmapInfo.BeatmapSet = beatmapSet;
                 playableBeatmap.BeatmapInfo.BeatmapSet!.OnlineID = (int)beatmapSetId;
 
                 if (beatmapIds.Contains(playableBeatmap.BeatmapInfo.OnlineID))
@@ -50,6 +51,7 @@ namespace osu.Game.Screens.Edit.Submission
                     int newId = beatmapIds.First();
                     beatmapIds.Remove(newId);
                     playableBeatmap.BeatmapInfo.OnlineID = newId;
+                    return;
                 }
 
                 throw new InvalidOperationException(@"Encountered beatmap with ID that has not been assigned to it by the server!");

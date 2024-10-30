@@ -58,7 +58,7 @@ namespace osu.Game.Database
                 Configuration = new LegacySkinDecoder().Decode(skinStreamReader)
             };
 
-            MutateBeatmap(playableBeatmap);
+            MutateBeatmap(model, playableBeatmap);
 
             // Encode to legacy format
             var stream = new MemoryStream();
@@ -70,7 +70,7 @@ namespace osu.Game.Database
             return stream;
         }
 
-        protected virtual void MutateBeatmap(IBeatmap playableBeatmap)
+        protected virtual void MutateBeatmap(BeatmapSetInfo beatmapSet, IBeatmap playableBeatmap)
         {
             // Convert beatmap elements to be compatible with legacy format
             // So we truncate time and position values to integers, and convert paths with multiple segments to Bézier curves
