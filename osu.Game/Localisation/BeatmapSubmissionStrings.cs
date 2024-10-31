@@ -50,9 +50,9 @@ namespace osu.Game.Localisation
         public static LocalisableString ExportingBeatmapSet => new TranslatableString(getKey(@"exporting_beatmap_set"), @"Exporting beatmap set in compatibility mode...");
 
         /// <summary>
-        /// "Creating beatmap set online..."
+        /// "Preparing beatmap set online..."
         /// </summary>
-        public static LocalisableString CreatingBeatmapSet => new TranslatableString(getKey(@"creating_beatmap_set"), @"Creating beatmap set online...");
+        public static LocalisableString PreparingBeatmapSet => new TranslatableString(getKey(@"preparing_beatmap_set"), @"Preparing beatmap set online...");
 
         /// <summary>
         /// "Uploading beatmap set contents..."

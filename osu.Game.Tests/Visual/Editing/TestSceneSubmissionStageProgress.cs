@@ -41,6 +41,7 @@ namespace osu.Game.Tests.Visual.Editing
             AddStep("70% progress", () => progress.Progress.Value = 0.7f);
             AddStep("completed", () => progress.Status.Value = SubmissionStageProgress.StageStatusType.Completed);
             AddStep("failed", () => progress.Status.Value = SubmissionStageProgress.StageStatusType.Failed);
+            AddStep("canceled", () => progress.Status.Value = SubmissionStageProgress.StageStatusType.Canceled);
         }
     }
 }

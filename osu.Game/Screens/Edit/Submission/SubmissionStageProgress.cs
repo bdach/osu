@@ -145,6 +145,16 @@ namespace osu.Game.Screens.Edit.Submission
                     iconContainer.Colour = colours.Red1;
                     iconContainer.FlashColour(Colour4.White, 1000, Easing.OutQuint);
                     break;
+
+                case StageStatusType.Canceled:
+                    iconContainer.Child = new SpriteIcon
+                    {
+                        Icon = FontAwesome.Solid.Ban,
+                        Size = new Vector2(16),
+                    };
+                    iconContainer.Colour = colours.Gray8;
+                    iconContainer.FlashColour(Colour4.White, 1000, Easing.OutQuint);
+                    break;
             }
         }
 
@@ -154,6 +164,7 @@ namespace osu.Game.Screens.Edit.Submission
             InProgress,
             Completed,
             Failed,
+            Canceled,
         }
     }
 }

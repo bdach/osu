@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -16,10 +17,13 @@ using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables.Cards;
 using osu.Game.Configuration;
 using osu.Game.Database;
+using osu.Game.Extensions;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Localisation;
+using osu.Game.Models;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Screens.Menu;
@@ -105,7 +109,7 @@ namespace osu.Game.Screens.Edit.Submission
                             {
                                 createSetStep = new SubmissionStageProgress
                                 {
-                                    StageDescription = BeatmapSubmissionStrings.CreatingBeatmapSet,
+                                    StageDescription = BeatmapSubmissionStrings.PreparingBeatmapSet,
                                     Anchor = Anchor.TopCentre,
                                     Origin = Anchor.TopCentre,
                                 },
@@ -195,7 +199,14 @@ namespace osu.Game.Screens.Edit.Submission
                 createSetStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
                 beatmapSetId = response.BeatmapSetId;
                 legacyBeatmapExporter = new SubmissionBeatmapExporter(storage, response);
-                createBeatmapPackage();
+
+                if (response.Files.Count != 0)
+                {
+                    exportStep.Status.Value = SubmissionStageProgress.StageStatusType.Canceled;
+                    patchBeatmapSet(response.Files);
+                }
+                else
+                    createBeatmapPackage();
             };
             createRequest.Failure += ex =>
             {
@@ -222,7 +233,7 @@ namespace osu.Game.Screens.Edit.Submission
                                      else
                                      {
                                          exportStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
-                                         uploadBeatmapSet();
+                                         replaceBeatmapSet();
                                      }
 
                                      exportProgressNotification = null;
@@ -230,7 +241,59 @@ namespace osu.Game.Screens.Edit.Submission
             exportStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
         }
 
-        private void uploadBeatmapSet()
+        private void patchBeatmapSet(ICollection<BeatmapSetFile> onlineFiles)
+        {
+            Debug.Assert(beatmapSetId != null);
+
+            var onlineFilesByFilename = onlineFiles.ToDictionary(f => f.Filename, f => f.SHA2Hash);
+
+            var filesToUpdate = new HashSet<RealmNamedFileUsage>();
+
+            foreach (var file in Beatmap.Value.BeatmapSetInfo.Files)
+            {
+                if (!onlineFilesByFilename.Remove(file.Filename, out string? hash))
+                {
+                    filesToUpdate.Add(file);
+                    break;
+                }
+
+                if (file.File.Hash != hash)
+                {
+                    filesToUpdate.Add(file);
+                    break;
+                }
+            }
+
+            // TODO: this probably needs to be on a background thread
+            var changedFiles = filesToUpdate.ToDictionary(
+                f => f.Filename,
+                f => storage.GetStorageForDirectory(@"files").GetStream(f.File.GetStoragePath()).ReadAllBytesToArray());
+
+            var patchRequest = new PatchBeatmapSetRequest(beatmapSetId.Value);
+            patchRequest.FilesChanged.AddRange(changedFiles);
+            patchRequest.FilesDeleted.AddRange(onlineFilesByFilename.Keys);
+            patchRequest.Success += () =>
+            {
+                uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
+
+                if (configManager.Get<bool>(OsuSetting.EditorSubmissionLoadInBrowserAfterSubmission))
+                    game?.OpenUrlExternally($"{api.WebsiteRootUrl}/beatmapsets/{beatmapSetId}");
+
+                updateLocalBeatmap();
+            };
+            patchRequest.Failure += ex =>
+            {
+                uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed;
+                Logger.Log($"Beatmap submission failed on upload: {ex}");
+                backButton.Enabled.Value = true;
+            }; // TODO: probably show error
+            patchRequest.Progressed += (current, total) => uploadStep.Progress.Value = (float)current / total;
+
+            api.Queue(patchRequest);
+            uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
+        }
+
+        private void replaceBeatmapSet()
         {
             Debug.Assert(beatmapSetId != null);
 
@@ -261,6 +324,7 @@ namespace osu.Game.Screens.Edit.Submission
         {
             Debug.Assert(beatmapSetId != null);
 
+            // TODO: this is broken by differential update. there is no archive available in that case.
             beatmaps.ImportAsUpdate(
                         updateProgressNotification = new ProgressNotification(),
                         new ImportTask(beatmapPackageStream, $"{beatmapSetId}.osz"),

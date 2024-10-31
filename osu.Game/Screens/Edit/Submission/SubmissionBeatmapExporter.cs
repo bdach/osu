@@ -21,11 +21,11 @@ namespace osu.Game.Screens.Edit.Submission
         {
         }
 
-        public SubmissionBeatmapExporter(Storage storage, CreateBeatmapSetResponse createBeatmapSetResponse)
+        public SubmissionBeatmapExporter(Storage storage, PutBeatmapSetResponse putBeatmapSetResponse)
             : base(storage)
         {
-            beatmapSetId = createBeatmapSetResponse.BeatmapSetId;
-            beatmapIds = createBeatmapSetResponse.BeatmapIds.Select(id => (int)id).ToHashSet();
+            beatmapSetId = putBeatmapSetResponse.BeatmapSetId;
+            beatmapIds = putBeatmapSetResponse.BeatmapIds.Select(id => (int)id).ToHashSet();
         }
 
         protected override void MutateBeatmap(BeatmapSetInfo beatmapSet, IBeatmap playableBeatmap)

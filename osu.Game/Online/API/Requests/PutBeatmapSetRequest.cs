@@ -11,7 +11,7 @@ using osu.Game.Online.API.Requests.Responses;
 
 namespace osu.Game.Online.API.Requests
 {
-    public class PutBeatmapSetRequest : APIRequest<CreateBeatmapSetResponse>
+    public class PutBeatmapSetRequest : APIRequest<PutBeatmapSetResponse>
     {
         protected override string Uri => @"http://localhost:5089/beatmapsets";
         protected override string Target => throw new NotSupportedException();
