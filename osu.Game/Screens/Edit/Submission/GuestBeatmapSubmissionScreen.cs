@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -17,13 +16,11 @@ using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables.Cards;
 using osu.Game.Configuration;
 using osu.Game.Database;
-using osu.Game.Extensions;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.IO.Archives;
 using osu.Game.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
-using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Screens.Menu;
@@ -32,10 +29,8 @@ using osuTK;
 namespace osu.Game.Screens.Edit.Submission
 {
     // TODO: it should be mentioned somewhere that this process is partially destructive due to backwards compatibility
-    public partial class BeatmapSubmissionScreen : OsuScreen
+    public partial class GuestBeatmapSubmissionScreen : OsuScreen
     {
-        private BeatmapSubmissionOverlay overlay = null!;
-
         public override bool AllowBackButton => false;
 
         [Cached]
@@ -68,8 +63,6 @@ namespace osu.Game.Screens.Edit.Submission
         private Container flashLayer = null!;
         private RoundedButton backButton = null!;
 
-        private uint? beatmapSetId;
-
         private SubmissionBeatmapExporter legacyBeatmapExporter = null!;
         private ProgressNotification? exportProgressNotification;
         private MemoryStream beatmapPackageStream = null!;
@@ -80,7 +73,6 @@ namespace osu.Game.Screens.Edit.Submission
         {
             AddRangeInternal(new Drawable[]
             {
-                overlay = new BeatmapSubmissionOverlay(),
                 submissionProgress = new Container
                 {
                     RelativeSizeAxes = Axes.X,
@@ -107,12 +99,6 @@ namespace osu.Game.Screens.Edit.Submission
                             Spacing = new Vector2(5),
                             Children = new Drawable[]
                             {
-                                createSetStep = new SubmissionStageProgress
-                                {
-                                    StageDescription = BeatmapSubmissionStrings.PreparingBeatmapSet,
-                                    Anchor = Anchor.TopCentre,
-                                    Origin = Anchor.TopCentre,
-                                },
                                 exportStep = new SubmissionStageProgress
                                 {
                                     StageDescription = BeatmapSubmissionStrings.ExportingBeatmapSet,
@@ -169,51 +155,17 @@ namespace osu.Game.Screens.Edit.Submission
                 }
             });
 
-            overlay.State.BindValueChanged(_ =>
-            {
-                if (overlay.State.Value == Visibility.Hidden)
-                {
-                    if (!overlay.Completed)
-                        this.Exit();
-                    else
-                    {
-                        submissionProgress.FadeIn(200, Easing.OutQuint);
-                        createBeatmapSet();
-                    }
-                }
-            });
             beatmapPackageStream = new MemoryStream();
         }
 
-        private void createBeatmapSet()
+        public override void OnEntering(ScreenTransitionEvent e)
         {
-            var createRequest = Beatmap.Value.BeatmapSetInfo.OnlineID > 0
-                ? PutBeatmapSetRequest.UpdateExisting(
-                    (uint)Beatmap.Value.BeatmapSetInfo.OnlineID,
-                    Beatmap.Value.BeatmapSetInfo.Beatmaps.Where(b => b.OnlineID > 0).Select(b => (uint)b.OnlineID).ToArray(),
-                    (uint)Beatmap.Value.BeatmapSetInfo.Beatmaps.Count(b => b.OnlineID <= 0))
-                : PutBeatmapSetRequest.CreateNew((uint)Beatmap.Value.BeatmapSetInfo.Beatmaps.Count);
+            base.OnEntering(e);
 
-            createRequest.Success += response =>
-            {
-                createSetStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
-                beatmapSetId = response.BeatmapSetId;
-                legacyBeatmapExporter = new SubmissionBeatmapExporter(storage, response);
-
-                createBeatmapPackage(response.Files);
-            };
-            createRequest.Failure += ex =>
-            {
-                createSetStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed;
-                backButton.Enabled.Value = true;
-                Logger.Log($"Beatmap set submission failed on creation: {ex}");
-            }; // TODO: probably show error
-
-            createSetStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
-            api.Queue(createRequest);
+            createBeatmapPackage();
         }
 
-        private void createBeatmapPackage(ICollection<BeatmapSetFile> onlineFiles)
+        private void createBeatmapPackage()
         {
             legacyBeatmapExporter.ExportToStreamAsync(Beatmap.Value.BeatmapSetInfo.ToLive(realmAccess), beatmapPackageStream, exportProgressNotification = new ProgressNotification())
                                  .ContinueWith(t =>
@@ -228,10 +180,7 @@ namespace osu.Game.Screens.Edit.Submission
                                      {
                                          exportStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
 
-                                         if (onlineFiles.Count > 0)
-                                             patchBeatmapSet(onlineFiles);
-                                         else
-                                             replaceBeatmapSet();
+                                         patchBeatmap();
                                      }
 
                                      exportProgressNotification = null;
@@ -239,43 +188,22 @@ namespace osu.Game.Screens.Edit.Submission
             exportStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
         }
 
-        private void patchBeatmapSet(ICollection<BeatmapSetFile> onlineFiles)
+        private void patchBeatmap()
         {
-            Debug.Assert(beatmapSetId != null);
-
-            var onlineFilesByFilename = onlineFiles.ToDictionary(f => f.Filename, f => f.SHA2Hash);
+            Debug.Assert(Beatmap.Value.BeatmapSetInfo.OnlineID > 0 && Beatmap.Value.BeatmapInfo.OnlineID > 0);
 
             using var archiveReader = new ZipArchiveReader(beatmapPackageStream);
-            var filesToUpdate = new HashSet<string>();
-
-            foreach (string filename in archiveReader.Filenames)
-            {
-                string localHash = archiveReader.GetStream(filename).ComputeSHA2Hash();
-
-                if (!onlineFilesByFilename.Remove(filename, out string? onlineHash))
-                {
-                    filesToUpdate.Add(filename);
-                    continue;
-                }
-
-                if (localHash != onlineHash)
-                    filesToUpdate.Add(filename);
-            }
-
-            // TODO: this probably needs to be on a background thread
-            var changedFiles = filesToUpdate.ToDictionary(
-                f => f,
-                f => archiveReader.GetStream(f).ReadAllBytesToArray());
-
-            var patchRequest = new PatchBeatmapSetRequest(beatmapSetId.Value);
-            patchRequest.FilesChanged.AddRange(changedFiles);
-            patchRequest.FilesDeleted.AddRange(onlineFilesByFilename.Keys);
+            var patchRequest = new PatchBeatmapRequest(
+                (uint)Beatmap.Value.BeatmapSetInfo.OnlineID,
+                (uint)Beatmap.Value.BeatmapInfo.OnlineID,
+                Beatmap.Value.BeatmapInfo.File!.Filename,
+                archiveReader.GetStream(Beatmap.Value.BeatmapInfo.File!.Filename).ReadAllBytesToArray());
             patchRequest.Success += () =>
             {
                 uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
 
                 if (configManager.Get<bool>(OsuSetting.EditorSubmissionLoadInBrowserAfterSubmission))
-                    game?.OpenUrlExternally($"{api.WebsiteRootUrl}/beatmapsets/{beatmapSetId}");
+                    game?.OpenUrlExternally($"{api.WebsiteRootUrl}/beatmaps/{patchRequest.BeatmapID}");
 
                 updateLocalBeatmap();
             };
@@ -291,41 +219,14 @@ namespace osu.Game.Screens.Edit.Submission
             uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
         }
 
-        private void replaceBeatmapSet()
-        {
-            Debug.Assert(beatmapSetId != null);
-
-            var uploadRequest = new ReplaceBeatmapSetRequest(beatmapSetId.Value, beatmapPackageStream.ToArray());
-
-            uploadRequest.Success += () =>
-            {
-                uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
-
-                if (configManager.Get<bool>(OsuSetting.EditorSubmissionLoadInBrowserAfterSubmission))
-                    game?.OpenUrlExternally($"{api.WebsiteRootUrl}/beatmapsets/{beatmapSetId}");
-
-                updateLocalBeatmap();
-            };
-            uploadRequest.Failure += ex =>
-            {
-                uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.Failed;
-                Logger.Log($"Beatmap submission failed on upload: {ex}");
-                backButton.Enabled.Value = true;
-            }; // TODO: probably show error
-            uploadRequest.Progressed += (current, total) => uploadStep.Progress.Value = (float)current / total;
-
-            api.Queue(uploadRequest);
-            uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
-        }
-
         private void updateLocalBeatmap()
         {
-            Debug.Assert(beatmapSetId != null);
+            Debug.Assert((uint)Beatmap.Value.BeatmapSetInfo.OnlineID > 0 && Beatmap.Value.BeatmapInfo.OnlineID > 0);
 
             // TODO: this is broken by differential update. there is no archive available in that case.
             beatmaps.ImportAsUpdate(
                         updateProgressNotification = new ProgressNotification(),
-                        new ImportTask(beatmapPackageStream, $"{beatmapSetId}.osz"),
+                        new ImportTask(beatmapPackageStream, $"{Beatmap.Value.BeatmapSetInfo.OnlineID}.osz"),
                         Beatmap.Value.BeatmapSetInfo)
                     .ContinueWith(t =>
                     {
@@ -364,9 +265,9 @@ namespace osu.Game.Screens.Edit.Submission
 
         private void showBeatmapCard()
         {
-            Debug.Assert(beatmapSetId != null);
+            Debug.Assert((uint)Beatmap.Value.BeatmapSetInfo.OnlineID > 0 && Beatmap.Value.BeatmapInfo.OnlineID > 0);
 
-            var getBeatmapSetRequest = new GetBeatmapSetRequest((int)beatmapSetId.Value);
+            var getBeatmapSetRequest = new GetBeatmapSetRequest(Beatmap.Value.BeatmapSetInfo.OnlineID);
             getBeatmapSetRequest.Success += beatmapSet =>
             {
                 LoadComponentAsync(new BeatmapCardExtra(beatmapSet, false), loaded =>
@@ -388,13 +289,6 @@ namespace osu.Game.Screens.Edit.Submission
 
             if (updateProgressNotification != null && updateProgressNotification.Ongoing)
                 updateStep.Progress.Value = updateProgressNotification.Progress;
-        }
-
-        public override void OnEntering(ScreenTransitionEvent e)
-        {
-            base.OnEntering(e);
-
-            overlay.Show();
         }
     }
 }

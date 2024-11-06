@@ -1304,6 +1304,14 @@ namespace osu.Game.Screens.Edit
                 yield return upload;
             }
 
+            // TODO: this is obviously too heavy-handed, but I don't want to figure out how to persist the relevant metadata about guest mappers here right now.
+            if (Beatmap.Value.BeatmapSetInfo.OnlineID > 0 && Beatmap.Value.BeatmapInfo.OnlineID > 0)
+            {
+                var updateAsGuest = new EditorMenuItem("Update difficulty as guest", MenuItemType.Standard, this.updateAsGuest);
+                saveRelatedMenuItems.Add(updateAsGuest);
+                yield return updateAsGuest;
+            }
+
             yield return new OsuMenuItemSpacer();
             yield return new EditorMenuItem(CommonStrings.Exit, MenuItemType.Standard, this.Exit);
         }
@@ -1377,6 +1385,42 @@ namespace osu.Game.Screens.Edit
             }
 
             void startSubmission() => this.Push(new BeatmapSubmissionScreen());
+        }
+
+        private void updateAsGuest()
+        {
+            if (api.State.Value != APIState.Online)
+            {
+                loginOverlay?.Show();
+                return;
+            }
+
+            if (!editorBeatmap.HitObjects.Any())
+            {
+                notifications?.Post(new SimpleNotification
+                {
+                    Text = BeatmapSubmissionStrings.EmptyBeatmapsCannotBeSubmitted,
+                });
+                return;
+            }
+
+            if (HasUnsavedChanges)
+            {
+                dialogOverlay.Push(new SaveRequiredPopupDialog(() => attemptMutationOperation(() =>
+                {
+                    if (!Save())
+                        return false;
+
+                    startGuestSubmission();
+                    return true;
+                })));
+            }
+            else
+            {
+                startGuestSubmission();
+            }
+
+            void startGuestSubmission() => this.Push(new GuestBeatmapSubmissionScreen());
         }
 
         private void exportBeatmap(bool legacy)
