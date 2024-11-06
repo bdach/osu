@@ -19,8 +19,8 @@ using osu.Game.Configuration;
 using osu.Game.Database;
 using osu.Game.Extensions;
 using osu.Game.Graphics.UserInterfaceV2;
+using osu.Game.IO.Archives;
 using osu.Game.Localisation;
-using osu.Game.Models;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
@@ -200,13 +200,7 @@ namespace osu.Game.Screens.Edit.Submission
                 beatmapSetId = response.BeatmapSetId;
                 legacyBeatmapExporter = new SubmissionBeatmapExporter(storage, response);
 
-                if (response.Files.Count != 0)
-                {
-                    exportStep.Status.Value = SubmissionStageProgress.StageStatusType.Canceled;
-                    patchBeatmapSet(response.Files);
-                }
-                else
-                    createBeatmapPackage();
+                createBeatmapPackage(response.Files);
             };
             createRequest.Failure += ex =>
             {
@@ -219,7 +213,7 @@ namespace osu.Game.Screens.Edit.Submission
             api.Queue(createRequest);
         }
 
-        private void createBeatmapPackage()
+        private void createBeatmapPackage(ICollection<BeatmapSetFile> onlineFiles)
         {
             legacyBeatmapExporter.ExportToStreamAsync(Beatmap.Value.BeatmapSetInfo.ToLive(realmAccess), beatmapPackageStream, exportProgressNotification = new ProgressNotification())
                                  .ContinueWith(t =>
@@ -233,7 +227,11 @@ namespace osu.Game.Screens.Edit.Submission
                                      else
                                      {
                                          exportStep.Status.Value = SubmissionStageProgress.StageStatusType.Completed;
-                                         replaceBeatmapSet();
+
+                                         if (onlineFiles.Count > 0)
+                                             patchBeatmapSet(onlineFiles);
+                                         else
+                                             replaceBeatmapSet();
                                      }
 
                                      exportProgressNotification = null;
@@ -247,27 +245,27 @@ namespace osu.Game.Screens.Edit.Submission
 
             var onlineFilesByFilename = onlineFiles.ToDictionary(f => f.Filename, f => f.SHA2Hash);
 
-            var filesToUpdate = new HashSet<RealmNamedFileUsage>();
+            var archiveReader = new ZipArchiveReader(beatmapPackageStream);
+            var filesToUpdate = new HashSet<string>();
 
-            foreach (var file in Beatmap.Value.BeatmapSetInfo.Files)
+            foreach (string filename in archiveReader.Filenames)
             {
-                if (!onlineFilesByFilename.Remove(file.Filename, out string? hash))
+                string localHash = archiveReader.GetStream(filename).ComputeSHA2Hash();
+
+                if (!onlineFilesByFilename.Remove(filename, out string? onlineHash))
                 {
-                    filesToUpdate.Add(file);
-                    break;
+                    filesToUpdate.Add(filename);
+                    continue;
                 }
 
-                if (file.File.Hash != hash)
-                {
-                    filesToUpdate.Add(file);
-                    break;
-                }
+                if (localHash != onlineHash)
+                    filesToUpdate.Add(filename);
             }
 
             // TODO: this probably needs to be on a background thread
             var changedFiles = filesToUpdate.ToDictionary(
-                f => f.Filename,
-                f => storage.GetStorageForDirectory(@"files").GetStream(f.File.GetStoragePath()).ReadAllBytesToArray());
+                f => f,
+                f => archiveReader.GetStream(f).ReadAllBytesToArray());
 
             var patchRequest = new PatchBeatmapSetRequest(beatmapSetId.Value);
             patchRequest.FilesChanged.AddRange(changedFiles);

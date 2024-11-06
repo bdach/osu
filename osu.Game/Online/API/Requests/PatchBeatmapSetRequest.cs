@@ -28,10 +28,10 @@ namespace osu.Game.Online.API.Requests
             request.Method = HttpMethod.Patch;
 
             foreach ((string filename, byte[] content) in FilesChanged)
-                request.AddFile(filename, content);
+                request.AddFile(@"filesChanged", content, filename);
 
             foreach (string filename in FilesDeleted)
-                request.AddParameter(@"deletedFiles", filename, RequestParameterType.Form);
+                request.AddParameter(@"filesDeleted", filename, RequestParameterType.Form);
 
             return request;
         }
