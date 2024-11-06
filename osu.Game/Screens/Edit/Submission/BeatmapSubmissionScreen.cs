@@ -245,7 +245,8 @@ namespace osu.Game.Screens.Edit.Submission
 
             var onlineFilesByFilename = onlineFiles.ToDictionary(f => f.Filename, f => f.SHA2Hash);
 
-            using var archiveReader = new ZipArchiveReader(beatmapPackageStream);
+            // TODO: this can't be disposed until done with `beatmapPackageStream`. probably dispose of in `Dispose()` or something
+            var archiveReader = new ZipArchiveReader(beatmapPackageStream);
             var filesToUpdate = new HashSet<string>();
 
             foreach (string filename in archiveReader.Filenames)

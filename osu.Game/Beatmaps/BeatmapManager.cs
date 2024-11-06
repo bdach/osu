@@ -479,7 +479,8 @@ namespace osu.Game.Beatmaps
             // which influences the beatmap checksums.
             beatmapInfo.LastLocalUpdate = DateTimeOffset.Now;
             beatmapInfo.Status = BeatmapOnlineStatus.LocallyModified;
-            beatmapInfo.ResetOnlineInfo();
+            // TODO: this change is key to being able to incrementally update beatmaps rather than create them anew every time, but needs to be thoroughly tested as it's also safety against manual edits
+            //beatmapInfo.ResetOnlineInfo();
 
             Realm.Write(r =>
             {

@@ -77,7 +77,6 @@ namespace osu.Game.Screens.Edit.Submission
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Alpha = 0,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Width = 0.6f,
@@ -167,6 +166,7 @@ namespace osu.Game.Screens.Edit.Submission
 
         private void createBeatmapPackage()
         {
+            legacyBeatmapExporter = new SubmissionBeatmapExporter(storage);
             legacyBeatmapExporter.ExportToStreamAsync(Beatmap.Value.BeatmapSetInfo.ToLive(realmAccess), beatmapPackageStream, exportProgressNotification = new ProgressNotification())
                                  .ContinueWith(t =>
                                  {
@@ -192,7 +192,8 @@ namespace osu.Game.Screens.Edit.Submission
         {
             Debug.Assert(Beatmap.Value.BeatmapSetInfo.OnlineID > 0 && Beatmap.Value.BeatmapInfo.OnlineID > 0);
 
-            using var archiveReader = new ZipArchiveReader(beatmapPackageStream);
+            // TODO: this can't be disposed until done with `beatmapPackageStream`. probably dispose of in `Dispose()` or something
+            var archiveReader = new ZipArchiveReader(beatmapPackageStream);
             var patchRequest = new PatchBeatmapRequest(
                 (uint)Beatmap.Value.BeatmapSetInfo.OnlineID,
                 (uint)Beatmap.Value.BeatmapInfo.OnlineID,
