@@ -40,6 +40,8 @@ namespace osu.Game.Beatmaps
     /// </summary>
     public class BeatmapManager : ModelManager<BeatmapSetInfo>, IModelImporter<BeatmapSetInfo>, IWorkingBeatmapCache
     {
+        public const string OSL_HASH_INDICATOR_PREFIX = @"// ORIGINAL_OSL_FILE_HASH=";
+
         public ITrackStore BeatmapTrackStore { get; }
 
         private readonly BeatmapImporter beatmapImporter;
@@ -524,7 +526,6 @@ namespace osu.Game.Beatmaps
 
             // pass 2: backwards-compatible save
             // this is decoding the just-encoded beatmap because we don't have a proper beatmap deep clone primitive :/
-
             Beatmap legacyBeatmapContent;
             editBeatmapStream.Seek(0, SeekOrigin.Begin);
             using (var sr = new LineBufferedReader(editBeatmapStream, leaveOpen: true))
@@ -582,6 +583,16 @@ namespace osu.Game.Beatmaps
 
             // Encode to legacy format
             var playBeatmapStream = new MemoryStream();
+
+            string preamble = $"""
+                              // This file was automatically generated using osu!(lazer) from {createBeatmapFilenameFromMetadata(beatmapInfo, legacyFormat: false)}.
+                              // DO NOT MAKE ANY MANUAL CHANGES TO THIS FILE. USE ONLY FACILITIES PROVIDED IN osu!(lazer) FOR EDITING THIS FILE.
+                              {OSL_HASH_INDICATOR_PREFIX}{beatmapInfo.EditHash}
+
+                              """;
+
+            playBeatmapStream.Write(Encoding.UTF8.GetBytes(preamble));
+
             using (var sw = new StreamWriter(playBeatmapStream, Encoding.UTF8, 1024, true))
                 new LegacyBeatmapEncoder(playableBeatmap, beatmapSkin).Encode(sw);
 

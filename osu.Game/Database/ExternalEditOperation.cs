@@ -45,6 +45,7 @@ namespace osu.Game.Database
         /// <returns>A task which will eventuate in the newly imported model with changes applied.</returns>
         public async Task<Live<TModel>?> Finish()
         {
+            // TODO: ensure that `.osu`s are updated to match the manually-edited `.osl`s
             if (!Directory.Exists(MountedPath) || !IsMounted)
                 return null;
 

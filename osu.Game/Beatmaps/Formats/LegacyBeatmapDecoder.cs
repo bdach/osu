@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using osu.Framework.Extensions;
 using osu.Framework.Logging;
 using osu.Game.Audio;
@@ -193,8 +194,26 @@ namespace osu.Game.Beatmaps.Formats
             beatmapInfo.SamplesMatchPlaybackRate = false;
         }
 
+        protected override bool ShouldSkipLine(string line)
+        {
+            if (line.StartsWith(BeatmapManager.OSL_HASH_INDICATOR_PREFIX, StringComparison.Ordinal))
+                return false;
+
+            return base.ShouldSkipLine(line);
+        }
+
         protected override void ParseLine(Beatmap beatmap, Section section, string line)
         {
+            if (line.StartsWith(BeatmapManager.OSL_HASH_INDICATOR_PREFIX, StringComparison.Ordinal))
+            {
+                line = line.Replace(BeatmapManager.OSL_HASH_INDICATOR_PREFIX, "").Trim();
+                if (!Regex.IsMatch(line, @"[0-9a-fA-F]{32}"))
+                    return;
+
+                beatmap.BeatmapInfo.EditHash = line;
+                return;
+            }
+
             switch (section)
             {
                 case Section.General:

@@ -426,6 +426,7 @@ namespace osu.Game.Beatmaps
                     var beatmap = new BeatmapInfo(ruleset, difficulty, metadata)
                     {
                         Hash = hash,
+                        EditHash = decodedInfo.EditHash,
                         DifficultyName = decodedInfo.DifficultyName,
                         OnlineID = decodedInfo.OnlineID,
                         AudioLeadIn = decodedInfo.AudioLeadIn,
@@ -441,7 +442,7 @@ namespace osu.Game.Beatmaps
                         TimelineZoom = decodedInfo.TimelineZoom,
                         MD5Hash = memoryStream.ComputeMD5Hash(),
                         EndTimeObjectCount = decoded.HitObjects.Count(h => h is IHasDuration),
-                        TotalObjectCount = decoded.HitObjects.Count
+                        TotalObjectCount = decoded.HitObjects.Count,
                     };
 
                     beatmaps.Add(beatmap);
