@@ -38,7 +38,7 @@ namespace osu.Game.Tests.Skins
             {
                 outStream = new MemoryStream();
 
-                new LegacyBeatmapExporter(LocalStorage)
+                new BeatmapExporter(LocalStorage)
                     .ExportToStream((BeatmapSetInfo)beatmap.BeatmapInfo.BeatmapSet!, outStream, null);
             });
 

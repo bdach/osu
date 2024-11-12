@@ -1222,7 +1222,7 @@ namespace osu.Game.Screens.Edit
 
             if (RuntimeInfo.IsDesktop)
             {
-                var export = createExportMenu();
+                var export = new EditorMenuItem(CommonStrings.Export, MenuItemType.Standard, exportBeatmap);
                 saveRelatedMenuItems.AddRange(export.Items);
                 yield return export;
 
@@ -1233,17 +1233,6 @@ namespace osu.Game.Screens.Edit
 
             yield return new OsuMenuItemSpacer();
             yield return new EditorMenuItem(CommonStrings.Exit, MenuItemType.Standard, this.Exit);
-        }
-
-        private EditorMenuItem createExportMenu()
-        {
-            var exportItems = new List<MenuItem>
-            {
-                new EditorMenuItem(EditorStrings.ExportForEditing, MenuItemType.Standard, () => exportBeatmap(false)),
-                new EditorMenuItem(EditorStrings.ExportForCompatibility, MenuItemType.Standard, () => exportBeatmap(true)),
-            };
-
-            return new EditorMenuItem(CommonStrings.Export) { Items = exportItems };
         }
 
         private void editExternally()
@@ -1270,7 +1259,7 @@ namespace osu.Game.Screens.Edit
             }
         }
 
-        private void exportBeatmap(bool legacy)
+        private void exportBeatmap()
         {
             if (HasUnsavedChanges)
             {
@@ -1287,13 +1276,7 @@ namespace osu.Game.Screens.Edit
                 attemptAsyncMutationOperation(runExport);
             }
 
-            Task runExport()
-            {
-                if (legacy)
-                    return beatmapManager.ExportLegacy(Beatmap.Value.BeatmapSetInfo);
-                else
-                    return beatmapManager.Export(Beatmap.Value.BeatmapSetInfo);
-            }
+            Task runExport() => beatmapManager.Export(Beatmap.Value.BeatmapSetInfo);
         }
 
         /// <summary>

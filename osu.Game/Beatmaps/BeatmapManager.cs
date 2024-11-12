@@ -16,16 +16,21 @@ using osu.Framework.Extensions;
 using osu.Framework.IO.Stores;
 using osu.Framework.Platform;
 using osu.Game.Beatmaps.Formats;
+using osu.Game.Beatmaps.Timing;
 using osu.Game.Database;
 using osu.Game.Extensions;
+using osu.Game.IO;
 using osu.Game.IO.Archives;
 using osu.Game.Models;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays.Notifications;
 using osu.Game.Rulesets;
+using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Skinning;
 using osu.Game.Utils;
+using osuTK;
 using Realms;
 
 namespace osu.Game.Beatmaps
@@ -42,8 +47,6 @@ namespace osu.Game.Beatmaps
         private readonly WorkingBeatmapCache workingBeatmapCache;
 
         private readonly BeatmapExporter beatmapExporter;
-
-        private readonly LegacyBeatmapExporter legacyBeatmapExporter;
 
         public ProcessBeatmapDelegate? ProcessBeatmap { private get; set; }
 
@@ -81,11 +84,6 @@ namespace osu.Game.Beatmaps
             workingBeatmapCache = CreateWorkingBeatmapCache(audioManager, gameResources, userResources, defaultBeatmap, host);
 
             beatmapExporter = new BeatmapExporter(storage)
-            {
-                PostNotification = obj => PostNotification?.Invoke(obj)
-            };
-
-            legacyBeatmapExporter = new LegacyBeatmapExporter(storage)
             {
                 PostNotification = obj => PostNotification?.Invoke(obj)
             };
@@ -438,8 +436,6 @@ namespace osu.Game.Beatmaps
 
         public Task Export(BeatmapSetInfo beatmap) => beatmapExporter.ExportAsync(beatmap.ToLive(Realm));
 
-        public Task ExportLegacy(BeatmapSetInfo beatmap) => legacyBeatmapExporter.ExportAsync(beatmap.ToLive(Realm));
-
         private void updateHashAndMarkDirty(BeatmapSetInfo setInfo)
         {
             setInfo.Hash = beatmapImporter.ComputeHash(setInfo);
@@ -471,29 +467,26 @@ namespace osu.Game.Beatmaps
 
             Realm.Write(r =>
             {
-                using var stream = new MemoryStream();
-                using (var sw = new StreamWriter(stream, Encoding.UTF8, 1024, true))
-                    new LegacyBeatmapEncoder(beatmapContent, beatmapSkin).Encode(sw);
-
-                stream.Seek(0, SeekOrigin.Begin);
-
                 // AddFile generally handles updating/replacing files, but this is a case where the filename may have also changed so let's delete for simplicity.
-                var existingFileInfo = beatmapInfo.Path != null ? setInfo.GetFile(beatmapInfo.Path) : null;
-                string targetFilename = createBeatmapFilenameFromMetadata(beatmapInfo);
+                var existingFiles = new HashSet<RealmNamedFileUsage>();
+
+                if (beatmapInfo.File?.Filename != null && setInfo.GetFile(beatmapInfo.File.Filename) is RealmNamedFileUsage existingPlayFile)
+                    existingFiles.Add(existingPlayFile);
+                if (beatmapInfo.EditFile?.Filename != null && setInfo.GetFile(beatmapInfo.EditFile.Filename) is RealmNamedFileUsage existingEditFile)
+                    existingFiles.Add(existingEditFile);
 
                 // ensure that two difficulties from the set don't point at the same beatmap file.
-                if (setInfo.Beatmaps.Any(b => b.ID != beatmapInfo.ID && string.Equals(b.Path, targetFilename, StringComparison.OrdinalIgnoreCase)))
+                if (setInfo.Beatmaps.Any(b => b.ID != beatmapInfo.ID
+                                              && string.Equals(b.Path, createBeatmapFilenameFromMetadata(beatmapInfo, legacyFormat: true), StringComparison.OrdinalIgnoreCase)))
+                {
                     throw new InvalidOperationException($"{setInfo.GetDisplayString()} already has a difficulty with the name of '{beatmapInfo.DifficultyName}'.");
+                }
 
-                if (existingFileInfo != null)
-                    DeleteFile(setInfo, existingFileInfo);
+                foreach (var file in existingFiles)
+                    DeleteFile(setInfo, file);
 
                 string oldMd5Hash = beatmapInfo.MD5Hash;
-
-                beatmapInfo.MD5Hash = stream.ComputeMD5Hash();
-                beatmapInfo.Hash = stream.ComputeSHA2Hash();
-
-                AddFile(setInfo, stream, createBeatmapFilenameFromMetadata(beatmapInfo));
+                saveSingleBeatmap(beatmapInfo, beatmapContent, beatmapSkin);
 
                 updateHashAndMarkDirty(setInfo);
 
@@ -513,12 +506,97 @@ namespace osu.Game.Beatmaps
             });
 
             Debug.Assert(beatmapInfo.BeatmapSet != null);
+        }
 
-            static string createBeatmapFilenameFromMetadata(BeatmapInfo beatmapInfo)
+        private void saveSingleBeatmap(BeatmapInfo beatmapInfo, IBeatmap editBeatmapContent, ISkin? beatmapSkin)
+        {
+            Debug.Assert(beatmapInfo.BeatmapSet != null);
+
+            // pass 1: direct save, no concern for backwards compatibility
+            using var editBeatmapStream = new MemoryStream();
+            using (var sw = new StreamWriter(editBeatmapStream, Encoding.UTF8, 1024, true))
+                new LegacyBeatmapEncoder(editBeatmapContent, beatmapSkin).Encode(sw);
+
+            editBeatmapStream.Seek(0, SeekOrigin.Begin);
+            beatmapInfo.EditHash = editBeatmapStream.ComputeSHA2Hash();
+
+            AddFile(beatmapInfo.BeatmapSet, editBeatmapStream, createBeatmapFilenameFromMetadata(beatmapInfo, legacyFormat: false));
+
+            // pass 2: backwards-compatible save
+            // this is decoding the just-encoded beatmap because we don't have a proper beatmap deep clone primitive :/
+
+            Beatmap legacyBeatmapContent;
+            editBeatmapStream.Seek(0, SeekOrigin.Begin);
+            using (var sr = new LineBufferedReader(editBeatmapStream, leaveOpen: true))
+                legacyBeatmapContent = new LegacyBeatmapDecoder().Decode(sr);
+
+            var playableBeatmap = new FlatWorkingBeatmap(legacyBeatmapContent).GetPlayableBeatmap(beatmapInfo.Ruleset);
+
+            // Convert beatmap elements to be compatible with legacy format
+            // So we truncate time and position values to integers, and convert paths with multiple segments to bezier curves
+            foreach (var controlPoint in playableBeatmap.ControlPointInfo.AllControlPoints)
+                controlPoint.Time = Math.Floor(controlPoint.Time);
+
+            for (int i = 0; i < playableBeatmap.Breaks.Count; i++)
+                playableBeatmap.Breaks[i] = new BreakPeriod(Math.Floor(playableBeatmap.Breaks[i].StartTime), Math.Floor(playableBeatmap.Breaks[i].EndTime));
+
+            foreach (var hitObject in playableBeatmap.HitObjects)
             {
-                var metadata = beatmapInfo.Metadata;
-                return $"{metadata.Artist} - {metadata.Title} ({metadata.Author.Username}) [{beatmapInfo.DifficultyName}].osu".GetValidFilename();
+                // Truncate end time before truncating start time because end time is dependent on start time
+                if (hitObject is IHasDuration hasDuration && hitObject is not IHasPath)
+                    hasDuration.Duration = Math.Floor(hasDuration.EndTime) - Math.Floor(hitObject.StartTime);
+
+                hitObject.StartTime = Math.Floor(hitObject.StartTime);
+
+                if (hitObject is not IHasPath hasPath) continue;
+
+                // stable's hit object parsing expects the entire slider to use only one type of curve,
+                // and happens to use the last non-empty curve type read for the entire slider.
+                // this clear of the last control point type handles an edge case
+                // wherein the last control point of an otherwise-single-segment slider path has a different type than previous,
+                // which would lead to sliders being mangled when exported back to stable.
+                // normally, that would be handled by the `BezierConverter.ConvertToModernBezier()` call below,
+                // which outputs a slider path containing only BEZIER control points,
+                // but a non-inherited last control point is (rightly) not considered to be starting a new segment,
+                // therefore it would fail to clear the `CountSegments() <= 1` check.
+                // by clearing explicitly we both fix the issue and avoid unnecessary conversions to BEZIER.
+                if (hasPath.Path.ControlPoints.Count > 1)
+                    hasPath.Path.ControlPoints[^1].Type = null;
+
+                if (BezierConverter.CountSegments(hasPath.Path.ControlPoints) <= 1
+                    && hasPath.Path.ControlPoints[0].Type!.Value.Degree == null) continue;
+
+                var newControlPoints = BezierConverter.ConvertToModernBezier(hasPath.Path.ControlPoints);
+
+                // Truncate control points to integer positions
+                foreach (var pathControlPoint in newControlPoints)
+                {
+                    pathControlPoint.Position = new Vector2(
+                        (float)Math.Floor(pathControlPoint.Position.X),
+                        (float)Math.Floor(pathControlPoint.Position.Y));
+                }
+
+                hasPath.Path.ControlPoints.Clear();
+                hasPath.Path.ControlPoints.AddRange(newControlPoints);
             }
+
+            // Encode to legacy format
+            var playBeatmapStream = new MemoryStream();
+            using (var sw = new StreamWriter(playBeatmapStream, Encoding.UTF8, 1024, true))
+                new LegacyBeatmapEncoder(playableBeatmap, beatmapSkin).Encode(sw);
+
+            playBeatmapStream.Seek(0, SeekOrigin.Begin);
+
+            beatmapInfo.MD5Hash = playBeatmapStream.ComputeMD5Hash();
+            beatmapInfo.Hash = playBeatmapStream.ComputeSHA2Hash();
+
+            AddFile(beatmapInfo.BeatmapSet, playBeatmapStream, createBeatmapFilenameFromMetadata(beatmapInfo, legacyFormat: true));
+        }
+
+        private static string createBeatmapFilenameFromMetadata(BeatmapInfo beatmapInfo, bool legacyFormat)
+        {
+            var metadata = beatmapInfo.Metadata;
+            return $"{metadata.Artist} - {metadata.Title} ({metadata.Author.Username}) [{beatmapInfo.DifficultyName}].{(legacyFormat ? @"osu" : @"osl")}".GetValidFilename();
         }
 
         #region Implementation of ICanAcceptFiles

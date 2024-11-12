@@ -72,6 +72,9 @@ namespace osu.Game.Beatmaps
         public RealmNamedFileUsage? File => BeatmapSet?.Files.FirstOrDefault(f => f.File.Hash == Hash);
 
         [Ignored]
+        public RealmNamedFileUsage? EditFile => BeatmapSet?.Files.FirstOrDefault(f => f.File.Hash == EditHash) ?? File;
+
+        [Ignored]
         public BeatmapOnlineStatus Status
         {
             get => (BeatmapOnlineStatus)StatusInt;
@@ -89,6 +92,20 @@ namespace osu.Game.Beatmaps
         public double BPM { get; set; }
 
         public string Hash { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The .osu file format has been extended in lazer in the following ways:
+        /// <list type="bullet">
+        /// <item>support for slider paths with multiple segment types</item>
+        /// <item>support for fractional time instants in hitobject and timing point specifications</item>
+        /// </list>
+        /// These modifications are incompatible with stable.
+        /// To allow users to play lazer-created beatmaps, lazer thus maintains two versions of every <c>.osu</c> file;
+        /// one of them is used for all gameplay contexts, and another - for editing purposes.
+        /// This hash points at the version of the file intended for editing.
+        /// If (when?) lazer ever gets enough user adoption (or stable gets patched to support the features in question), this can be removed.
+        /// </summary>
+        public string? EditHash { get; set; }
 
         /// <summary>
         /// Defaults to -1 (meaning not-yet-calculated).
