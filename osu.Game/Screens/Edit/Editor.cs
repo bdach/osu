@@ -263,7 +263,7 @@ namespace osu.Game.Screens.Edit
 
             try
             {
-                playableBeatmap = loadableBeatmap.GetPlayableBeatmap(loadableBeatmap.BeatmapInfo.Ruleset);
+                playableBeatmap = new EditorWorkingBeatmap(loadableBeatmap).GetPlayableBeatmap(loadableBeatmap.BeatmapInfo.Ruleset);
 
                 // clone these locally for now to avoid incurring overhead on GetPlayableBeatmap usages.
                 // eventually we will want to improve how/where this is done as there are issues with *not* cloning it in all cases.

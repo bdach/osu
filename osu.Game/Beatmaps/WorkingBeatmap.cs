@@ -64,10 +64,10 @@ namespace osu.Game.Beatmaps
         protected virtual Waveform GetWaveform() => new Waveform(null);
         protected virtual Storyboard GetStoryboard() => new Storyboard { BeatmapInfo = BeatmapInfo };
 
-        protected abstract IBeatmap GetBeatmap();
+        protected internal abstract IBeatmap GetBeatmap();
         public abstract Texture GetBackground();
         public virtual Texture GetPanelBackground() => GetBackground();
-        protected abstract Track GetBeatmapTrack();
+        protected internal abstract Track GetBeatmapTrack();
 
         /// <summary>
         /// Creates a new skin instance for this beatmap.

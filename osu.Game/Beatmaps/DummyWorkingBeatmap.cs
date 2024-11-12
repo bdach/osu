@@ -51,11 +51,11 @@ namespace osu.Game.Beatmaps
             LoadTrack();
         }
 
-        protected override IBeatmap GetBeatmap() => new Beatmap();
+        protected internal override IBeatmap GetBeatmap() => new Beatmap();
 
         public override Texture GetBackground() => textures?.Get(@"Backgrounds/bg2");
 
-        protected override Track GetBeatmapTrack() => GetVirtualTrack();
+        protected internal override Track GetBeatmapTrack() => GetVirtualTrack();
 
         protected internal override ISkin GetSkin() => null;
 

@@ -145,11 +145,11 @@ namespace osu.Game.Screens.Play.HUD
             public override IBeatmap GetPlayableBeatmap(IRulesetInfo ruleset, IReadOnlyList<Mod> mods, CancellationToken cancellationToken)
                 => gameplayBeatmap;
 
-            protected override IBeatmap GetBeatmap() => gameplayBeatmap;
+            protected internal override IBeatmap GetBeatmap() => gameplayBeatmap;
 
             public override Texture GetBackground() => throw new NotImplementedException();
 
-            protected override Track GetBeatmapTrack() => throw new NotImplementedException();
+            protected internal override Track GetBeatmapTrack() => throw new NotImplementedException();
 
             protected internal override ISkin GetSkin() => throw new NotImplementedException();
 

@@ -339,7 +339,7 @@ namespace osu.Game.Tests.Visual.Background
             {
             }
 
-            protected override Track GetBeatmapTrack() => new TrackVirtual(100000);
+            protected internal override Track GetBeatmapTrack() => new TrackVirtual(100000);
 
             private static Storyboard createStoryboard()
             {

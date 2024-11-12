@@ -135,7 +135,7 @@ namespace osu.Game.Beatmaps
                 this.resources = resources;
             }
 
-            protected override IBeatmap GetBeatmap()
+            protected internal override IBeatmap GetBeatmap()
             {
                 if (BeatmapInfo.Path == null)
                     return new Beatmap { BeatmapInfo = BeatmapInfo };
@@ -197,7 +197,7 @@ namespace osu.Game.Beatmaps
                 }
             }
 
-            protected override Track GetBeatmapTrack()
+            protected internal override Track GetBeatmapTrack()
             {
                 if (string.IsNullOrEmpty(Metadata?.AudioFile))
                     return null;

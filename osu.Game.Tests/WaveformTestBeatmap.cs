@@ -49,7 +49,7 @@ namespace osu.Game.Tests
 
         private static ZipArchiveReader getZipReader() => new ZipArchiveReader(getStream());
 
-        protected override IBeatmap GetBeatmap() => beatmap;
+        protected internal override IBeatmap GetBeatmap() => beatmap;
 
         public override Texture GetBackground() => null;
 
@@ -59,7 +59,7 @@ namespace osu.Game.Tests
 
         public override Stream GetStream(string storagePath) => null;
 
-        protected override Track GetBeatmapTrack() => trackStore.Get(firstAudioFile);
+        protected internal override Track GetBeatmapTrack() => trackStore.Get(firstAudioFile);
 
         public override bool TryTransferTrack(WorkingBeatmap target)
         {

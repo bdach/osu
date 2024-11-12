@@ -391,7 +391,7 @@ namespace osu.Game.Tests.Visual
                 store?.Dispose();
             }
 
-            protected override Track GetBeatmapTrack() => track;
+            protected internal override Track GetBeatmapTrack() => track;
 
             public override bool TryTransferTrack(WorkingBeatmap target)
             {

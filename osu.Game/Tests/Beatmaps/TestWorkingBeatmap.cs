@@ -31,7 +31,7 @@ namespace osu.Game.Tests.Beatmaps
 
         public override bool BeatmapLoaded => true;
 
-        protected override IBeatmap GetBeatmap() => beatmap;
+        protected internal override IBeatmap GetBeatmap() => beatmap;
 
         protected override Storyboard GetStoryboard() => storyboard ?? base.GetStoryboard();
 
@@ -41,6 +41,6 @@ namespace osu.Game.Tests.Beatmaps
 
         public override Texture? GetBackground() => null;
 
-        protected override Track? GetBeatmapTrack() => null;
+        protected internal override Track GetBeatmapTrack() => null;
     }
 }

@@ -41,9 +41,9 @@ namespace osu.Game.Beatmaps
                 return Decoder.GetDecoder<Beatmap>(reader).Decode(reader);
         }
 
-        protected override IBeatmap GetBeatmap() => beatmap;
+        protected internal override IBeatmap GetBeatmap() => beatmap;
         public override Texture GetBackground() => throw new NotImplementedException();
-        protected override Track GetBeatmapTrack() => throw new NotImplementedException();
+        protected internal override Track GetBeatmapTrack() => throw new NotImplementedException();
         protected internal override ISkin GetSkin() => throw new NotImplementedException();
         public override Stream GetStream(string storagePath) => throw new NotImplementedException();
     }
