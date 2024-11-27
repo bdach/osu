@@ -8,6 +8,7 @@ using System.Net.Http;
 using Newtonsoft.Json;
 using osu.Framework.IO.Network;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Screens.Edit.Submission;
 
 namespace osu.Game.Online.API.Requests
 {
@@ -25,20 +26,25 @@ namespace osu.Game.Online.API.Requests
         [JsonProperty("beatmaps_to_keep")]
         public uint[] BeatmapsToKeep { get; init; } = [];
 
+        [JsonProperty("target")]
+        public BeatmapSubmissionTarget SubmissionTarget { get; init; }
+
         private PutBeatmapSetRequest()
         {
         }
 
-        public static PutBeatmapSetRequest CreateNew(uint beatmapCount) => new PutBeatmapSetRequest
+        public static PutBeatmapSetRequest CreateNew(uint beatmapCount, BeatmapSubmissionTarget target) => new PutBeatmapSetRequest
         {
             BeatmapsToCreate = beatmapCount,
+            SubmissionTarget = target,
         };
 
-        public static PutBeatmapSetRequest UpdateExisting(uint beatmapSetId, IEnumerable<uint> beatmapsToKeep, uint beatmapsToCreate) => new PutBeatmapSetRequest
+        public static PutBeatmapSetRequest UpdateExisting(uint beatmapSetId, IEnumerable<uint> beatmapsToKeep, uint beatmapsToCreate, BeatmapSubmissionTarget target) => new PutBeatmapSetRequest
         {
             BeatmapSetID = beatmapSetId,
             BeatmapsToKeep = beatmapsToKeep.ToArray(),
             BeatmapsToCreate = beatmapsToCreate,
+            SubmissionTarget = target,
         };
 
         protected override WebRequest CreateWebRequest()

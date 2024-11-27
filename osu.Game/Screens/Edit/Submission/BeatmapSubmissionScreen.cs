@@ -59,6 +59,9 @@ namespace osu.Game.Screens.Edit.Submission
         [Resolved]
         private BeatmapManager beatmaps { get; set; } = null!;
 
+        [Cached]
+        private BeatmapSubmissionSettings settings { get; } = new BeatmapSubmissionSettings();
+
         private Container submissionProgress = null!;
         private SubmissionStageProgress exportStep = null!;
         private SubmissionStageProgress createSetStep = null!;
@@ -191,8 +194,9 @@ namespace osu.Game.Screens.Edit.Submission
                 ? PutBeatmapSetRequest.UpdateExisting(
                     (uint)Beatmap.Value.BeatmapSetInfo.OnlineID,
                     Beatmap.Value.BeatmapSetInfo.Beatmaps.Where(b => b.OnlineID > 0).Select(b => (uint)b.OnlineID).ToArray(),
-                    (uint)Beatmap.Value.BeatmapSetInfo.Beatmaps.Count(b => b.OnlineID <= 0))
-                : PutBeatmapSetRequest.CreateNew((uint)Beatmap.Value.BeatmapSetInfo.Beatmaps.Count);
+                    (uint)Beatmap.Value.BeatmapSetInfo.Beatmaps.Count(b => b.OnlineID <= 0),
+                    settings.Target.Value)
+                : PutBeatmapSetRequest.CreateNew((uint)Beatmap.Value.BeatmapSetInfo.Beatmaps.Count, settings.Target.Value);
 
             createRequest.Success += response =>
             {

@@ -23,7 +23,7 @@ namespace osu.Game.Screens.Edit.Submission
         public override LocalisableString? NextStepText => BeatmapSubmissionStrings.ConfirmSubmission;
 
         [BackgroundDependencyLoader]
-        private void load(OsuConfigManager configManager)
+        private void load(OsuConfigManager configManager, BeatmapSubmissionSettings settings)
         {
             configManager.BindWith(OsuSetting.EditorSubmissionNotifyOnDiscussionReplies, notifyOnDiscussionReplies);
             configManager.BindWith(OsuSetting.EditorSubmissionLoadInBrowserAfterSubmission, loadInBrowserAfterSubmission);
@@ -39,6 +39,7 @@ namespace osu.Game.Screens.Edit.Submission
                     {
                         RelativeSizeAxes = Axes.X,
                         Caption = BeatmapSubmissionStrings.BeatmapSubmissionTargetCaption,
+                        Current = settings.Target,
                     },
                     new FormCheckBox
                     {
@@ -52,15 +53,6 @@ namespace osu.Game.Screens.Edit.Submission
                     },
                 }
             });
-        }
-
-        private enum BeatmapSubmissionTarget
-        {
-            [LocalisableDescription(typeof(BeatmapSubmissionStrings), nameof(BeatmapSubmissionStrings.BeatmapSubmissionTargetWIP))]
-            WIP,
-
-            [LocalisableDescription(typeof(BeatmapSubmissionStrings), nameof(BeatmapSubmissionStrings.BeatmapSubmissionTargetPending))]
-            Pending,
         }
     }
 }
