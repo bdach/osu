@@ -31,7 +31,7 @@ namespace osu.Game.Screens.Edit.Submission
     // TODO: it should be mentioned somewhere that this process is partially destructive due to backwards compatibility
     public partial class GuestBeatmapSubmissionScreen : OsuScreen
     {
-        public override bool AllowBackButton => false;
+        public override bool AllowUserExit => false;
 
         [Cached]
         private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Aquamarine);

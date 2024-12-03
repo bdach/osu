@@ -36,7 +36,7 @@ namespace osu.Game.Screens.Edit.Submission
     {
         private BeatmapSubmissionOverlay overlay = null!;
 
-        public override bool AllowBackButton => false;
+        public override bool AllowUserExit => false;
 
         [Cached]
         private readonly OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Aquamarine);
