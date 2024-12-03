@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -317,7 +318,7 @@ namespace osu.Game.Screens.Edit.Submission
                 Logger.Log($"Beatmap submission failed on upload: {ex}");
                 backButton.Enabled.Value = true;
             }; // TODO: probably show error
-            uploadRequest.Progressed += (current, total) => uploadStep.Progress.Value = (float)current / total;
+            uploadRequest.Progressed += (current, total) => uploadStep.Progress.Value = (float)current / Math.Max(total, 1);
 
             api.Queue(uploadRequest);
             uploadStep.Status.Value = SubmissionStageProgress.StageStatusType.InProgress;
