@@ -33,6 +33,7 @@ namespace osu.Game.Online.API.Requests
             foreach (string filename in FilesDeleted)
                 request.AddParameter(@"filesDeleted", filename, RequestParameterType.Form);
 
+            request.Timeout = 60_000;
             return request;
         }
     }

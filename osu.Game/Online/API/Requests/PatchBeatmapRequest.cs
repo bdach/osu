@@ -31,6 +31,7 @@ namespace osu.Game.Online.API.Requests
             var request = base.CreateWebRequest();
             request.Method = HttpMethod.Patch;
             request.AddFile(@"beatmapContents", beatmapContents, filename);
+            request.Timeout = 60_000;
             return request;
         }
     }
