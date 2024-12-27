@@ -18,6 +18,7 @@ using osu.Game.Beatmaps.Timing;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Skinning;
+using osu.Game.Storyboards;
 
 namespace osu.Game.Screens.Edit
 {
@@ -69,7 +70,8 @@ namespace osu.Game.Screens.Edit
         public readonly Bindable<HitObject> PlacementObject = new Bindable<HitObject>();
 
         private readonly BeatmapInfo beatmapInfo;
-        public readonly IBeatmap PlayableBeatmap;
+        public IBeatmap PlayableBeatmap { get; }
+        public Storyboard Storyboard { get; }
 
         /// <summary>
         /// Whether at least one timing control point is present and providing timing information.
@@ -93,7 +95,7 @@ namespace osu.Game.Screens.Edit
 
         private readonly Dictionary<HitObject, Bindable<double>> startTimeBindables = new Dictionary<HitObject, Bindable<double>>();
 
-        public EditorBeatmap(IBeatmap playableBeatmap, ISkin beatmapSkin = null, BeatmapInfo beatmapInfo = null)
+        public EditorBeatmap(IBeatmap playableBeatmap, ISkin beatmapSkin = null, BeatmapInfo beatmapInfo = null, Storyboard storyboard = null)
         {
             PlayableBeatmap = playableBeatmap;
             PlayableBeatmap.ControlPointInfo = ConvertControlPoints(PlayableBeatmap.ControlPointInfo);
@@ -105,6 +107,8 @@ namespace osu.Game.Screens.Edit
                 BeatmapSkin = new EditorBeatmapSkin(skin);
                 BeatmapSkin.BeatmapSkinChanged += SaveState;
             }
+
+            Storyboard = storyboard;
 
             beatmapProcessor = new EditorBeatmapProcessor(this, playableBeatmap.BeatmapInfo.Ruleset.CreateInstance());
 

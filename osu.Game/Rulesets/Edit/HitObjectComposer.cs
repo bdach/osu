@@ -32,6 +32,7 @@ using osu.Game.Screens.Edit.Components.RadioButtons;
 using osu.Game.Screens.Edit.Components.TernaryButtons;
 using osu.Game.Screens.Edit.Compose;
 using osu.Game.Screens.Edit.Compose.Components;
+using osu.Game.Storyboards.Drawables;
 using osuTK;
 using osuTK.Input;
 
@@ -143,6 +144,7 @@ namespace osu.Game.Rulesets.Edit
                     Children = new Drawable[]
                     {
                         // layers below playfield
+                        new DrawableStoryboard(EditorBeatmap.Storyboard) { Clock = EditorClock },
                         drawableRulesetWrapper.CreatePlayfieldAdjustmentContainer().WithChild(LayerBelowRuleset),
                         drawableRulesetWrapper,
                         // layers above playfield
