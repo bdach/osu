@@ -17,6 +17,7 @@ using osuTK;
 
 namespace osu.Game.Screens.Play.HUD
 {
+    // TODO: stuff still shows in autoplay
     public partial class SpectatorList : CompositeDrawable, ISerialisableDrawable
     {
         private const int max_spectators_displayed = 10;
