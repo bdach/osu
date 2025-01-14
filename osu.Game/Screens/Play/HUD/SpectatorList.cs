@@ -12,10 +12,12 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.Chat;
 using osu.Game.Online.Spectator;
+using osu.Game.Skinning;
+using osuTK;
 
 namespace osu.Game.Screens.Play.HUD
 {
-    public partial class SpectatorList : CompositeDrawable
+    public partial class SpectatorList : CompositeDrawable, ISerialisableDrawable
     {
         private const int max_spectators_displayed = 10;
 
@@ -28,12 +30,13 @@ namespace osu.Game.Screens.Play.HUD
         private DrawablePool<SpectatorListEntry> pool = null!;
 
         [BackgroundDependencyLoader]
-        private void load(OsuColour colours)
+        private void load(OsuColour colours, SpectatorClient? client, Player? player)
         {
             AutoSizeAxes = Axes.Both;
 
-            InternalChildren = new Drawable[]
+            InternalChildren = new[]
             {
+                Empty().With(t => t.Size = new Vector2(100, 50)),
                 mainFlow = new FillFlowContainer
                 {
                     AutoSizeAxes = Axes.Both,
@@ -56,6 +59,12 @@ namespace osu.Game.Screens.Play.HUD
                 },
                 pool = new DrawablePool<SpectatorListEntry>(max_spectators_displayed),
             };
+
+            if (client != null)
+                ((IBindableList<SpectatorUser>)Spectators).BindTo(client.WatchingUsers);
+
+            if (player != null)
+                ((IBindable<LocalUserPlayingState>)UserPlayingState).BindTo(player.PlayingState);
         }
 
         protected override void LoadComplete()
@@ -180,5 +189,7 @@ namespace osu.Game.Screens.Play.HUD
                     linkCompiler.Enabled.Value = UserPlayingState.Value != LocalUserPlayingState.Playing;
             }
         }
+
+        public bool UsesFixedAnchor { get; set; }
     }
 }
