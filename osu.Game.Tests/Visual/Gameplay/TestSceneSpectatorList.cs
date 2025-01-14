@@ -6,6 +6,7 @@ using NUnit.Framework;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Utils;
+using osu.Game.Online.Spectator;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
 
@@ -14,7 +15,7 @@ namespace osu.Game.Tests.Visual.Gameplay
     [TestFixture]
     public partial class TestSceneSpectatorList : OsuTestScene
     {
-        private readonly BindableList<SpectatorList.Spectator> spectators = new BindableList<SpectatorList.Spectator>();
+        private readonly BindableList<SpectatorUser> spectators = new BindableList<SpectatorUser>();
         private readonly Bindable<LocalUserPlayingState> localUserPlayingState = new Bindable<LocalUserPlayingState>();
 
         private int counter;
@@ -33,7 +34,11 @@ namespace osu.Game.Tests.Visual.Gameplay
             AddStep("add a user", () =>
             {
                 int id = Interlocked.Increment(ref counter);
-                spectators.Add(new SpectatorList.Spectator(id, $"User {id}"));
+                spectators.Add(new SpectatorUser
+                {
+                    OnlineID = id,
+                    Username = $"User {id}"
+                });
             });
             AddStep("remove random user", () => spectators.RemoveAt(RNG.Next(0, spectators.Count)));
             AddStep("start playing", () => localUserPlayingState.Value = LocalUserPlayingState.Playing);
