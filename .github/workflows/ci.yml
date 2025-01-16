@@ -116,6 +116,12 @@ jobs:
       - name: what the fuck.
         run: ls "C:\Program Files\dotnet\sdk-manifests\8.0.100"
 
+      - name: all work and no play makes jack a dull boy
+        run: dotnet workload repair
+
+      - name: what the fuck.
+        run: ls "C:\Program Files\dotnet\sdk-manifests\8.0.100"
+
       - name: what the fuck 2.
         run: ls "C:\Program Files\dotnet\sdk-manifests\8.0.100\microsoft.net.sdk.android"
 
