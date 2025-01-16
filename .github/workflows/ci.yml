@@ -113,6 +113,9 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      - name: wtf
+        run: dotnet workload search
+
       - name: Install .NET workloads
         # since windows image 20241113.3.0, not specifying a version here
         # installs the .NET 7 version of android workload for very unknown reasons.
