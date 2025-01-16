@@ -116,8 +116,10 @@ jobs:
       - name: what the fuck.
         run: ls "C:\Program Files\dotnet\sdk-manifests\8.0.100"
 
-      - name: all work and no play makes jack a dull boy
-        run: dotnet workload repair
+      - name: Install .NET 8.0.1xx
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.1xx"
 
       - name: what the fuck.
         run: ls "C:\Program Files\dotnet\sdk-manifests\8.0.100"
