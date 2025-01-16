@@ -96,7 +96,7 @@ jobs:
 
   build-only-android:
     name: Build only (Android)
-    runs-on: windows-latest
+    runs-on: windows-2025
     timeout-minutes: 60
     steps:
       - name: Checkout
@@ -112,11 +112,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
-
-      - name: Install .NET 8.0.1xx
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.1xx"
 
       - name: Install .NET workloads
         # since windows image 20241113.3.0, not specifying a version here
