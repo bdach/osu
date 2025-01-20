@@ -10,7 +10,8 @@ namespace osu.Game.Rulesets.Edit
     /// A snap provider which given a proposed position for a hit object, potentially offers a more correct position and time value inferred from the context of the beatmap.
     /// </summary>
     [Cached]
-    public interface IPositionSnapProvider
+    public interface IPositionSnapProvider<TItem> : IPositionSnapProvider
+        where TItem : class
     {
         /// <summary>
         /// Given a position, find a valid time and position snap.
@@ -18,6 +19,12 @@ namespace osu.Game.Rulesets.Edit
         /// <param name="screenSpacePosition">The screen-space position to be snapped.</param>
         /// <param name="snapType">The type of snapping to apply.</param>
         /// <returns>The time and position post-snapping.</returns>
+        SnapResult FindSnappedPositionAndTime(Vector2 screenSpacePosition, SelectionBlueprint<TItem>? reference, SnapType snapType = SnapType.All);
+    }
+
+    [Cached]
+    public interface IPositionSnapProvider
+    {
         SnapResult FindSnappedPositionAndTime(Vector2 screenSpacePosition, SnapType snapType = SnapType.All);
     }
 }

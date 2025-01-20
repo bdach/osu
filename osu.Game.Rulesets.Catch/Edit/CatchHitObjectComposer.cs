@@ -135,9 +135,9 @@ namespace osu.Game.Rulesets.Catch.Edit
             DistanceSnapProvider.HandleToggleViaKey(key);
         }
 
-        public override SnapResult FindSnappedPositionAndTime(Vector2 screenSpacePosition, SnapType snapType = SnapType.All)
+        public override SnapResult FindSnappedPositionAndTime(Vector2 screenSpacePosition, SelectionBlueprint<HitObject>? reference, SnapType snapType = SnapType.All)
         {
-            var result = base.FindSnappedPositionAndTime(screenSpacePosition, snapType);
+            var result = base.FindSnappedPositionAndTime(screenSpacePosition, reference, snapType);
 
             result.ScreenSpacePosition.X = screenSpacePosition.X;
 

@@ -43,7 +43,7 @@ namespace osu.Game.Rulesets.Edit
     /// Responsible for providing snapping and generally gluing components together.
     /// </summary>
     /// <typeparam name="TObject">The base type of supported objects.</typeparam>
-    public abstract partial class HitObjectComposer<TObject> : HitObjectComposer, IPlacementHandler
+    public abstract partial class HitObjectComposer<TObject> : HitObjectComposer, IPlacementHandler, IPositionSnapProvider<HitObject>
         where TObject : HitObject
     {
         /// <summary>
@@ -102,8 +102,12 @@ namespace osu.Game.Rulesets.Edit
         {
         }
 
-        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) =>
+        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
+        {
             dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
+            dependencies.CacheAs<IPositionSnapProvider<HitObject>>(this);
+            return dependencies;
+        }
 
         [BackgroundDependencyLoader(true)]
         private void load(OsuConfigManager config, [CanBeNull] Editor editor)
@@ -566,7 +570,7 @@ namespace osu.Game.Rulesets.Edit
         /// <returns>The most relevant <see cref="Playfield"/>.</returns>
         protected virtual Playfield PlayfieldAtScreenSpacePosition(Vector2 screenSpacePosition) => drawableRulesetWrapper.Playfield;
 
-        public override SnapResult FindSnappedPositionAndTime(Vector2 screenSpacePosition, SnapType snapType = SnapType.All)
+        public virtual SnapResult FindSnappedPositionAndTime(Vector2 screenSpacePosition, SelectionBlueprint<HitObject> reference, SnapType snapType = SnapType.All)
         {
             var playfield = PlayfieldAtScreenSpacePosition(screenSpacePosition);
             double? targetTime = null;
@@ -587,6 +591,8 @@ namespace osu.Game.Rulesets.Edit
 
             return new SnapResult(screenSpacePosition, targetTime, playfield);
         }
+
+        public sealed override SnapResult FindSnappedPositionAndTime(Vector2 screenSpacePosition, SnapType snapType = SnapType.All) => FindSnappedPositionAndTime(screenSpacePosition, null, snapType);
 
         #endregion
     }
@@ -640,10 +646,6 @@ namespace osu.Game.Rulesets.Edit
         /// <param name="objectDescription">The ruleset-specific description of objects to select at the given timestamp.</param>
         public virtual void SelectFromTimestamp(double timestamp, string objectDescription) { }
 
-        #region IPositionSnapProvider
-
         public abstract SnapResult FindSnappedPositionAndTime(Vector2 screenSpacePosition, SnapType snapType = SnapType.All);
-
-        #endregion
     }
 }

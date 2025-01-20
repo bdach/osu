@@ -76,7 +76,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
             }
         }
 
-        public override (Vector2 position, double time) GetSnappedPosition(Vector2 position)
+        public override (Vector2 position, double time) GetSnappedPosition(Vector2 position, double? referenceTime = null)
         {
             if (MaxIntervals == 0)
                 return (StartPosition, StartTime);
@@ -101,7 +101,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
                 travelLength = DistanceBetweenTicks;
 
             float snappedDistance = LimitedDistanceSnap.Value
-                ? SnapProvider.DurationToDistance(ReferenceObject, editorClock.CurrentTime - ReferenceObject.GetEndTime())
+                ? SnapProvider.DurationToDistance(ReferenceObject, (referenceTime ?? editorClock.CurrentTime) - ReferenceObject.GetEndTime())
                 // When interacting with the resolved snap provider, the distance spacing multiplier should first be removed
                 // to allow for snapping at a non-multiplied ratio.
                 : SnapProvider.FindSnappedDistance(ReferenceObject, travelLength / distanceSpacingMultiplier, DistanceSnapTarget.End);

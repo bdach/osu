@@ -181,7 +181,7 @@ namespace osu.Game.Tests.Visual.Editing
                 }
             }
 
-            public override (Vector2 position, double time) GetSnappedPosition(Vector2 screenSpacePosition)
+            public override (Vector2 position, double time) GetSnappedPosition(Vector2 screenSpacePosition, double? referenceTime = null)
                 => (Vector2.Zero, 0);
         }
 

@@ -222,7 +222,7 @@ namespace osu.Game.Rulesets.Osu.Edit
             }
         }
 
-        public override SnapResult FindSnappedPositionAndTime(Vector2 screenSpacePosition, SnapType snapType = SnapType.All)
+        public override SnapResult FindSnappedPositionAndTime(Vector2 screenSpacePosition, SelectionBlueprint<HitObject> reference, SnapType snapType = SnapType.All)
         {
             if (snapType.HasFlag(SnapType.NearbyObjects) && snapToVisibleBlueprints(screenSpacePosition, out var snapResult))
             {
@@ -244,13 +244,13 @@ namespace osu.Game.Rulesets.Osu.Edit
                 return snapResult;
             }
 
-            SnapResult result = base.FindSnappedPositionAndTime(screenSpacePosition, snapType);
+            SnapResult result = base.FindSnappedPositionAndTime(screenSpacePosition, reference, snapType);
 
             if (snapType.HasFlag(SnapType.RelativeGrids))
             {
                 if (DistanceSnapProvider.DistanceSnapToggle.Value == TernaryState.True && distanceSnapGrid != null)
                 {
-                    (Vector2 pos, double time) = distanceSnapGrid.GetSnappedPosition(distanceSnapGrid.ToLocalSpace(screenSpacePosition));
+                    (Vector2 pos, double time) = distanceSnapGrid.GetSnappedPosition(distanceSnapGrid.ToLocalSpace(screenSpacePosition), reference?.Item.StartTime);
 
                     result.ScreenSpacePosition = distanceSnapGrid.ToScreenSpace(pos);
                     result.Time = time;

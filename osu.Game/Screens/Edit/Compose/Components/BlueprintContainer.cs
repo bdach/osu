@@ -44,7 +44,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
         private readonly Dictionary<T, SelectionBlueprint<T>> blueprintMap = new Dictionary<T, SelectionBlueprint<T>>();
 
         [Resolved(canBeNull: true)]
-        private IPositionSnapProvider snapProvider { get; set; }
+        private IPositionSnapProvider<T> snapProvider { get; set; }
 
         [Resolved(CanBeNull = true)]
         private IEditorChangeHandler changeHandler { get; set; }
@@ -614,7 +614,7 @@ namespace osu.Game.Screens.Edit.Compose.Components
             Vector2 movePosition = movementBlueprintsOriginalPositions.First().First() + distanceTravelled;
 
             // Retrieve a snapped position.
-            var result = snapProvider?.FindSnappedPositionAndTime(movePosition, ~SnapType.NearbyObjects);
+            var result = snapProvider?.FindSnappedPositionAndTime(movePosition, movementBlueprints.First(), ~SnapType.NearbyObjects);
 
             if (result == null)
             {
