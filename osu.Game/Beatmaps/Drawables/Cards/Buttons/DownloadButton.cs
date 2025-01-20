@@ -17,9 +17,8 @@ namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
 {
     public partial class DownloadButton : BeatmapCardIconButton
     {
+        public Bindable<APIBeatmapSet> BeatmapSet { get; } = new Bindable<APIBeatmapSet>();
         public Bindable<DownloadState> State { get; } = new Bindable<DownloadState>();
-
-        private readonly APIBeatmapSet beatmapSet;
 
         private Bindable<bool> preferNoVideo = null!;
 
@@ -28,13 +27,11 @@ namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
         [Resolved]
         private BeatmapModelDownloader beatmaps { get; set; } = null!;
 
-        public DownloadButton(APIBeatmapSet beatmapSet)
+        public DownloadButton()
         {
             Icon.Icon = FontAwesome.Solid.Download;
 
             Content.Add(spinner = new LoadingSpinner { Size = new Vector2(IconSize) });
-
-            this.beatmapSet = beatmapSet;
         }
 
         [BackgroundDependencyLoader]
@@ -47,8 +44,12 @@ namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
         {
             base.LoadComplete();
             preferNoVideo.BindValueChanged(_ => updateState());
-            State.BindValueChanged(_ => updateState(), true);
-            FinishTransforms(true);
+            State.BindValueChanged(_ => updateState());
+            BeatmapSet.BindValueChanged(_ =>
+            {
+                updateState();
+                FinishTransforms(true);
+            }, true);
         }
 
         private void updateState()
@@ -75,19 +76,19 @@ namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
                     break;
 
                 case DownloadState.NotDownloaded:
-                    if (beatmapSet.Availability.DownloadDisabled)
+                    if (BeatmapSet.Value.Availability.DownloadDisabled)
                     {
                         Enabled.Value = false;
                         TooltipText = BeatmapsetsStrings.AvailabilityDisabled;
                         return;
                     }
 
-                    Action = () => beatmaps.Download(beatmapSet, preferNoVideo.Value);
+                    Action = () => beatmaps.Download(BeatmapSet.Value, preferNoVideo.Value);
                     this.FadeIn(BeatmapCard.TRANSITION_DURATION, Easing.OutQuint);
                     spinner.Hide();
                     Icon.Show();
 
-                    if (!beatmapSet.HasVideo)
+                    if (!BeatmapSet.Value.HasVideo)
                         TooltipText = BeatmapsetsStrings.PanelDownloadAll;
                     else
                         TooltipText = preferNoVideo.Value ? BeatmapsetsStrings.PanelDownloadNoVideo : BeatmapsetsStrings.PanelDownloadVideo;

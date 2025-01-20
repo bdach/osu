@@ -10,12 +10,14 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Beatmaps.Drawables.Cards.Buttons;
 using osu.Game.Overlays;
 using osu.Framework.Graphics.UserInterface;
+using osu.Game.Online.API.Requests.Responses;
 using osuTK;
 
 namespace osu.Game.Beatmaps.Drawables.Cards
 {
     public partial class BeatmapCardThumbnail : Container
     {
+        public Bindable<APIBeatmapSet> BeatmapSet { get; } = new Bindable<APIBeatmapSet>();
         public BindableBool Dimmed { get; } = new BindableBool();
 
         public new MarginPadding Padding
@@ -24,25 +26,25 @@ namespace osu.Game.Beatmaps.Drawables.Cards
             set => foreground.Padding = value;
         }
 
+        private readonly UpdateableOnlineBeatmapSetCover cover;
         private readonly Box background;
         private readonly Container foreground;
         private readonly PlayButton playButton;
         private readonly CircularProgress progress;
-        private readonly Container content;
+        private Container content;
 
         protected override Container<Drawable> Content => content;
 
         [Resolved]
         private OverlayColourProvider colourProvider { get; set; } = null!;
 
-        public BeatmapCardThumbnail(IBeatmapSetInfo beatmapSetInfo, IBeatmapSetOnlineInfo onlineInfo)
+        public BeatmapCardThumbnail()
         {
             InternalChildren = new Drawable[]
             {
-                new UpdateableOnlineBeatmapSetCover(BeatmapSetCoverType.List)
+                cover = new UpdateableOnlineBeatmapSetCover(BeatmapSetCoverType.List)
                 {
                     RelativeSizeAxes = Axes.Both,
-                    OnlineInfo = onlineInfo
                 },
                 background = new Box
                 {
@@ -53,8 +55,9 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        playButton = new PlayButton(beatmapSetInfo)
+                        playButton = new PlayButton
                         {
+                            BeatmapSet = { BindTarget = BeatmapSet },
                             RelativeSizeAxes = Axes.Both
                         },
                         progress = new CircularProgress
@@ -83,6 +86,7 @@ namespace osu.Game.Beatmaps.Drawables.Cards
             base.LoadComplete();
             Dimmed.BindValueChanged(_ => updateState());
 
+            BeatmapSet.BindValueChanged(_ => cover.OnlineInfo = BeatmapSet.Value, true);
             playButton.Playing.BindValueChanged(_ => updateState(), true);
             FinishTransforms(true);
         }

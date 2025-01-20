@@ -61,7 +61,10 @@ namespace osu.Game.Tests.Visual.Beatmaps
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
                         Padding = new MarginPadding(10),
-                        Child = new BeatmapCardDifficultyList(beatmapSet)
+                        Child = new BeatmapCardDifficultyList
+                        {
+                            BeatmapSet = { Value = beatmapSet }
+                        }
                     }
                 }
             };

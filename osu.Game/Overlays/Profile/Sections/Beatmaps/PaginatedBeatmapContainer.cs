@@ -68,8 +68,9 @@ namespace osu.Game.Overlays.Profile.Sections.Beatmaps
             new GetUserBeatmapsRequest(user.User.Id, type, pagination);
 
         protected override Drawable? CreateDrawableItem(APIBeatmapSet model) => model.OnlineID > 0
-            ? new BeatmapCardNormal(model)
+            ? new BeatmapCardNormal
             {
+                BeatmapSet = { Value = model },
                 Anchor = Anchor.TopCentre,
                 Origin = Anchor.TopCentre
             }

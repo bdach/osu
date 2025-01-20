@@ -12,33 +12,33 @@ using osu.Game.Audio;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Online.API.Requests.Responses;
 using osuTK;
 
 namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
 {
     public partial class PlayButton : OsuHoverContainer
     {
+        public Bindable<APIBeatmapSet> BeatmapSet { get; } = new Bindable<APIBeatmapSet>();
+
         public IBindable<double> Progress => progress;
         private readonly BindableDouble progress = new BindableDouble();
 
         public BindableBool Playing { get; } = new BindableBool();
 
-        private readonly IBeatmapSetInfo beatmapSetInfo;
-
         protected override IEnumerable<Drawable> EffectTargets => icon.Yield();
 
-        private readonly SpriteIcon icon;
-        private readonly LoadingSpinner loadingSpinner;
+        private SpriteIcon icon = null!;
+        private LoadingSpinner loadingSpinner = null!;
 
         [Resolved]
         private PreviewTrackManager previewTrackManager { get; set; } = null!;
 
         private PreviewTrack? previewTrack;
 
-        public PlayButton(IBeatmapSetInfo beatmapSetInfo)
+        [BackgroundDependencyLoader]
+        private void load(OsuColour colours)
         {
-            this.beatmapSetInfo = beatmapSetInfo;
-
             Anchor = Origin = Anchor.Centre;
 
             // needed for touch input to work when card is not hovered/expanded
@@ -60,11 +60,6 @@ namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
             };
 
             Action = () => Playing.Toggle();
-        }
-
-        [BackgroundDependencyLoader]
-        private void load(OsuColour colours)
-        {
             HoverColour = colours.Yellow;
         }
 
@@ -101,7 +96,7 @@ namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
             {
                 toggleLoading(true);
 
-                LoadComponentAsync(previewTrack = previewTrackManager.Get(beatmapSetInfo), onPreviewLoaded);
+                LoadComponentAsync(previewTrack = previewTrackManager.Get(BeatmapSet.Value), onPreviewLoaded);
             }
             else
                 tryStartPreview();

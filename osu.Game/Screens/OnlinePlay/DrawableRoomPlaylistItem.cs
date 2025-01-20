@@ -27,6 +27,7 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Online;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Chat;
 using osu.Game.Online.Rooms;
 using osu.Game.Overlays;
@@ -297,8 +298,9 @@ namespace osu.Game.Screens.OnlinePlay
                 {
                     difficultyIconContainer.Children = new Drawable[]
                     {
-                        thumbnail = new BeatmapCardThumbnail(beatmap.BeatmapSet!, (IBeatmapSetOnlineInfo)beatmap.BeatmapSet!)
+                        thumbnail = new BeatmapCardThumbnail
                         {
+                            BeatmapSet = { Value = (APIBeatmapSet)beatmap.BeatmapSet! },
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.CentreLeft,
                             Width = 60,

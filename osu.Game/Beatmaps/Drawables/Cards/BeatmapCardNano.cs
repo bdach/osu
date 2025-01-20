@@ -8,7 +8,6 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
-using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Resources.Localisation.Web;
 using osuTK;
@@ -43,11 +42,15 @@ namespace osu.Game.Beatmaps.Drawables.Cards
         private FillFlowContainer idleBottomContent = null!;
         private BeatmapCardDownloadProgressBar downloadProgressBar = null!;
 
+        private TruncatingSpriteText titleText = null!;
+        private TruncatingSpriteText artistText = null!;
+        private LinkFlowContainer mapperText = null!;
+
         [Resolved]
         private OverlayColourProvider colourProvider { get; set; } = null!;
 
-        public BeatmapCardNano(APIBeatmapSet beatmapSet)
-            : base(beatmapSet, false)
+        public BeatmapCardNano()
+            : base(false)
         {
             content = new BeatmapCardContent(height);
         }
@@ -58,7 +61,7 @@ namespace osu.Game.Beatmaps.Drawables.Cards
             Width = width;
             Height = height;
 
-            Child = content.With(c =>
+            Content.Child = content.With(c =>
             {
                 c.MainContent = new Container
                 {
@@ -66,9 +69,10 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                     Height = height,
                     Children = new Drawable[]
                     {
-                        buttonContainer = new CollapsibleButtonContainer(BeatmapSet)
+                        buttonContainer = new CollapsibleButtonContainer
                         {
                             Width = Width,
+                            BeatmapSet = { BindTarget = BeatmapSet },
                             FavouriteState = { BindTarget = FavouriteState },
                             ButtonsCollapsedWidth = 5,
                             ButtonsExpandedWidth = 30,
@@ -80,15 +84,13 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                                     Direction = FillDirection.Vertical,
                                     Children = new Drawable[]
                                     {
-                                        new TruncatingSpriteText
+                                        titleText = new TruncatingSpriteText
                                         {
-                                            Text = new RomanisableString(BeatmapSet.TitleUnicode, BeatmapSet.Title),
                                             Font = OsuFont.Default.With(size: 19, weight: FontWeight.SemiBold),
                                             RelativeSizeAxes = Axes.X,
                                         },
-                                        new TruncatingSpriteText
+                                        artistText = new TruncatingSpriteText
                                         {
-                                            Text = createArtistText(),
                                             Font = OsuFont.Default.With(size: 16, weight: FontWeight.SemiBold),
                                             RelativeSizeAxes = Axes.X,
                                         },
@@ -112,7 +114,7 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                                             AlwaysPresent = true,
                                             Children = new Drawable[]
                                             {
-                                                new LinkFlowContainer(s =>
+                                                mapperText = new LinkFlowContainer(s =>
                                                 {
                                                     s.Shadow = false;
                                                     s.Font = OsuFont.GetFont(size: 16, weight: FontWeight.SemiBold);
@@ -120,8 +122,6 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                                                 {
                                                     d.AutoSizeAxes = Axes.Both;
                                                     d.Margin = new MarginPadding { Top = 2 };
-                                                    d.AddText("mapped by ", t => t.Colour = colourProvider.Content2);
-                                                    d.AddUserLink(BeatmapSet.Author);
                                                 }),
                                             }
                                         },
@@ -131,8 +131,8 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                                             Height = 6,
                                             Anchor = Anchor.Centre,
                                             Origin = Anchor.Centre,
-                                            State = { BindTarget = DownloadTracker.State },
-                                            Progress = { BindTarget = DownloadTracker.Progress }
+                                            State = { BindTarget = DownloadState },
+                                            Progress = { BindTarget = DownloadProgress }
                                         }
                                     }
                                 }
@@ -145,16 +145,13 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
                     Padding = new MarginPadding { Horizontal = 10, Vertical = 13 },
-                    Child = new BeatmapCardDifficultyList(BeatmapSet)
+                    Child = new BeatmapCardDifficultyList
+                    {
+                        BeatmapSet = { BindTarget = BeatmapSet }
+                    }
                 };
                 c.Expanded.BindTarget = Expanded;
             });
-        }
-
-        private LocalisableString createArtistText()
-        {
-            var romanisableArtist = new RomanisableString(BeatmapSet.ArtistUnicode, BeatmapSet.Artist);
-            return BeatmapsetsStrings.ShowDetailsByArtist(romanisableArtist);
         }
 
         protected override void UpdateState()
@@ -164,6 +161,20 @@ namespace osu.Game.Beatmaps.Drawables.Cards
             bool showDetails = IsHovered;
 
             buttonContainer.ShowDetails.Value = showDetails;
+        }
+
+        protected override void UpdateBeatmapSet()
+        {
+            base.UpdateBeatmapSet();
+
+            titleText.Text = new RomanisableString(BeatmapSet.Value.TitleUnicode, BeatmapSet.Value.Title);
+
+            var romanisableArtist = new RomanisableString(BeatmapSet.Value.ArtistUnicode, BeatmapSet.Value.Artist);
+            artistText.Text = BeatmapsetsStrings.ShowDetailsByArtist(romanisableArtist);
+
+            mapperText.Clear();
+            mapperText.AddText("mapped by ", t => t.Colour = colourProvider.Content2);
+            mapperText.AddUserLink(BeatmapSet.Value.Author);
         }
     }
 }

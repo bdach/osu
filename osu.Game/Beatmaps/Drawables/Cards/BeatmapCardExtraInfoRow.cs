@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Input.Events;
@@ -12,15 +13,22 @@ namespace osu.Game.Beatmaps.Drawables.Cards
 {
     public partial class BeatmapCardExtraInfoRow : CompositeDrawable
     {
+        public Bindable<APIBeatmapSet> BeatmapSet { get; } = new Bindable<APIBeatmapSet>();
+
         [Resolved(CanBeNull = true)]
         private BeatmapCardContent? content { get; set; }
 
-        public BeatmapCardExtraInfoRow(APIBeatmapSet beatmapSet)
+        private FillFlowContainer flow = null!;
+        private BeatmapSetOnlineStatusPill statusPill = null!;
+        private DifficultySpectrumDisplay? spectrumDisplay;
+
+        [BackgroundDependencyLoader]
+        private void load()
         {
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
 
-            InternalChild = new FillFlowContainer
+            InternalChild = flow = new FillFlowContainer
             {
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
@@ -28,22 +36,32 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                 Spacing = new Vector2(3, 0),
                 Children = new Drawable[]
                 {
-                    new BeatmapSetOnlineStatusPill
+                    statusPill = new BeatmapSetOnlineStatusPill
                     {
                         AutoSizeAxes = Axes.Both,
-                        Status = beatmapSet.Status,
                         Anchor = Anchor.CentreLeft,
                         Origin = Anchor.CentreLeft,
                         TextSize = 13f
                     },
-                    new DifficultySpectrumDisplay(beatmapSet)
-                    {
-                        Anchor = Anchor.CentreLeft,
-                        Origin = Anchor.CentreLeft,
-                        DotSize = new Vector2(5, 10)
-                    }
                 }
             };
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            BeatmapSet.BindValueChanged(_ =>
+            {
+                statusPill.Status = BeatmapSet.Value.Status;
+                spectrumDisplay?.Expire();
+                flow.Add(spectrumDisplay = new DifficultySpectrumDisplay(BeatmapSet.Value)
+                {
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
+                    DotSize = new Vector2(5, 10)
+                });
+            }, true);
         }
 
         protected override bool OnHover(HoverEvent e)

@@ -12,15 +12,13 @@ namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
 {
     public partial class GoToBeatmapButton : BeatmapCardIconButton
     {
+        public Bindable<APIBeatmapSet> BeatmapSet { get; } = new Bindable<APIBeatmapSet>();
+
         public IBindable<DownloadState> State => state;
         private readonly Bindable<DownloadState> state = new Bindable<DownloadState>();
 
-        private readonly APIBeatmapSet beatmapSet;
-
-        public GoToBeatmapButton(APIBeatmapSet beatmapSet)
+        public GoToBeatmapButton()
         {
-            this.beatmapSet = beatmapSet;
-
             Icon.Icon = FontAwesome.Solid.AngleDoubleRight;
             TooltipText = "Go to beatmap";
         }
@@ -28,7 +26,7 @@ namespace osu.Game.Beatmaps.Drawables.Cards.Buttons
         [BackgroundDependencyLoader(true)]
         private void load(OsuGame? game)
         {
-            Action = () => game?.PresentBeatmap(beatmapSet);
+            Action = () => game?.PresentBeatmap(BeatmapSet.Value);
         }
 
         protected override void LoadComplete()

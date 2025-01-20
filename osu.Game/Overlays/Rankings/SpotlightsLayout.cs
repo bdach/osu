@@ -144,8 +144,9 @@ namespace osu.Game.Overlays.Rankings
                     RelativeSizeAxes = Axes.X,
                     Margin = new MarginPadding { Bottom = ExpandedContentScrollContainer.HEIGHT },
                     Spacing = new Vector2(10),
-                    Children = response.BeatmapSets.Select(b => new BeatmapCardNormal(b)
+                    Children = response.BeatmapSets.Select(b => new BeatmapCardNormal
                     {
+                        BeatmapSet = { Value = b },
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,
                     }).ToList()

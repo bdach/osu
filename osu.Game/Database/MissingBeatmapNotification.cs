@@ -55,7 +55,7 @@ namespace osu.Game.Database
             autoDownloadConfig = config.GetBindable<bool>(OsuSetting.AutomaticallyDownloadMissingBeatmaps);
             noVideoSetting = config.GetBindable<bool>(OsuSetting.PreferNoVideo);
 
-            Content.Add(card = new BeatmapCardNano(beatmapSetInfo));
+            Content.Add(card = new BeatmapCardNano { BeatmapSet = { Value = beatmapSetInfo } });
         }
 
         protected override void LoadComplete()

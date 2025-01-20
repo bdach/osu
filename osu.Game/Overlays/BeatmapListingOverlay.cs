@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -13,6 +14,7 @@ using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Localisation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Pooling;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
@@ -46,6 +48,9 @@ namespace osu.Game.Overlays
 
         private BeatmapListingFilterControl filterControl => Header.FilterControl;
 
+        private DrawablePool<BeatmapCardNormal> normalCardPool;
+        private DrawablePool<BeatmapCardExtra> extraCardPool;
+
         public BeatmapListingOverlay()
             : base(OverlayColourScheme.Blue)
         {
@@ -54,33 +59,38 @@ namespace osu.Game.Overlays
         [BackgroundDependencyLoader]
         private void load()
         {
-            Child = new FillFlowContainer
+            Children = new Drawable[]
             {
-                RelativeSizeAxes = Axes.X,
-                AutoSizeAxes = Axes.Y,
-                Direction = FillDirection.Vertical,
-                Children = new Drawable[]
+                normalCardPool = new DrawablePool<BeatmapCardNormal>(100),
+                extraCardPool = new DrawablePool<BeatmapCardExtra>(100),
+                new FillFlowContainer
                 {
-                    new Container
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Direction = FillDirection.Vertical,
+                    Children = new Drawable[]
                     {
-                        AutoSizeAxes = Axes.Y,
-                        RelativeSizeAxes = Axes.X,
-                        Children = new Drawable[]
+                        new Container
                         {
-                            new Box
+                            AutoSizeAxes = Axes.Y,
+                            RelativeSizeAxes = Axes.X,
+                            Children = new Drawable[]
                             {
-                                RelativeSizeAxes = Axes.Both,
-                                Colour = ColourProvider.Background5,
+                                new Box
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = ColourProvider.Background5,
+                                },
+                                panelTarget = new Container
+                                {
+                                    AutoSizeAxes = Axes.Y,
+                                    RelativeSizeAxes = Axes.X,
+                                    Masking = true,
+                                    Padding = new MarginPadding { Horizontal = 20 },
+                                }
                             },
-                            panelTarget = new Container
-                            {
-                                AutoSizeAxes = Axes.Y,
-                                RelativeSizeAxes = Axes.X,
-                                Masking = true,
-                                Padding = new MarginPadding { Horizontal = 20 },
-                            }
                         },
-                    },
+                    }
                 }
             };
 
@@ -183,7 +193,7 @@ namespace osu.Game.Overlays
                 // new results may contain beatmaps from a previous page,
                 // this is dodgy but matches web behaviour for now.
                 // see: https://github.com/ppy/osu-web/issues/9270
-                newCards = newCards.ExceptBy(foundContent.Select(c => c.BeatmapSet.OnlineID), c => c.BeatmapSet.OnlineID);
+                newCards = newCards.ExceptBy(foundContent.Select(c => c.BeatmapSet.Value.OnlineID), c => c.BeatmapSet.Value.OnlineID);
 
                 panelLoadTask = LoadComponentsAsync(newCards, loaded =>
                 {
@@ -194,11 +204,30 @@ namespace osu.Game.Overlays
             }
         }
 
-        private IEnumerable<BeatmapCard> createCardsFor(IEnumerable<APIBeatmapSet> beatmapSets) => beatmapSets.Select(set => BeatmapCard.Create(set, filterControl.CardSize.Value).With(c =>
+        private IEnumerable<BeatmapCard> createCardsFor(IEnumerable<APIBeatmapSet> beatmapSets) => beatmapSets.Select(set =>
         {
-            c.Anchor = Anchor.TopCentre;
-            c.Origin = Anchor.TopCentre;
-        })).ToArray();
+            BeatmapCard card;
+
+            switch (filterControl.CardSize.Value)
+            {
+                case BeatmapCardSize.Normal:
+                    card = normalCardPool.Get(c => c.BeatmapSet.Value = set);
+                    break;
+
+                case BeatmapCardSize.Extra:
+                    card = extraCardPool.Get(c => c.BeatmapSet.Value = set);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(filterControl.CardSize), filterControl.CardSize.Value, "Unsupported card size");
+            }
+
+            return card.With(c =>
+            {
+                c.Anchor = Anchor.TopCentre;
+                c.Origin = Anchor.TopCentre;
+            });
+        }).ToArray();
 
         private static ReverseChildIDFillFlowContainer<BeatmapCard> createCardContainerFor(IEnumerable<BeatmapCard> newCards)
         {
@@ -227,6 +256,9 @@ namespace osu.Game.Overlays
             Loading.Hide();
             lastFetchDisplayedTime = Time.Current;
 
+            foreach (var cardContainer in panelTarget.Children.OfType<Container<BeatmapCard>>())
+                cardContainer.Clear(false);
+
             panelTarget.Child = content;
 
             content.FadeInFromZero();
@@ -239,13 +271,13 @@ namespace osu.Game.Overlays
 
             Loading.Show();
 
-            var newCards = createCardsFor(foundContent.Reverse().Select(card => card.BeatmapSet));
+            var newCards = createCardsFor(foundContent.Reverse().Select(card => card.BeatmapSet.Value));
 
             cancellationToken?.Cancel();
 
             panelLoadTask = LoadComponentsAsync(newCards, cards =>
             {
-                foundContent.Clear();
+                foundContent.Clear(false);
                 foundContent.AddRange(cards);
                 Loading.Hide();
             }, (cancellationToken = new CancellationTokenSource()).Token);

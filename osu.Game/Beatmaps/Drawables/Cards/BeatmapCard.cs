@@ -1,11 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
+using osu.Framework.Graphics.Pooling;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Game.Graphics.Containers;
@@ -17,7 +17,7 @@ using osu.Game.Localisation;
 
 namespace osu.Game.Beatmaps.Drawables.Cards
 {
-    public abstract partial class BeatmapCard : OsuClickableContainer, IHasContextMenu
+    public abstract partial class BeatmapCard : PoolableDrawable, IHasContextMenu
     {
         public const float TRANSITION_DURATION = 340;
         public const float CORNER_RADIUS = 8;
@@ -26,40 +26,65 @@ namespace osu.Game.Beatmaps.Drawables.Cards
 
         public IBindable<bool> Expanded { get; }
 
-        public readonly APIBeatmapSet BeatmapSet;
+        public Bindable<APIBeatmapSet> BeatmapSet { get; } = new Bindable<APIBeatmapSet>();
 
-        protected readonly Bindable<BeatmapSetFavouriteState> FavouriteState;
+        protected BeatmapDownloadTracker? DownloadTracker { get; private set; }
+
+        [Cached]
+        protected IBindable<DownloadState> DownloadState { get; private set; } = new Bindable<DownloadState>();
+
+        [Cached(Name = nameof(DownloadProgress))]
+        protected IBindable<double> DownloadProgress { get; private set; } = new Bindable<double>();
+
+        protected readonly Bindable<BeatmapSetFavouriteState> FavouriteState = new Bindable<BeatmapSetFavouriteState>();
 
         protected abstract Drawable IdleContent { get; }
         protected abstract Drawable DownloadInProgressContent { get; }
 
-        protected readonly BeatmapDownloadTracker DownloadTracker;
+        protected OsuClickableContainer Content { get; }
 
-        protected BeatmapCard(APIBeatmapSet beatmapSet, bool allowExpansion = true)
-            : base(HoverSampleSet.Button)
+        [Resolved]
+        private BeatmapSetOverlay? beatmapSetOverlay { get; set; }
+
+        protected BeatmapCard(bool allowExpansion = true)
         {
+            Content = new OsuClickableContainer(HoverSampleSet.Button)
+            {
+                RelativeSizeAxes = Axes.Both,
+            };
             Expanded = new BindableBool { Disabled = !allowExpansion };
-
-            BeatmapSet = beatmapSet;
-            FavouriteState = new Bindable<BeatmapSetFavouriteState>(new BeatmapSetFavouriteState(beatmapSet.HasFavourited, beatmapSet.FavouriteCount));
-            DownloadTracker = new BeatmapDownloadTracker(beatmapSet);
         }
 
-        [BackgroundDependencyLoader(true)]
-        private void load(BeatmapSetOverlay? beatmapSetOverlay)
+        [BackgroundDependencyLoader]
+        private void load()
         {
-            Action = () => beatmapSetOverlay?.FetchAndShowBeatmapSet(BeatmapSet.OnlineID);
-
-            AddInternal(DownloadTracker);
+            AddInternal(Content);
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            DownloadTracker.State.BindValueChanged(_ => UpdateState());
+            BeatmapSet.BindValueChanged(_ => UpdateBeatmapSet(), true);
+
             Expanded.BindValueChanged(_ => UpdateState(), true);
             FinishTransforms(true);
+        }
+
+        protected virtual void UpdateBeatmapSet()
+        {
+            FavouriteState.Value = new BeatmapSetFavouriteState(BeatmapSet.Value.HasFavourited, BeatmapSet.Value.FavouriteCount);
+            Content.Action = () => beatmapSetOverlay?.FetchAndShowBeatmapSet(BeatmapSet.Value.OnlineID);
+
+            DownloadState.UnbindBindings();
+            DownloadProgress.UnbindBindings();
+
+            DownloadTracker?.RemoveAndDisposeImmediately();
+            DownloadTracker = new BeatmapDownloadTracker(BeatmapSet.Value);
+            AddInternal(DownloadTracker);
+
+            DownloadState.BindTo(DownloadTracker.State);
+            DownloadProgress.BindTo(DownloadTracker.Progress);
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -76,36 +101,15 @@ namespace osu.Game.Beatmaps.Drawables.Cards
 
         protected virtual void UpdateState()
         {
-            bool showProgress = DownloadTracker.State.Value == DownloadState.Downloading || DownloadTracker.State.Value == DownloadState.Importing;
+            bool showProgress = DownloadState.Value == Online.DownloadState.Downloading || DownloadState.Value == Online.DownloadState.Importing;
 
             IdleContent.FadeTo(showProgress ? 0 : 1, TRANSITION_DURATION, Easing.OutQuint);
             DownloadInProgressContent.FadeTo(showProgress ? 1 : 0, TRANSITION_DURATION, Easing.OutQuint);
         }
 
-        /// <summary>
-        /// Creates a beatmap card of the given <paramref name="size"/> for the supplied <paramref name="beatmapSet"/>.
-        /// </summary>
-        public static BeatmapCard Create(APIBeatmapSet beatmapSet, BeatmapCardSize size, bool allowExpansion = true)
-        {
-            switch (size)
-            {
-                case BeatmapCardSize.Nano:
-                    return new BeatmapCardNano(beatmapSet);
-
-                case BeatmapCardSize.Normal:
-                    return new BeatmapCardNormal(beatmapSet, allowExpansion);
-
-                case BeatmapCardSize.Extra:
-                    return new BeatmapCardExtra(beatmapSet, allowExpansion);
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(size), size, @"Unsupported card size");
-            }
-        }
-
         public MenuItem[] ContextMenuItems => new MenuItem[]
         {
-            new OsuMenuItem(ContextMenuStrings.ViewBeatmap, MenuItemType.Highlighted, Action),
+            new OsuMenuItem(ContextMenuStrings.ViewBeatmap, MenuItemType.Highlighted, Content.Action),
         };
     }
 }

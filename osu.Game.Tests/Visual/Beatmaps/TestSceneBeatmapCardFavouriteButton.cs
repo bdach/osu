@@ -37,8 +37,9 @@ namespace osu.Game.Tests.Visual.Beatmaps
                 beatmapSetInfo = CreateAPIBeatmapSet(Ruleset.Value);
                 beatmapSetInfo.HasFavourited = favourited;
             });
-            AddStep("create button", () => Child = button = new FavouriteButton(beatmapSetInfo)
+            AddStep("create button", () => Child = button = new FavouriteButton
             {
+                BeatmapSet = { Value = beatmapSetInfo },
                 Size = new Vector2(25f, 50f),
                 Scale = new Vector2(2f),
             });
@@ -55,8 +56,9 @@ namespace osu.Game.Tests.Visual.Beatmaps
             BeatmapFavouriteAction? lastRequestAction = null;
 
             AddStep("create beatmap set", () => beatmapSetInfo = CreateAPIBeatmapSet(Ruleset.Value));
-            AddStep("create button", () => Child = button = new FavouriteButton(beatmapSetInfo)
+            AddStep("create button", () => Child = button = new FavouriteButton
             {
+                BeatmapSet = { Value = beatmapSetInfo },
                 Size = new Vector2(25f, 50f),
                 Scale = new Vector2(2f),
             });

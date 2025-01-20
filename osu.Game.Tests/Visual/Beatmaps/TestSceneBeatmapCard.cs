@@ -263,25 +263,25 @@ namespace osu.Game.Tests.Visual.Beatmaps
         [Test]
         public void TestNano()
         {
-            createTestCase(beatmapSetInfo => new BeatmapCardNano(beatmapSetInfo));
+            createTestCase(beatmapSetInfo => new BeatmapCardNano { BeatmapSet = { Value = beatmapSetInfo } });
         }
 
         [Test]
         public void TestNormal()
         {
-            createTestCase(beatmapSetInfo => new BeatmapCardNormal(beatmapSetInfo));
+            createTestCase(beatmapSetInfo => new BeatmapCardNormal { BeatmapSet = { Value = beatmapSetInfo } });
         }
 
         [Test]
         public void TestExtra()
         {
-            createTestCase(beatmapSetInfo => new BeatmapCardExtra(beatmapSetInfo));
+            createTestCase(beatmapSetInfo => new BeatmapCardExtra { BeatmapSet = { Value = beatmapSetInfo } });
         }
 
         [Test]
         public void TestHoverState()
         {
-            AddStep("create cards", () => Child = createContent(OverlayColourScheme.Blue, s => new BeatmapCardNormal(s)));
+            AddStep("create cards", () => Child = createContent(OverlayColourScheme.Blue, s => new BeatmapCardNormal { BeatmapSet = { Value = s } }));
 
             AddStep("Hover card", () => InputManager.MoveMouseTo(firstCard()));
             AddWaitStep("wait for potential state change", 5);
@@ -307,7 +307,7 @@ namespace osu.Game.Tests.Visual.Beatmaps
         [Test]
         public void TestPlayButtonByTouchInput()
         {
-            AddStep("create cards", () => Child = createContent(OverlayColourScheme.Blue, beatmapSetInfo => new BeatmapCardNormal(beatmapSetInfo)));
+            AddStep("create cards", () => Child = createContent(OverlayColourScheme.Blue, beatmapSetInfo => new BeatmapCardNormal { BeatmapSet = { Value = beatmapSetInfo } }));
 
             // mimics touch input
             AddStep("touch play button area on first card", () =>

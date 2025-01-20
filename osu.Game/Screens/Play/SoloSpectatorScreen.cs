@@ -252,7 +252,7 @@ namespace osu.Game.Screens.Play
                     return;
 
                 beatmapSet = beatmap.BeatmapSet;
-                beatmapPanelContainer.Child = new BeatmapCardNormal(beatmapSet, allowExpansion: false);
+                beatmapPanelContainer.Child = new BeatmapCardNormal(allowExpansion: false);
                 checkForAutomaticDownload();
             }));
         }

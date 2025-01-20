@@ -3,11 +3,13 @@
 
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Chat;
 using osu.Game.Rulesets;
 using osuTK;
@@ -16,12 +18,15 @@ namespace osu.Game.Beatmaps.Drawables.Cards
 {
     public partial class BeatmapCardDifficultyList : CompositeDrawable
     {
-        public BeatmapCardDifficultyList(IBeatmapSetInfo beatmapSetInfo)
+        public Bindable<APIBeatmapSet> BeatmapSet { get; } = new Bindable<APIBeatmapSet>();
+
+        private FillFlowContainer flow = null!;
+
+        [BackgroundDependencyLoader]
+        private void load()
         {
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
-
-            FillFlowContainer flow;
 
             InternalChild = flow = new FillFlowContainer
             {
@@ -30,10 +35,21 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                 Direction = FillDirection.Vertical,
                 Spacing = new Vector2(0, 3)
             };
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+            BeatmapSet.BindValueChanged(_ => updateState(), true);
+        }
+
+        private void updateState()
+        {
+            flow.Clear();
 
             bool firstGroup = true;
 
-            foreach (var group in beatmapSetInfo.Beatmaps.GroupBy(beatmap => beatmap.Ruleset).OrderBy(group => group.Key))
+            foreach (var group in BeatmapSet.Value.Beatmaps.GroupBy(beatmap => beatmap.Ruleset).OrderBy(group => group.Key))
             {
                 if (!firstGroup)
                 {

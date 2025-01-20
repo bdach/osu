@@ -55,8 +55,9 @@ namespace osu.Game.Tests.Visual.Beatmaps
         {
             AddStep("create button", () =>
             {
-                Child = downloadButton = new DownloadButton(downloadable ? getDownloadableBeatmapSet(hasVideo) : getUndownloadableBeatmapSet())
+                Child = downloadButton = new DownloadButton
                 {
+                    BeatmapSet = { Value = downloadable ? getDownloadableBeatmapSet(hasVideo) : getUndownloadableBeatmapSet() },
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     Size = new Vector2(25f, 50f),

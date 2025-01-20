@@ -36,11 +36,25 @@ namespace osu.Game.Beatmaps.Drawables.Cards
         private FillFlowContainer idleBottomContent = null!;
         private BeatmapCardDownloadProgressBar downloadProgressBar = null!;
 
+        private TruncatingSpriteText titleText = null!;
+        private TruncatingSpriteText artistText = null!;
+        private LinkFlowContainer authorText = null!;
+        private VideoIconPill videoIcon = null!;
+        private StoryboardIconPill storyboardIcon = null!;
+        private SpotlightBeatmapBadge spotlightBadge = null!;
+        private ExplicitContentBeatmapBadge explicitBadge = null!;
+        private FeaturedArtistBeatmapBadge featuredArtistBadge = null!;
+
         [Resolved]
         private OverlayColourProvider colourProvider { get; set; } = null!;
 
-        public BeatmapCardNormal(APIBeatmapSet beatmapSet, bool allowExpansion = true)
-            : base(beatmapSet, allowExpansion)
+        public BeatmapCardNormal()
+            : this(true)
+        {
+        }
+
+        public BeatmapCardNormal(bool allowExpansion)
+            : base(allowExpansion)
         {
             content = new BeatmapCardContent(HEIGHT);
         }
@@ -55,16 +69,17 @@ namespace osu.Game.Beatmaps.Drawables.Cards
             FillFlowContainer titleBadgeArea = null!;
             GridContainer artistContainer = null!;
 
-            Child = content.With(c =>
+            Content.Child = content.With(c =>
             {
                 c.MainContent = new Container
                 {
                     RelativeSizeAxes = Axes.Both,
                     Children = new Drawable[]
                     {
-                        thumbnail = new BeatmapCardThumbnail(BeatmapSet, BeatmapSet)
+                        thumbnail = new BeatmapCardThumbnail
                         {
                             Name = @"Left (icon) area",
+                            BeatmapSet = { BindTarget = BeatmapSet },
                             Size = new Vector2(HEIGHT),
                             Padding = new MarginPadding { Right = CORNER_RADIUS },
                             Child = leftIconArea = new FillFlowContainer
@@ -75,10 +90,11 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                                 Spacing = new Vector2(1)
                             }
                         },
-                        buttonContainer = new CollapsibleButtonContainer(BeatmapSet)
+                        buttonContainer = new CollapsibleButtonContainer
                         {
                             X = HEIGHT - CORNER_RADIUS,
                             Width = WIDTH - HEIGHT + CORNER_RADIUS,
+                            BeatmapSet = { BindTarget = BeatmapSet },
                             FavouriteState = { BindTarget = FavouriteState },
                             ButtonsCollapsedWidth = CORNER_RADIUS,
                             ButtonsExpandedWidth = 24,
@@ -107,9 +123,8 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                                             {
                                                 new Drawable[]
                                                 {
-                                                    new TruncatingSpriteText
+                                                    titleText = new TruncatingSpriteText
                                                     {
-                                                        Text = new RomanisableString(BeatmapSet.TitleUnicode, BeatmapSet.Title),
                                                         Font = OsuFont.Default.With(size: 18f, weight: FontWeight.SemiBold),
                                                         RelativeSizeAxes = Axes.X,
                                                     },
@@ -140,9 +155,8 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                                             {
                                                 new[]
                                                 {
-                                                    new TruncatingSpriteText
+                                                    artistText = new TruncatingSpriteText
                                                     {
-                                                        Text = createArtistText(),
                                                         Font = OsuFont.Default.With(size: 14f, weight: FontWeight.SemiBold),
                                                         RelativeSizeAxes = Axes.X,
                                                     },
@@ -150,7 +164,7 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                                                 },
                                             }
                                         },
-                                        new LinkFlowContainer(s =>
+                                        authorText = new LinkFlowContainer(s =>
                                         {
                                             s.Shadow = false;
                                             s.Font = OsuFont.GetFont(size: 11f, weight: FontWeight.SemiBold);
@@ -158,8 +172,6 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                                         {
                                             d.AutoSizeAxes = Axes.Both;
                                             d.Margin = new MarginPadding { Top = 1 };
-                                            d.AddText("mapped by ", t => t.Colour = colourProvider.Content2);
-                                            d.AddUserLink(BeatmapSet.Author);
                                         }),
                                     }
                                 },
@@ -189,9 +201,11 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                                                     Spacing = new Vector2(8, 0),
                                                     Alpha = 0,
                                                     AlwaysPresent = true,
-                                                    ChildrenEnumerable = createStatistics()
                                                 },
-                                                new BeatmapCardExtraInfoRow(BeatmapSet)
+                                                new BeatmapCardExtraInfoRow
+                                                {
+                                                    BeatmapSet = { BindTarget = BeatmapSet }
+                                                }
                                             }
                                         },
                                         downloadProgressBar = new BeatmapCardDownloadProgressBar
@@ -200,8 +214,8 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                                             Height = 5,
                                             Anchor = Anchor.Centre,
                                             Origin = Anchor.Centre,
-                                            State = { BindTarget = DownloadTracker.State },
-                                            Progress = { BindTarget = DownloadTracker.Progress }
+                                            State = { BindTarget = DownloadState },
+                                            Progress = { BindTarget = DownloadProgress }
                                         }
                                     }
                                 }
@@ -214,68 +228,64 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
                     Padding = new MarginPadding { Horizontal = 8, Vertical = 10 },
-                    Child = new BeatmapCardDifficultyList(BeatmapSet)
+                    Child = new BeatmapCardDifficultyList
+                    {
+                        BeatmapSet = { BindTarget = BeatmapSet },
+                    }
                 };
                 c.Expanded.BindTarget = Expanded;
             });
 
-            if (BeatmapSet.HasVideo)
-                leftIconArea.Add(new VideoIconPill { IconSize = new Vector2(16) });
-
-            if (BeatmapSet.HasStoryboard)
-                leftIconArea.Add(new StoryboardIconPill { IconSize = new Vector2(16) });
-
-            if (BeatmapSet.FeaturedInSpotlight)
+            leftIconArea.Add(videoIcon = new VideoIconPill
             {
-                titleBadgeArea.Add(new SpotlightBeatmapBadge
-                {
-                    Anchor = Anchor.BottomRight,
-                    Origin = Anchor.BottomRight,
-                    Margin = new MarginPadding { Left = 4 }
-                });
-            }
-
-            if (BeatmapSet.HasExplicitContent)
+                IconSize = new Vector2(16),
+                Alpha = 0
+            });
+            leftIconArea.Add(storyboardIcon = new StoryboardIconPill
             {
-                titleBadgeArea.Add(new ExplicitContentBeatmapBadge
-                {
-                    Anchor = Anchor.BottomRight,
-                    Origin = Anchor.BottomRight,
-                    Margin = new MarginPadding { Left = 4 }
-                });
-            }
+                IconSize = new Vector2(16),
+                Alpha = 0,
+            });
 
-            if (BeatmapSet.TrackId != null)
+            titleBadgeArea.Add(spotlightBadge = new SpotlightBeatmapBadge
             {
-                artistContainer.Content[0][1] = new FeaturedArtistBeatmapBadge
-                {
-                    Anchor = Anchor.BottomRight,
-                    Origin = Anchor.BottomRight,
-                    Margin = new MarginPadding { Left = 4 }
-                };
-            }
+                Anchor = Anchor.BottomRight,
+                Origin = Anchor.BottomRight,
+                Margin = new MarginPadding { Left = 4 },
+                Alpha = 0,
+            });
+
+            titleBadgeArea.Add(explicitBadge = new ExplicitContentBeatmapBadge
+            {
+                Anchor = Anchor.BottomRight,
+                Origin = Anchor.BottomRight,
+                Margin = new MarginPadding { Left = 4 },
+                Alpha = 0,
+            });
+
+            artistContainer.Content[0][1] = featuredArtistBadge = new FeaturedArtistBeatmapBadge
+            {
+                Anchor = Anchor.BottomRight,
+                Origin = Anchor.BottomRight,
+                Margin = new MarginPadding { Left = 4 },
+                Alpha = 0,
+            };
         }
 
-        private LocalisableString createArtistText()
+        private IEnumerable<BeatmapCardStatistic> createStatistics(APIBeatmapSet beatmapSet)
         {
-            var romanisableArtist = new RomanisableString(BeatmapSet.ArtistUnicode, BeatmapSet.Artist);
-            return BeatmapsetsStrings.ShowDetailsByArtist(romanisableArtist);
-        }
-
-        private IEnumerable<BeatmapCardStatistic> createStatistics()
-        {
-            var hypesStatistic = HypesStatistic.CreateFor(BeatmapSet);
+            var hypesStatistic = HypesStatistic.CreateFor(beatmapSet);
             if (hypesStatistic != null)
                 yield return hypesStatistic;
 
-            var nominationsStatistic = NominationsStatistic.CreateFor(BeatmapSet);
+            var nominationsStatistic = NominationsStatistic.CreateFor(beatmapSet);
             if (nominationsStatistic != null)
                 yield return nominationsStatistic;
 
-            yield return new FavouritesStatistic(BeatmapSet) { Current = FavouriteState };
-            yield return new PlayCountStatistic(BeatmapSet);
+            yield return new FavouritesStatistic(beatmapSet) { Current = FavouriteState };
+            yield return new PlayCountStatistic(beatmapSet);
 
-            var dateStatistic = BeatmapCardDateStatistic.CreateFor(BeatmapSet);
+            var dateStatistic = BeatmapCardDateStatistic.CreateFor(beatmapSet);
             if (dateStatistic != null)
                 yield return dateStatistic;
         }
@@ -290,6 +300,25 @@ namespace osu.Game.Beatmaps.Drawables.Cards
             thumbnail.Dimmed.Value = showDetails;
 
             statisticsContainer.FadeTo(showDetails ? 1 : 0, TRANSITION_DURATION, Easing.OutQuint);
+        }
+
+        protected override void UpdateBeatmapSet()
+        {
+            base.UpdateBeatmapSet();
+
+            titleText.Text = new RomanisableString(BeatmapSet.Value.TitleUnicode, BeatmapSet.Value.Title);
+            var romanisableArtist = new RomanisableString(BeatmapSet.Value.ArtistUnicode, BeatmapSet.Value.Artist);
+            artistText.Text = BeatmapsetsStrings.ShowDetailsByArtist(romanisableArtist);
+            videoIcon.Alpha = BeatmapSet.Value.HasVideo ? 1 : 0;
+            storyboardIcon.Alpha = BeatmapSet.Value.HasStoryboard ? 1 : 0;
+            authorText.Clear();
+            authorText.AddText("mapped by ", t => t.Colour = colourProvider.Content2);
+            authorText.AddUserLink(BeatmapSet.Value.Author);
+            statisticsContainer.Clear();
+            statisticsContainer.ChildrenEnumerable = createStatistics(BeatmapSet.Value);
+            spotlightBadge.Alpha = BeatmapSet.Value.FeaturedInSpotlight ? 1 : 0;
+            explicitBadge.Alpha = BeatmapSet.Value.HasExplicitContent ? 1 : 0;
+            featuredArtistBadge.Alpha = BeatmapSet.Value.TrackId != null ? 1 : 0;
         }
     }
 }

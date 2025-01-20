@@ -16,10 +16,10 @@ namespace osu.Game.Beatmaps.Drawables.Cards
 {
     public partial class CollapsibleButtonContainer : Container
     {
+        public Bindable<APIBeatmapSet> BeatmapSet = new Bindable<APIBeatmapSet>();
+
         public Bindable<bool> ShowDetails = new Bindable<bool>();
         public Bindable<BeatmapSetFavouriteState> FavouriteState = new Bindable<BeatmapSetFavouriteState>();
-
-        private readonly BeatmapDownloadTracker downloadTracker;
 
         private float buttonsExpandedWidth;
 
@@ -29,9 +29,12 @@ namespace osu.Game.Beatmaps.Drawables.Cards
             set
             {
                 buttonsExpandedWidth = value;
-                buttonArea.Width = value;
+
                 if (IsLoaded)
+                {
+                    buttonArea.Width = value;
                     updateState();
+                }
             }
         }
 
@@ -64,17 +67,16 @@ namespace osu.Game.Beatmaps.Drawables.Cards
         [Resolved]
         private OverlayColourProvider colourProvider { get; set; } = null!;
 
-        public CollapsibleButtonContainer(APIBeatmapSet beatmapSet)
-        {
-            downloadTracker = new BeatmapDownloadTracker(beatmapSet);
+        private Bindable<DownloadState> downloadState { get; } = new Bindable<DownloadState>();
 
+        public CollapsibleButtonContainer()
+        {
             RelativeSizeAxes = Axes.Y;
             Masking = true;
             CornerRadius = BeatmapCard.CORNER_RADIUS;
 
             InternalChildren = new Drawable[]
             {
-                downloadTracker,
                 background = new Container
                 {
                     RelativeSizeAxes = Axes.Y,
@@ -100,27 +102,29 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                         Padding = new MarginPadding(4) { Left = 2 },
                         Children = new BeatmapCardIconButton[]
                         {
-                            new FavouriteButton(beatmapSet)
+                            new FavouriteButton
                             {
-                                Current = FavouriteState,
+                                BeatmapSet = { BindTarget = BeatmapSet },
                                 Anchor = Anchor.TopCentre,
                                 Origin = Anchor.TopCentre,
                                 RelativeSizeAxes = Axes.Both,
                                 Height = 0.48f,
                             },
-                            new DownloadButton(beatmapSet)
+                            new DownloadButton
                             {
                                 Anchor = Anchor.BottomCentre,
                                 Origin = Anchor.BottomCentre,
-                                State = { BindTarget = downloadTracker.State },
+                                BeatmapSet = { BindTarget = BeatmapSet },
+                                State = { BindTarget = downloadState },
                                 RelativeSizeAxes = Axes.Both,
                                 Height = 0.48f,
                             },
-                            new GoToBeatmapButton(beatmapSet)
+                            new GoToBeatmapButton
                             {
                                 Anchor = Anchor.BottomCentre,
                                 Origin = Anchor.BottomCentre,
-                                State = { BindTarget = downloadTracker.State },
+                                BeatmapSet = { BindTarget = BeatmapSet },
+                                State = { BindTarget = downloadState },
                                 RelativeSizeAxes = Axes.Both,
                                 Height = 0.48f,
                             }
@@ -135,9 +139,10 @@ namespace osu.Game.Beatmaps.Drawables.Cards
                     Masking = true,
                     Children = new Drawable[]
                     {
-                        new BeatmapCardContentBackground(beatmapSet)
+                        new BeatmapCardContentBackground
                         {
                             RelativeSizeAxes = Axes.Both,
+                            BeatmapSet = { BindTarget = BeatmapSet },
                             Dimmed = { BindTarget = ShowDetails }
                         },
                         mainContent = new Container
@@ -154,13 +159,20 @@ namespace osu.Game.Beatmaps.Drawables.Cards
             };
         }
 
+        [BackgroundDependencyLoader]
+        private void load(Bindable<DownloadState> downloadState)
+        {
+            this.downloadState.BindTo(downloadState);
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            downloadTracker.State.BindValueChanged(_ => updateState());
+            downloadState.BindValueChanged(_ => updateState());
             ShowDetails.BindValueChanged(_ => updateState(), true);
             FinishTransforms(true);
+            buttonArea.Width = buttonsExpandedWidth;
         }
 
         private void updateState()
@@ -173,13 +185,13 @@ namespace osu.Game.Beatmaps.Drawables.Cards
             // By limiting the width we avoid this box showing up as an outline around the drawables that are on top of it.
             background.ResizeWidthTo(buttonAreaWidth + BeatmapCard.CORNER_RADIUS, BeatmapCard.TRANSITION_DURATION, Easing.OutQuint);
 
-            background.FadeColour(downloadTracker.State.Value == DownloadState.LocallyAvailable ? colours.Lime0 : colourProvider.Background3, BeatmapCard.TRANSITION_DURATION, Easing.OutQuint);
+            background.FadeColour(downloadState.Value == DownloadState.LocallyAvailable ? colours.Lime0 : colourProvider.Background3, BeatmapCard.TRANSITION_DURATION, Easing.OutQuint);
             buttons.FadeTo(ShowDetails.Value ? 1 : 0, BeatmapCard.TRANSITION_DURATION, Easing.OutQuint);
 
             foreach (var button in buttons)
             {
-                button.IdleColour = downloadTracker.State.Value != DownloadState.LocallyAvailable ? colourProvider.Light1 : colourProvider.Background3;
-                button.HoverColour = downloadTracker.State.Value != DownloadState.LocallyAvailable ? colourProvider.Content1 : colourProvider.Foreground1;
+                button.IdleColour = downloadState.Value != DownloadState.LocallyAvailable ? colourProvider.Light1 : colourProvider.Background3;
+                button.HoverColour = downloadState.Value != DownloadState.LocallyAvailable ? colourProvider.Content1 : colourProvider.Foreground1;
             }
         }
     }
