@@ -265,7 +265,7 @@ namespace osu.Game.Rulesets.Edit
 
         #region IDistanceSnapProvider
 
-        public virtual float GetBeatSnapDistanceAt(IHasSliderVelocity? withVelocity = null)
+        public virtual float GetBeatSnapDistance(IHasSliderVelocity? withVelocity = null)
         {
             return (float)(100 * (withVelocity?.SliderVelocityMultiplier ?? 1) * editorBeatmap.Difficulty.SliderMultiplier * 1
                            / beatSnapProvider.BeatDivisor);
@@ -274,13 +274,13 @@ namespace osu.Game.Rulesets.Edit
         public virtual float DurationToDistance(double duration, double timingReference, IHasSliderVelocity? withVelocity = null)
         {
             double beatLength = beatSnapProvider.GetBeatLengthAtTime(timingReference);
-            return (float)(duration / beatLength * GetBeatSnapDistanceAt(withVelocity));
+            return (float)(duration / beatLength * GetBeatSnapDistance(withVelocity));
         }
 
         public virtual double DistanceToDuration(float distance, double timingReference, IHasSliderVelocity? withVelocity = null)
         {
             double beatLength = beatSnapProvider.GetBeatLengthAtTime(timingReference);
-            return distance / GetBeatSnapDistanceAt(withVelocity) * beatLength;
+            return distance / GetBeatSnapDistance(withVelocity) * beatLength;
         }
 
         public virtual double FindSnappedDuration(float distance, double snapReferenceTime, IHasSliderVelocity? withVelocity = null)

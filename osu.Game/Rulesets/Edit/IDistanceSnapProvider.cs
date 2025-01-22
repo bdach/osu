@@ -21,7 +21,7 @@ namespace osu.Game.Rulesets.Edit
         /// <seealso cref="IBeatmap.DistanceSpacing"/>
         Bindable<double> DistanceSpacingMultiplier { get; }
 
-        float GetBeatSnapDistanceAt(IHasSliderVelocity? withVelocity = null);
+        float GetBeatSnapDistance(IHasSliderVelocity? withVelocity = null);
 
         float DurationToDistance(double duration, double timingReference, IHasSliderVelocity? withVelocity = null);
 
@@ -30,11 +30,5 @@ namespace osu.Game.Rulesets.Edit
         double FindSnappedDuration(float distance, double snapReferenceTime, IHasSliderVelocity? withVelocity = null);
 
         float FindSnappedDistance(float distance, double snapReferenceTime, IHasSliderVelocity? withVelocity = null);
-    }
-
-    public enum DistanceSnapTarget
-    {
-        Start,
-        End,
     }
 }
