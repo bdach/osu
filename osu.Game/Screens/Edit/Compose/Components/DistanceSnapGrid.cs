@@ -97,14 +97,14 @@ namespace osu.Game.Screens.Edit.Compose.Components
         private void updateSpacing()
         {
             float distanceSpacingMultiplier = (float)DistanceSpacingMultiplier.Value;
-            float beatSnapDistance = SnapProvider.GetBeatSnapDistanceAt(ReferenceObject, false);
+            float beatSnapDistance = SnapProvider.GetBeatSnapDistanceAt();
 
             DistanceBetweenTicks = beatSnapDistance * distanceSpacingMultiplier;
 
             if (LatestEndTime == null)
                 MaxIntervals = int.MaxValue;
             else
-                MaxIntervals = (int)((LatestEndTime.Value - StartTime) / SnapProvider.DistanceToDuration(ReferenceObject, beatSnapDistance));
+                MaxIntervals = (int)((LatestEndTime.Value - StartTime) / SnapProvider.DistanceToDuration(beatSnapDistance, ReferenceObject.StartTime));
 
             gridCache.Invalidate();
         }
