@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-/*
 #nullable disable
 
 using NUnit.Framework;
@@ -12,6 +11,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Rulesets.Edit;
 using osu.Game.Rulesets.Objects;
+using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Beatmaps;
 using osu.Game.Screens.Edit;
@@ -182,7 +182,7 @@ namespace osu.Game.Tests.Visual.Editing
                 }
             }
 
-            public override (Vector2 position, double time) GetSnappedPosition(Vector2 screenSpacePosition)
+            public override (Vector2 position, double time) GetSnappedPosition(Vector2 screenSpacePosition, double? fixedTime = null)
                 => (Vector2.Zero, 0);
         }
 
@@ -192,16 +192,15 @@ namespace osu.Game.Tests.Visual.Editing
 
             Bindable<double> IDistanceSnapProvider.DistanceSpacingMultiplier => DistanceSpacingMultiplier;
 
-            public float GetBeatSnapDistanceAt(HitObject referenceObject, bool useReferenceSliderVelocity = true) => beat_snap_distance;
+            public float GetBeatSnapDistance(IHasSliderVelocity withVelocity = null) => beat_snap_distance;
 
-            public float DurationToDistance(HitObject referenceObject, double duration) => (float)duration;
+            public float DurationToDistance(double duration, double timingReference, IHasSliderVelocity withVelocity = null) => (float)duration;
 
-            public double DistanceToDuration(HitObject referenceObject, float distance) => distance;
+            public double DistanceToDuration(float distance, double timingReference, IHasSliderVelocity withVelocity = null) => distance;
 
-            public double FindSnappedDuration(HitObject referenceObject, float distance) => 0;
+            public double FindSnappedDuration(float distance, double snapReferenceTime, IHasSliderVelocity withVelocity = null) => 0;
 
-            public float FindSnappedDistance(HitObject referenceObject, float distance, DistanceSnapTarget target) => 0;
+            public float FindSnappedDistance(float distance, double snapReferenceTime, IHasSliderVelocity? withVelocity = null) => 0;
         }
     }
 }
-*/
