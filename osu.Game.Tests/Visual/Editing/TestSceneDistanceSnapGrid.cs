@@ -10,7 +10,6 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Rulesets.Edit;
-using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Beatmaps;
@@ -116,7 +115,7 @@ namespace osu.Game.Tests.Visual.Editing
             public new int MaxIntervals => base.MaxIntervals;
 
             public TestDistanceSnapGrid(double? endTime = null)
-                : base(new HitObject(), grid_position, 0, endTime)
+                : base(grid_position, 0, endTime)
             {
             }
 
