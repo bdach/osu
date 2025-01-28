@@ -136,10 +136,7 @@ namespace osu.Game.Screens.Select
                 }
                 else
                 {
-                    player = new SoloPlayer
-                    {
-                        LeaderboardScores = { BindTarget = playBeatmapDetailArea.Leaderboard.Scores }
-                    };
+                    player = new SoloPlayer(playBeatmapDetailArea.Leaderboard.ScoreProvider);
                 }
 
                 return player;

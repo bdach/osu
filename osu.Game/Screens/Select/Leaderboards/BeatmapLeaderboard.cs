@@ -58,14 +58,14 @@ namespace osu.Game.Screens.Select.Leaderboards
         [Resolved]
         private IAPIProvider api { get; set; } = null!;
 
-        private ILeaderboardScoreProvider? scoreProvider;
+        public ILeaderboardScoreProvider? ScoreProvider { get; private set; }
 
         protected override bool IsOnlineScope => Scope != BeatmapLeaderboardScope.Local;
 
         protected override APIRequest? FetchScores(CancellationToken cancellationToken)
         {
-            (scoreProvider as Component)?.RemoveAndDisposeImmediately();
-            scoreProvider = null;
+            (ScoreProvider as Component)?.RemoveAndDisposeImmediately();
+            ScoreProvider = null;
 
             var fetchBeatmapInfo = BeatmapInfo;
 
@@ -88,7 +88,7 @@ namespace osu.Game.Screens.Select.Leaderboards
                 };
                 localScoreProvider.Scores.BindCollectionChanged((e, _) => SetScores((IEnumerable<ScoreInfo>)e!));
                 AddInternal(localScoreProvider);
-                scoreProvider = localScoreProvider;
+                ScoreProvider = localScoreProvider;
                 return null;
             }
 
@@ -126,7 +126,7 @@ namespace osu.Game.Screens.Select.Leaderboards
             onlineScoreProvider.Success += SetScores;
             onlineScoreProvider.Failure += () => SetErrorState(LeaderboardState.NetworkFailure);
             AddInternal(onlineScoreProvider);
-            scoreProvider = onlineScoreProvider;
+            ScoreProvider = onlineScoreProvider;
             return null;
         }
 
