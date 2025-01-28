@@ -14,9 +14,9 @@ namespace osu.Game.Screens.Ranking
 {
     public partial class SoloResultsScreen : ResultsScreen
     {
-        private ILeaderboardScoreProvider? scoreProvider;
+        private ILeaderboardProvider? scoreProvider;
 
-        public SoloResultsScreen(ScoreInfo score, ILeaderboardScoreProvider? scoreProvider = null)
+        public SoloResultsScreen(ScoreInfo score, ILeaderboardProvider? scoreProvider = null)
             : base(score)
         {
             this.scoreProvider = scoreProvider;
@@ -26,14 +26,14 @@ namespace osu.Game.Screens.Ranking
         {
             switch (scoreProvider)
             {
-                case OnlineLeaderboardScoreProvider onlineScoreProvider:
+                case OnlineLeaderboardProvider onlineScoreProvider:
                     onlineScoreProvider.Success += scoresReceived;
                     onlineScoreProvider.RefetchScores();
                     break;
 
                 case null:
                 {
-                    var onlineScoreProvider = new OnlineLeaderboardScoreProvider(BeatmapLeaderboardScope.Global)
+                    var onlineScoreProvider = new OnlineLeaderboardProvider(BeatmapLeaderboardScope.Global)
                     {
                         Beatmap = { Value = Beatmap.Value.BeatmapInfo },
                         Ruleset = { Value = Ruleset.Value },
@@ -77,7 +77,7 @@ namespace osu.Game.Screens.Ranking
                 }
 
                 scoresCallback.Invoke(toDisplay);
-                ((OnlineLeaderboardScoreProvider)scoreProvider!).Success -= scoresReceived;
+                ((OnlineLeaderboardProvider)scoreProvider!).Success -= scoresReceived;
             }
         }
     }

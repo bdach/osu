@@ -131,12 +131,12 @@ namespace osu.Game.Screens.Select
                 {
                     player = new ReplayPlayer((beatmap, mods) => replayGeneratingMod.CreateScoreFromReplayData(beatmap, mods))
                     {
-                        LeaderboardScores = { BindTarget = playBeatmapDetailArea.Leaderboard.Scores }
+                        //LeaderboardScores = { BindTarget = playBeatmapDetailArea.Leaderboard.Scores }
                     };
                 }
                 else
                 {
-                    player = new SoloPlayer(playBeatmapDetailArea.Leaderboard.ScoreProvider);
+                    player = new SoloPlayer(playBeatmapDetailArea.Leaderboard.Scores);
                 }
 
                 return player;

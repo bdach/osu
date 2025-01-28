@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Game.Beatmaps;
@@ -17,33 +18,26 @@ namespace osu.Game.Screens.Play
 {
     public partial class SoloPlayer : SubmittingPlayer
     {
-        private ILeaderboardScoreProvider? scoreProvider;
+        private readonly IEnumerable<ScoreInfo> leaderboardScores;
         private DependencyContainer dependencies = null!;
 
-        public SoloPlayer(ILeaderboardScoreProvider? scoreProvider, PlayerConfiguration? configuration = null)
+        [Cached(typeof(IGameplayLeaderboardProvider))]
+        private SoloGameplayLeaderboardProvider leaderboardProvider;
+
+        public SoloPlayer(IEnumerable<ScoreInfo> leaderboardScores, PlayerConfiguration? configuration = null)
             : base(configuration)
         {
-            this.scoreProvider = scoreProvider;
+            this.leaderboardScores = leaderboardScores;
         }
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
             => dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
 
         [BackgroundDependencyLoader]
-        private void load()
+        private void load(GameplayState gameplayState)
         {
-            if (scoreProvider == null)
-            {
-                var localScoreProvider = new LocalLeaderboardScoreProvider
-                {
-                    Beatmap = { Value = Beatmap.Value.BeatmapInfo },
-                    Ruleset = { Value = Ruleset.Value },
-                };
-                AddInternal(localScoreProvider);
-                scoreProvider = localScoreProvider;
-            }
-
-            dependencies.CacheAs(scoreProvider);
+            leaderboardProvider = new SoloGameplayLeaderboardProvider(gameplayState, leaderboardScores);
+            dependencies.CacheAs(leaderboardProvider);
         }
 
         protected override APIRequest<APIScoreToken>? CreateTokenRequest()

@@ -3,12 +3,16 @@
 
 using System;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics;
 using osu.Game.Rulesets.Scoring;
+using osu.Game.Users;
 
 namespace osu.Game.Screens.Play.HUD
 {
     public interface ILeaderboardScore
     {
+        IUser User { get; }
+        bool Tracked { get; }
         BindableLong TotalScore { get; }
         BindableDouble Accuracy { get; }
         BindableInt Combo { get; }
@@ -27,5 +31,7 @@ namespace osu.Game.Screens.Play.HUD
         /// <remarks>
         /// If no function is provided, <see cref="TotalScore"/> will be used verbatim.</remarks>
         Func<ScoringMode, long> GetDisplayScore { set; }
+
+        Colour4? TeamColour { get; }
     }
 }
