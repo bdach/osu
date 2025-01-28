@@ -22,9 +22,6 @@ namespace osu.Game.Screens.Select.Leaderboards
         public IBindableList<ScoreInfo> Scores => scores;
         private readonly BindableList<ScoreInfo> scores = new BindableList<ScoreInfo>();
 
-        public IBindable<bool> Loading => loading;
-        private readonly BindableBool loading = new BindableBool();
-
         public Bindable<BeatmapInfo> Beatmap { get; } = new Bindable<BeatmapInfo>();
         public Bindable<RulesetInfo> Ruleset { get; } = new Bindable<RulesetInfo>();
         public Bindable<bool> ModFilterActive { get; } = new BindableBool();
@@ -50,7 +47,6 @@ namespace osu.Game.Screens.Select.Leaderboards
         {
             Debug.Assert(Beatmap.Value != null);
             Debug.Assert(Ruleset.Value != null);
-            loading.Value = true;
 
             scoreSubscription?.Dispose();
             scoreSubscription = null;
@@ -89,7 +85,6 @@ namespace osu.Game.Screens.Select.Leaderboards
 
                 scores.Clear();
                 scores.AddRange(newScores);
-                loading.Value = false;
             }
         }
 

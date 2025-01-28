@@ -22,9 +22,6 @@ namespace osu.Game.Screens.Select.Leaderboards
         public IBindableList<ScoreInfo> Scores => scores;
         private readonly BindableList<ScoreInfo> scores = new BindableList<ScoreInfo>();
 
-        public IBindable<bool> Loading => loading;
-        private readonly BindableBool loading = new BindableBool();
-
         public event Action<ScoreInfo[], ScoreInfo?>? Success;
         public event Action? Failure;
 
@@ -67,8 +64,6 @@ namespace osu.Game.Screens.Select.Leaderboards
             scoreRetrievalRequest?.Cancel();
             scoreRetrievalRequest = null;
 
-            loading.Value = true;
-
             IReadOnlyList<Mod>? requestMods = null;
 
             if (ModFilterActive.Value && !Mods.Value.Any())
@@ -102,7 +97,6 @@ namespace osu.Game.Screens.Select.Leaderboards
             {
                 scores.Clear();
                 Failure?.Invoke();
-                loading.Value = false;
             };
             api.Queue(newRequest);
 
