@@ -12,6 +12,7 @@ using osu.Game.Online.Rooms;
 using osu.Game.Online.Solo;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play.HUD;
+using osu.Game.Screens.Ranking;
 using osu.Game.Screens.Select.Leaderboards;
 
 namespace osu.Game.Screens.Play
@@ -89,5 +90,11 @@ namespace osu.Game.Screens.Play
 
             return new SubmitSoloScoreRequest(score.ScoreInfo, token, beatmap.OnlineID);
         }
+
+        protected override ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score, scoreProvider)
+        {
+            AllowRetry = true,
+            ShowUserStatistics = true,
+        };
     }
 }
