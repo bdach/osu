@@ -30,7 +30,7 @@ namespace osu.Game.Screens.Play.HUD
         private ScoreProcessor scoreProcessor { get; set; } = null!;
 
         [Resolved]
-        private ILeaderboardScoreProvider leaderboardScoreProvider { get; set; } = null!;
+        private ILeaderboardProvider leaderboardProvider { get; set; } = null!;
 
         /// <summary>
         /// Whether the leaderboard should be visible regardless of the configuration value.
@@ -50,7 +50,7 @@ namespace osu.Game.Screens.Play.HUD
         {
             base.LoadComplete();
 
-            scores.BindTo(leaderboardScoreProvider.Scores);
+            scores.BindTo(leaderboardProvider.Scores);
             scores.BindCollectionChanged((_, _) => Scheduler.AddOnce(showScores), true);
 
             // Alpha will be updated via `updateVisibility` below.
@@ -92,7 +92,7 @@ namespace osu.Game.Screens.Play.HUD
         protected override bool CheckValidScorePosition(GameplayLeaderboardScore score, int position)
         {
             // change displayed position to '-' when there are 50 already submitted scores and tracked score is last
-            if (score.Tracked && leaderboardScoreProvider is OnlineLeaderboardScoreProvider)
+            if (score.Tracked && leaderboardProvider is OnlineLeaderboardProvider)
             {
                 if (position == Flow.Count && Flow.Count > GetScoresRequest.MAX_SCORES_PER_REQUEST)
                     return false;

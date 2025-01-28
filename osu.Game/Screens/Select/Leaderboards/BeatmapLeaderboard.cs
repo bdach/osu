@@ -19,6 +19,8 @@ namespace osu.Game.Screens.Select.Leaderboards
 {
     public partial class BeatmapLeaderboard : Leaderboard<BeatmapLeaderboardScope, ScoreInfo>
     {
+        public IEnumerable<ScoreInfo> Scores => trackingProvider?.Scores ?? [];
+
         public Action<ScoreInfo>? ScoreSelected;
 
         private BeatmapInfo? beatmapInfo;
@@ -58,14 +60,17 @@ namespace osu.Game.Screens.Select.Leaderboards
         [Resolved]
         private IAPIProvider api { get; set; } = null!;
 
-        public ILeaderboardScoreProvider? ScoreProvider { get; private set; }
+        [Resolved]
+        private LeaderboardProvider leaderboardProvider { get; set; } = null!;
+
+        private StateTrackingLeaderboardProvider? trackingProvider;
 
         protected override bool IsOnlineScope => Scope != BeatmapLeaderboardScope.Local;
 
         protected override APIRequest? FetchScores(CancellationToken cancellationToken)
         {
-            (ScoreProvider as Component)?.RemoveAndDisposeImmediately();
-            ScoreProvider = null;
+            trackingProvider?.RemoveAndDisposeImmediately();
+            trackingProvider = null;
 
             var fetchBeatmapInfo = BeatmapInfo;
 
@@ -76,21 +81,6 @@ namespace osu.Game.Screens.Select.Leaderboards
             }
 
             var fetchRuleset = ruleset.Value ?? fetchBeatmapInfo.Ruleset;
-
-            if (Scope == BeatmapLeaderboardScope.Local)
-            {
-                var localScoreProvider = new LocalLeaderboardScoreProvider
-                {
-                    Beatmap = { Value = BeatmapInfo! },
-                    Ruleset = { BindTarget = ruleset },
-                    ModFilterActive = { BindTarget = FilterMods },
-                    Mods = { BindTarget = mods },
-                };
-                localScoreProvider.Scores.BindCollectionChanged((e, _) => SetScores((IEnumerable<ScoreInfo>)e!));
-                AddInternal(localScoreProvider);
-                ScoreProvider = localScoreProvider;
-                return null;
-            }
 
             if (!api.IsLoggedIn)
             {
@@ -116,17 +106,16 @@ namespace osu.Game.Screens.Select.Leaderboards
                 return null;
             }
 
-            var onlineScoreProvider = new OnlineLeaderboardScoreProvider(Scope)
+            trackingProvider = new StateTrackingLeaderboardProvider(leaderboardProvider)
             {
                 Beatmap = { Value = BeatmapInfo! },
                 Ruleset = { BindTarget = ruleset },
                 ModFilterActive = { BindTarget = FilterMods },
                 Mods = { BindTarget = mods },
+                Scope = { Value = Scope },
             };
-            onlineScoreProvider.Success += SetScores;
-            onlineScoreProvider.Failure += () => SetErrorState(LeaderboardState.NetworkFailure);
-            AddInternal(onlineScoreProvider);
-            ScoreProvider = onlineScoreProvider;
+            trackingProvider.Scores.BindValueChanged(val => SetScores(val.NewValue.Item1, val.NewValue.Item2), true);
+            AddInternal(trackingProvider);
             return null;
         }
 
