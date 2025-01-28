@@ -150,6 +150,7 @@ namespace osu.Game.Skinning
                                 var healthLine = container.OfType<BoxElement>().FirstOrDefault();
                                 var wedgePieces = container.OfType<ArgonWedgePiece>().ToArray();
                                 var score = container.OfType<ArgonScoreCounter>().FirstOrDefault();
+                                var leaderboard = container.OfType<SoloGameplayLeaderboard>().FirstOrDefault();
                                 var accuracy = container.OfType<ArgonAccuracyCounter>().FirstOrDefault();
                                 var performancePoints = container.OfType<ArgonPerformancePointsCounter>().FirstOrDefault();
                                 var songProgress = container.OfType<ArgonSongProgress>().FirstOrDefault();
@@ -182,6 +183,11 @@ namespace osu.Game.Skinning
                                     {
                                         score.Origin = Anchor.TopRight;
                                         score.Position = new Vector2(components_x_offset + 200, wedgePieces.Last().Y + 30);
+                                    }
+
+                                    if (leaderboard != null)
+                                    {
+                                        leaderboard.Position = new Vector2(components_x_offset, (score?.Y ?? 0) + 30);
                                     }
 
                                     if (accuracy != null)
@@ -265,6 +271,7 @@ namespace osu.Game.Skinning
                                     new BarHitErrorMeter(),
                                     new ArgonSongProgress(),
                                     new ArgonKeyCounterDisplay(),
+                                    new SoloGameplayLeaderboard(),
                                 }
                             };
 
