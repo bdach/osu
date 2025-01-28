@@ -8,6 +8,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Game.Beatmaps;
+using osu.Game.Extensions;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Rulesets;
@@ -76,7 +77,7 @@ namespace osu.Game.Screens.Select.Leaderboards
             var fetchBeatmapInfo = Beatmap.Value;
 
             var newRequest = new GetScoresRequest(fetchBeatmapInfo, Ruleset.Value, scope, requestMods);
-            newRequest.Success += response => Schedule(() =>
+            newRequest.Success += response =>
             {
                 // Request may have changed since fetch request.
                 // Can't rely on request cancellation due to Schedule inside SetScores so let's play it safe.
@@ -87,19 +88,19 @@ namespace osu.Game.Screens.Select.Leaderboards
                 var userScore = response.UserScore?.CreateScoreInfo(rulesets, fetchBeatmapInfo);
 
                 var allScores = newScores;
-                if (userScore != null)
-                    allScores = newScores.Append(userScore).ToArray();
+                if (userScore != null && newScores.All(score => !score.MatchesOnlineID(userScore)))
+                    allScores = newScores.Append(userScore).OrderByTotalScore().ToArray();
 
                 scores.Clear();
                 scores.AddRange(allScores);
                 Success?.Invoke(newScores, userScore);
-            });
-            newRequest.Failure += _ => Schedule(() =>
+            };
+            newRequest.Failure += _ =>
             {
                 scores.Clear();
                 Failure?.Invoke();
                 loading.Value = false;
-            });
+            };
             api.Queue(newRequest);
 
             scoreRetrievalRequest = newRequest;
