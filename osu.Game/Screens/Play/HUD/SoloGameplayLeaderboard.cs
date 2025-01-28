@@ -10,25 +10,27 @@ using osu.Game.Online.API.Requests;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Scoring.Legacy;
-using osu.Game.Screens.Select;
+using osu.Game.Screens.Select.Leaderboards;
+using osu.Game.Skinning;
 using osu.Game.Users;
 
 namespace osu.Game.Screens.Play.HUD
 {
-    public partial class SoloGameplayLeaderboard : GameplayLeaderboard
+    public partial class SoloGameplayLeaderboard : GameplayLeaderboard, ISerialisableDrawable
     {
         private const int duration = 100;
 
         private readonly Bindable<bool> configVisibility = new Bindable<bool>();
 
-        private readonly Bindable<PlayBeatmapDetailArea.TabType> scoreSource = new Bindable<PlayBeatmapDetailArea.TabType>();
+        private readonly IBindableList<ScoreInfo> scores = new BindableList<ScoreInfo>();
 
-        private readonly IUser trackingUser;
-
-        public readonly IBindableList<ScoreInfo> Scores = new BindableList<ScoreInfo>();
+        private IUser trackingUser = null!;
 
         [Resolved]
         private ScoreProcessor scoreProcessor { get; set; } = null!;
+
+        [Resolved]
+        private ILeaderboardScoreProvider leaderboardScoreProvider { get; set; } = null!;
 
         /// <summary>
         /// Whether the leaderboard should be visible regardless of the configuration value.
@@ -36,23 +38,20 @@ namespace osu.Game.Screens.Play.HUD
         /// </summary>
         public readonly Bindable<bool> AlwaysVisible = new Bindable<bool>(true);
 
-        public SoloGameplayLeaderboard(IUser trackingUser)
-        {
-            this.trackingUser = trackingUser;
-        }
-
         [BackgroundDependencyLoader]
-        private void load(OsuConfigManager config)
+        private void load(OsuConfigManager config, GameplayState gameplayState)
         {
             config.BindWith(OsuSetting.GameplayLeaderboard, configVisibility);
-            config.BindWith(OsuSetting.BeatmapDetailTab, scoreSource);
+
+            trackingUser = gameplayState.Score.ScoreInfo.User;
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            Scores.BindCollectionChanged((_, _) => Scheduler.AddOnce(showScores), true);
+            scores.BindTo(leaderboardScoreProvider.Scores);
+            scores.BindCollectionChanged((_, _) => Scheduler.AddOnce(showScores), true);
 
             // Alpha will be updated via `updateVisibility` below.
             Alpha = 0;
@@ -65,10 +64,10 @@ namespace osu.Game.Screens.Play.HUD
         {
             Clear();
 
-            if (!Scores.Any())
+            if (!scores.Any())
                 return;
 
-            foreach (var s in Scores)
+            foreach (var s in scores)
             {
                 var score = Add(s.User, false);
 
@@ -93,7 +92,7 @@ namespace osu.Game.Screens.Play.HUD
         protected override bool CheckValidScorePosition(GameplayLeaderboardScore score, int position)
         {
             // change displayed position to '-' when there are 50 already submitted scores and tracked score is last
-            if (score.Tracked && scoreSource.Value != PlayBeatmapDetailArea.TabType.Local)
+            if (score.Tracked && leaderboardScoreProvider is OnlineLeaderboardScoreProvider)
             {
                 if (position == Flow.Count && Flow.Count > GetScoresRequest.MAX_SCORES_PER_REQUEST)
                     return false;
@@ -104,5 +103,7 @@ namespace osu.Game.Screens.Play.HUD
 
         private void updateVisibility() =>
             this.FadeTo(AlwaysVisible.Value || configVisibility.Value ? 1 : 0, duration);
+
+        public bool UsesFixedAnchor { get; set; }
     }
 }
