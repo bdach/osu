@@ -3,47 +3,58 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using osu.Framework.Allocation;
-using osu.Game.Beatmaps;
 using osu.Game.Extensions;
 using osu.Game.Online.API;
-using osu.Game.Online.API.Requests;
-using osu.Game.Rulesets;
 using osu.Game.Scoring;
+using osu.Game.Screens.Select.Leaderboards;
 
 namespace osu.Game.Screens.Ranking
 {
     public partial class SoloResultsScreen : ResultsScreen
     {
-        private GetScoresRequest? getScoreRequest;
+        private ILeaderboardScoreProvider? scoreProvider;
 
-        [Resolved]
-        private RulesetStore rulesets { get; set; } = null!;
-
-        public SoloResultsScreen(ScoreInfo score)
+        public SoloResultsScreen(ScoreInfo score, ILeaderboardScoreProvider? scoreProvider = null)
             : base(score)
         {
+            this.scoreProvider = scoreProvider;
         }
 
         protected override APIRequest? FetchScores(Action<IEnumerable<ScoreInfo>> scoresCallback)
         {
-            Debug.Assert(Score != null);
+            switch (scoreProvider)
+            {
+                case OnlineLeaderboardScoreProvider onlineScoreProvider:
+                    onlineScoreProvider.Success += scoresReceived;
+                    onlineScoreProvider.RefetchScores();
+                    break;
 
-            if (Score.BeatmapInfo!.OnlineID <= 0 || Score.BeatmapInfo.Status <= BeatmapOnlineStatus.Pending)
-                return null;
+                case null:
+                {
+                    var onlineScoreProvider = new OnlineLeaderboardScoreProvider(BeatmapLeaderboardScope.Global)
+                    {
+                        Beatmap = { Value = Beatmap.Value.BeatmapInfo },
+                        Ruleset = { Value = Ruleset.Value },
+                    };
+                    onlineScoreProvider.Success += scoresReceived;
+                    AddInternal(onlineScoreProvider);
+                    scoreProvider = onlineScoreProvider;
+                    break;
+                }
 
-            getScoreRequest = new GetScoresRequest(Score.BeatmapInfo, Score.Ruleset);
-            getScoreRequest.Success += r => scoresCallback.Invoke(r.Scores.Where(s => !s.MatchesOnlineID(Score)).Select(s => s.ToScoreInfo(rulesets, Beatmap.Value.BeatmapInfo)));
-            return getScoreRequest;
-        }
+                default:
+                    scoresCallback.Invoke(scoreProvider.Scores.Where(s => !s.MatchesOnlineID(Score) && s.ID != Score?.ID));
+                    break;
+            }
 
-        protected override void Dispose(bool isDisposing)
-        {
-            base.Dispose(isDisposing);
+            return null;
 
-            getScoreRequest?.Cancel();
+            void scoresReceived(ScoreInfo[] scores, ScoreInfo? _)
+            {
+                scoresCallback.Invoke(scores.Where(s => !s.MatchesOnlineID(Score)));
+                ((OnlineLeaderboardScoreProvider)scoreProvider!).Success -= scoresReceived;
+            }
         }
     }
 }

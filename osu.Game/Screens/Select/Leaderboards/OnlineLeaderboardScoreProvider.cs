@@ -45,6 +45,9 @@ namespace osu.Game.Screens.Select.Leaderboards
 
         public OnlineLeaderboardScoreProvider(BeatmapLeaderboardScope scope)
         {
+            if (scope == BeatmapLeaderboardScope.Local)
+                throw new ArgumentOutOfRangeException(nameof(scope), scope, null);
+
             this.scope = scope;
         }
 
