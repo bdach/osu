@@ -19,8 +19,6 @@ namespace osu.Game.Screens.Select.Leaderboards
 {
     public partial class BeatmapLeaderboard : Leaderboard<BeatmapLeaderboardScope, ScoreInfo>
     {
-        public IEnumerable<ScoreInfo> Scores => trackingProvider?.Scores ?? [];
-
         public Action<ScoreInfo>? ScoreSelected;
 
         private BeatmapInfo? beatmapInfo;
@@ -63,14 +61,14 @@ namespace osu.Game.Screens.Select.Leaderboards
         [Resolved]
         private LeaderboardProvider leaderboardProvider { get; set; } = null!;
 
-        private StateTrackingLeaderboardProvider? trackingProvider;
+        public StateTrackingLeaderboardProvider? LeaderboardProvider { get; private set; }
 
         protected override bool IsOnlineScope => Scope != BeatmapLeaderboardScope.Local;
 
         protected override APIRequest? FetchScores(CancellationToken cancellationToken)
         {
-            trackingProvider?.RemoveAndDisposeImmediately();
-            trackingProvider = null;
+            LeaderboardProvider?.RemoveAndDisposeImmediately();
+            LeaderboardProvider = null;
 
             var fetchBeatmapInfo = BeatmapInfo;
 
@@ -106,7 +104,7 @@ namespace osu.Game.Screens.Select.Leaderboards
                 return null;
             }
 
-            trackingProvider = new StateTrackingLeaderboardProvider(leaderboardProvider)
+            LeaderboardProvider = new StateTrackingLeaderboardProvider(leaderboardProvider)
             {
                 Beatmap = { Value = BeatmapInfo! },
                 Ruleset = { BindTarget = ruleset },
@@ -114,8 +112,8 @@ namespace osu.Game.Screens.Select.Leaderboards
                 Mods = { BindTarget = mods },
                 Scope = { Value = Scope },
             };
-            trackingProvider.Scores.BindValueChanged(val => SetScores(val.NewValue.Item1, val.NewValue.Item2), true);
-            AddInternal(trackingProvider);
+            LeaderboardProvider.Scores.BindValueChanged(val => SetScores(val.NewValue.Item1, val.NewValue.Item2), true);
+            AddInternal(LeaderboardProvider);
             return null;
         }
 

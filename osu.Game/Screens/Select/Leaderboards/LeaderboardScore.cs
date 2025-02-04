@@ -4,6 +4,7 @@
 using System;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Game.Online.Spectator;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Scoring.Legacy;
@@ -12,7 +13,7 @@ using osu.Game.Users;
 
 namespace osu.Game.Screens.Select.Leaderboards
 {
-    public class LeaderboardScore : ILeaderboardScore
+    public class LeaderboardScoreData : ILeaderboardScore
     {
         public IUser User { get; }
         public bool Tracked { get; }
@@ -24,7 +25,7 @@ namespace osu.Game.Screens.Select.Leaderboards
         public Func<ScoringMode, long> GetDisplayScore { get; set; }
         public Colour4? TeamColour { get; init; }
 
-        public LeaderboardScore(IUser user, ScoreProcessor scoreProcessor, bool tracked)
+        public LeaderboardScoreData(IUser user, ScoreProcessor scoreProcessor, bool tracked)
         {
             User = user;
             Tracked = tracked;
@@ -34,9 +35,20 @@ namespace osu.Game.Screens.Select.Leaderboards
             GetDisplayScore = scoreProcessor.GetDisplayScore;
         }
 
-        public LeaderboardScore(ScoreInfo scoreInfo, bool tracked)
-            : this(scoreInfo.User, tracked)
+        public LeaderboardScoreData(IUser user, SpectatorScoreProcessor scoreProcessor, bool tracked)
         {
+            User = user;
+            Tracked = tracked;
+            TotalScore.BindTarget = scoreProcessor.TotalScore;
+            Accuracy.BindTarget = scoreProcessor.Accuracy;
+            Combo.BindTarget = scoreProcessor.Combo;
+            GetDisplayScore = scoreProcessor.GetDisplayScore;
+        }
+
+        public LeaderboardScoreData(ScoreInfo scoreInfo, bool tracked)
+        {
+            User = scoreInfo.User;
+            Tracked = tracked;
             TotalScore.Value = scoreInfo.TotalScore;
             Accuracy.Value = scoreInfo.Accuracy;
             Combo.Value = scoreInfo.Combo;

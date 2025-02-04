@@ -136,7 +136,7 @@ namespace osu.Game.Screens.Select
                 }
                 else
                 {
-                    player = new SoloPlayer(playBeatmapDetailArea.Leaderboard.Scores);
+                    player = new SoloPlayer(playBeatmapDetailArea.Leaderboard.LeaderboardProvider);
                 }
 
                 return player;

@@ -30,7 +30,7 @@ namespace osu.Game.Screens.Play.HUD
         /// </summary>
         /// <remarks>
         /// If no function is provided, <see cref="TotalScore"/> will be used verbatim.</remarks>
-        Func<ScoringMode, long> GetDisplayScore { set; }
+        Func<ScoringMode, long> GetDisplayScore { get; set; }
 
         Colour4? TeamColour { get; }
     }

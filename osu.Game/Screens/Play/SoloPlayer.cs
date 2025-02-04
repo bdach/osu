@@ -2,7 +2,6 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using osu.Framework.Allocation;
 using osu.Game.Beatmaps;
@@ -18,13 +17,13 @@ namespace osu.Game.Screens.Play
 {
     public partial class SoloPlayer : SubmittingPlayer
     {
-        private readonly IEnumerable<ScoreInfo> leaderboardScores;
+        private readonly StateTrackingLeaderboardProvider? leaderboardScores;
         private DependencyContainer dependencies = null!;
 
         [Cached(typeof(IGameplayLeaderboardProvider))]
-        private SoloGameplayLeaderboardProvider leaderboardProvider;
+        private SoloGameplayLeaderboardProvider leaderboardProvider = null!;
 
-        public SoloPlayer(IEnumerable<ScoreInfo> leaderboardScores, PlayerConfiguration? configuration = null)
+        public SoloPlayer(StateTrackingLeaderboardProvider? leaderboardScores, PlayerConfiguration? configuration = null)
             : base(configuration)
         {
             this.leaderboardScores = leaderboardScores;
@@ -36,7 +35,7 @@ namespace osu.Game.Screens.Play
         [BackgroundDependencyLoader]
         private void load(GameplayState gameplayState)
         {
-            leaderboardProvider = new SoloGameplayLeaderboardProvider(gameplayState, leaderboardScores);
+            leaderboardProvider = new SoloGameplayLeaderboardProvider(gameplayState, leaderboardScores?.Scores.Value.best ?? [], leaderboardScores?.Scope.Value != BeatmapLeaderboardScope.Local);
             dependencies.CacheAs(leaderboardProvider);
         }
 
@@ -65,7 +64,7 @@ namespace osu.Game.Screens.Play
             return new SubmitSoloScoreRequest(score.ScoreInfo, token, beatmap.OnlineID);
         }
 
-        protected override ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score, scoreProvider)
+        protected override ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score, leaderboardScores?.Scores.Value.best ?? [])
         {
             AllowRetry = true,
             ShowUserStatistics = true,

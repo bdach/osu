@@ -21,7 +21,7 @@ namespace osu.Game.Screens.Select.Leaderboards
 {
     public partial class StateTrackingLeaderboardProvider : Component
     {
-        public Bindable<(IEnumerable<ScoreInfo>, ScoreInfo?)> Scores => scores;
+        public Bindable<(IEnumerable<ScoreInfo> best, ScoreInfo? userScore)> Scores => scores;
         private Bindable<(IEnumerable<ScoreInfo>, ScoreInfo?)> scores { get; } = new Bindable<(IEnumerable<ScoreInfo>, ScoreInfo?)>();
 
         public Bindable<BeatmapLeaderboardScope> Scope { get; } = new Bindable<BeatmapLeaderboardScope>();

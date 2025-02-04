@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Caching;
 using osu.Framework.Extensions.Color4Extensions;
@@ -10,7 +11,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics.Containers;
-using osu.Game.Users;
+using osu.Game.Screens.Select.Leaderboards;
 using osuTK;
 using osuTK.Graphics;
 
@@ -28,6 +29,11 @@ namespace osu.Game.Screens.Play.HUD
         private readonly OsuScrollContainer scroll;
 
         public GameplayLeaderboardScore? TrackedScore { get; private set; }
+
+        [Resolved]
+        private IGameplayLeaderboardProvider leaderboardProvider { get; set; } = null!;
+
+        private readonly IBindableList<ILeaderboardScore> scores = new BindableList<ILeaderboardScore>();
 
         private const int max_panels = 8;
 
@@ -58,9 +64,24 @@ namespace osu.Game.Screens.Play.HUD
             };
         }
 
+        [BackgroundDependencyLoader]
+        private void load()
+        {
+            foreach (var score in leaderboardProvider.Scores)
+                Add(score);
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            scores.BindTo(leaderboardProvider.Scores);
+            scores.BindCollectionChanged((_, _) =>
+            {
+                Clear();
+                foreach (var score in scores)
+                    Add(score);
+            }, true);
 
             Scheduler.AddDelayed(sort, 1000, true);
         }
@@ -68,16 +89,11 @@ namespace osu.Game.Screens.Play.HUD
         /// <summary>
         /// Adds a player to the leaderboard.
         /// </summary>
-        /// <param name="user">The player.</param>
-        /// <param name="isTracked">
-        /// Whether the player should be tracked on the leaderboard.
-        /// Set to <c>true</c> for the local player or a player whose replay is currently being played.
-        /// </param>
-        public ILeaderboardScore Add(IUser? user, bool isTracked)
+        public void Add(ILeaderboardScore score)
         {
-            var drawable = CreateLeaderboardScoreDrawable(user, isTracked);
+            var drawable = CreateLeaderboardScoreDrawable(score);
 
-            if (isTracked)
+            if (score.Tracked)
             {
                 if (TrackedScore != null)
                     throw new InvalidOperationException("Cannot track more than one score.");
@@ -94,8 +110,6 @@ namespace osu.Game.Screens.Play.HUD
             int displayCount = Math.Min(Flow.Count, max_panels);
             Height = displayCount * (GameplayLeaderboardScore.PANEL_HEIGHT + Flow.Spacing.Y);
             requiresScroll = displayCount != Flow.Count;
-
-            return drawable;
         }
 
         public void Clear()
@@ -105,8 +119,8 @@ namespace osu.Game.Screens.Play.HUD
             scroll.ScrollToStart(false);
         }
 
-        protected virtual GameplayLeaderboardScore CreateLeaderboardScoreDrawable(IUser? user, bool isTracked) =>
-            new GameplayLeaderboardScore(user, isTracked);
+        protected virtual GameplayLeaderboardScore CreateLeaderboardScoreDrawable(ILeaderboardScore score) =>
+            new GameplayLeaderboardScore(score);
 
         protected override void Update()
         {
@@ -171,13 +185,11 @@ namespace osu.Game.Screens.Play.HUD
             for (int i = 0; i < Flow.Count; i++)
             {
                 Flow.SetLayoutPosition(orderedByScore[i], i);
-                orderedByScore[i].ScorePosition = CheckValidScorePosition(orderedByScore[i], i + 1) ? i + 1 : null;
+                orderedByScore[i].ScorePosition = i + 1 == Flow.Count && leaderboardProvider.IsPartial ? null : i + 1;
             }
 
             sorting.Validate();
         }
-
-        protected virtual bool CheckValidScorePosition(GameplayLeaderboardScore score, int position) => true;
 
         private partial class InputDisabledScrollContainer : OsuScrollContainer
         {
