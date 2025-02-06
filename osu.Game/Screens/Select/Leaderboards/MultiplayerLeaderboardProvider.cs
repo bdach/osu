@@ -27,7 +27,7 @@ using osuTK.Graphics;
 namespace osu.Game.Screens.Select.Leaderboards
 {
     [LongRunningLoad]
-    public class MultiplayerLeaderboardProvider : CompositeComponent, IGameplayLeaderboardProvider
+    public partial class MultiplayerLeaderboardProvider : CompositeComponent, IGameplayLeaderboardProvider
     {
         public IBindableList<ILeaderboardScore> Scores => scores;
         private readonly BindableList<ILeaderboardScore> scores = new BindableList<ILeaderboardScore>();

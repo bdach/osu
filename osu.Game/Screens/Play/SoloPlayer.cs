@@ -21,22 +21,22 @@ namespace osu.Game.Screens.Play
         private DependencyContainer dependencies = null!;
 
         [Cached(typeof(IGameplayLeaderboardProvider))]
-        private SoloGameplayLeaderboardProvider leaderboardProvider = null!;
+        private readonly SoloGameplayLeaderboardProvider leaderboardProvider;
 
         public SoloPlayer(StateTrackingLeaderboardProvider? leaderboardScores, PlayerConfiguration? configuration = null)
             : base(configuration)
         {
             this.leaderboardScores = leaderboardScores;
+            leaderboardProvider = new SoloGameplayLeaderboardProvider(leaderboardScores?.Scores.Value.best ?? [], leaderboardScores?.Scope.Value != BeatmapLeaderboardScope.Local);
         }
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
             => dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
 
         [BackgroundDependencyLoader]
-        private void load(GameplayState gameplayState)
+        private void load()
         {
-            leaderboardProvider = new SoloGameplayLeaderboardProvider(gameplayState, leaderboardScores?.Scores.Value.best ?? [], leaderboardScores?.Scope.Value != BeatmapLeaderboardScope.Local);
-            dependencies.CacheAs(leaderboardProvider);
+            AddInternal(leaderboardProvider);
         }
 
         protected override APIRequest<APIScoreToken>? CreateTokenRequest()

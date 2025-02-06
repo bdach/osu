@@ -14,7 +14,6 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API;
 using osu.Game.Rulesets.Scoring;
-using osu.Game.Screens.OnlinePlay.Multiplayer.Participants;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
 using osu.Game.Utils;

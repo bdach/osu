@@ -25,7 +25,7 @@ namespace osu.Game.Screens.Select.Leaderboards
         private RealmAccess realm { get; set; } = null!;
 
         [Resolved]
-        private APIAccess api { get; set; } = null!;
+        private IAPIProvider api { get; set; } = null!;
 
         [Resolved]
         private RulesetStore rulesets { get; set; } = null!;

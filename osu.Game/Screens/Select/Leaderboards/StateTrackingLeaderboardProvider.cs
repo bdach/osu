@@ -19,6 +19,7 @@ using Realms;
 
 namespace osu.Game.Screens.Select.Leaderboards
 {
+    // TODO: expose some sort of loading state maybe, because without it song select shows "no scores yet" while this thing is fetching what it need
     public partial class StateTrackingLeaderboardProvider : Component
     {
         public Bindable<(IEnumerable<ScoreInfo> best, ScoreInfo? userScore)> Scores => scores;
@@ -49,6 +50,7 @@ namespace osu.Game.Screens.Select.Leaderboards
             Ruleset.BindValueChanged(_ => Scheduler.AddOnce(refetch));
             ModFilterActive.BindValueChanged(_ => Scheduler.AddOnce(refetch));
             Mods.BindValueChanged(_ => Scheduler.AddOnce(refetch));
+            refetch();
         }
 
         public IEnumerable<ScoreInfo> GetAllScores()

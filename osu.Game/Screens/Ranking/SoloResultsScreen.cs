@@ -19,7 +19,7 @@ namespace osu.Game.Screens.Ranking
         private readonly IEnumerable<ScoreInfo>? leaderboardScores;
 
         [Resolved]
-        private LeaderboardProvider leaderboardProvider { get; set; }
+        private LeaderboardProvider leaderboardProvider { get; set; } = null!;
 
         public SoloResultsScreen(ScoreInfo score, IEnumerable<ScoreInfo>? leaderboardScores = null)
             : base(score)

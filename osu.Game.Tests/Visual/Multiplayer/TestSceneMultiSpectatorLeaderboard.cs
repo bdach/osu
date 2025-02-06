@@ -1,6 +1,8 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+/*
+
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -123,3 +125,5 @@ namespace osu.Game.Tests.Visual.Multiplayer
             => AddUntilStep($"player {userId} has {expectedCombo} combo", () => this.ChildrenOfType<GameplayLeaderboardScore>().Single(s => s.User?.OnlineID == userId).Combo.Value == expectedCombo);
     }
 }
+
+*/

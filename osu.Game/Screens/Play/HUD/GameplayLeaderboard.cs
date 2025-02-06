@@ -12,12 +12,13 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Graphics.Containers;
 using osu.Game.Screens.Select.Leaderboards;
+using osu.Game.Skinning;
 using osuTK;
 using osuTK.Graphics;
 
 namespace osu.Game.Screens.Play.HUD
 {
-    public abstract partial class GameplayLeaderboard : CompositeDrawable
+    public partial class GameplayLeaderboard : CompositeDrawable, ISerialisableDrawable
     {
         private readonly Cached sorting = new Cached();
 
@@ -40,7 +41,7 @@ namespace osu.Game.Screens.Play.HUD
         /// <summary>
         /// Create a new leaderboard.
         /// </summary>
-        protected GameplayLeaderboard()
+        public GameplayLeaderboard()
         {
             Width = GameplayLeaderboardScore.EXTENDED_WIDTH + GameplayLeaderboardScore.SHEAR_WIDTH;
 
@@ -201,5 +202,7 @@ namespace osu.Game.Screens.Play.HUD
             public override bool HandlePositionalInput => false;
             public override bool HandleNonPositionalInput => false;
         }
+
+        public bool UsesFixedAnchor { get; set; }
     }
 }
