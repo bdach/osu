@@ -92,7 +92,7 @@ namespace osu.Game.Screens.Select.Leaderboards
                 return null;
             }
 
-            if (fetchBeatmapInfo.OnlineID <= 0 || fetchBeatmapInfo.Status <= BeatmapOnlineStatus.Pending)
+            if ((fetchBeatmapInfo.OnlineID <= 0 || fetchBeatmapInfo.Status <= BeatmapOnlineStatus.Pending) && IsOnlineScope)
             {
                 SetErrorState(LeaderboardState.BeatmapUnavailable);
                 return null;
@@ -112,7 +112,12 @@ namespace osu.Game.Screens.Select.Leaderboards
                 Mods = { BindTarget = mods },
                 Scope = { Value = Scope },
             };
-            LeaderboardProvider.Scores.BindValueChanged(val => SetScores(val.NewValue.Item1, val.NewValue.Item2), true);
+            LeaderboardProvider.Scores.BindValueChanged(val =>
+            {
+                if (val.NewValue != null)
+                    SetScores(val.NewValue.Value.best, val.NewValue.Value.userScore);
+            }, true);
+            LeaderboardProvider.RetrievalFailed += _ => SetErrorState(LeaderboardState.NetworkFailure);
             AddInternal(LeaderboardProvider);
             return null;
         }

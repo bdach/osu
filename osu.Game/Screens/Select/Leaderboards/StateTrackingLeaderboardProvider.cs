@@ -3,15 +3,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
-using osu.Game.Extensions;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Scoring;
@@ -19,11 +18,12 @@ using Realms;
 
 namespace osu.Game.Screens.Select.Leaderboards
 {
-    // TODO: expose some sort of loading state maybe, because without it song select shows "no scores yet" while this thing is fetching what it need
     public partial class StateTrackingLeaderboardProvider : Component
     {
-        public Bindable<(IEnumerable<ScoreInfo> best, ScoreInfo? userScore)> Scores => scores;
-        private Bindable<(IEnumerable<ScoreInfo>, ScoreInfo?)> scores { get; } = new Bindable<(IEnumerable<ScoreInfo>, ScoreInfo?)>();
+        public Bindable<(IEnumerable<ScoreInfo> best, ScoreInfo? userScore)?> Scores => scores;
+        private Bindable<(IEnumerable<ScoreInfo>, ScoreInfo?)?> scores { get; } = new Bindable<(IEnumerable<ScoreInfo>, ScoreInfo?)?>();
+
+        public event Action<Exception>? RetrievalFailed;
 
         public Bindable<BeatmapLeaderboardScope> Scope { get; } = new Bindable<BeatmapLeaderboardScope>();
         public Bindable<BeatmapInfo> Beatmap { get; } = new Bindable<BeatmapInfo>();
@@ -53,18 +53,6 @@ namespace osu.Game.Screens.Select.Leaderboards
             refetch();
         }
 
-        public IEnumerable<ScoreInfo> GetAllScores()
-        {
-            var (topScores, userScore) = scores.Value;
-
-            var allScores = topScores.ToList();
-
-            if (userScore != null && allScores.All(s => !s.MatchesOnlineID(userScore) && s.ID != userScore.ID))
-                allScores.Add(userScore);
-
-            return allScores.OrderByTotalScore().ToImmutableList();
-        }
-
         private void refetch()
         {
             localScoreSubscription?.Dispose();
@@ -80,11 +68,21 @@ namespace osu.Game.Screens.Select.Leaderboards
             else
             {
                 onlineLookupCancellationTokenSource = new CancellationTokenSource();
+                scores.Value = null;
                 leaderboardProvider.GetOnlineScoresAsync(Beatmap.Value, Ruleset.Value, ModFilterActive.Value ? Mods.Value : null, Scope.Value, onlineLookupCancellationTokenSource.Token)
-                                   .ContinueWith(t =>
+                                   .ContinueWith(t => Schedule(() =>
                                    {
-                                       scores.Value = t.GetResultSafely();
-                                   });
+                                       switch (t.Status)
+                                       {
+                                           case TaskStatus.RanToCompletion:
+                                               scores.Value = t.GetResultSafely();
+                                               break;
+
+                                           case TaskStatus.Faulted:
+                                               RetrievalFailed?.Invoke(t.Exception!);
+                                               break;
+                                       }
+                                   }));
             }
         }
 

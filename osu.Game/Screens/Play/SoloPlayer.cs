@@ -27,7 +27,7 @@ namespace osu.Game.Screens.Play
             : base(configuration)
         {
             this.leaderboardScores = leaderboardScores;
-            leaderboardProvider = new SoloGameplayLeaderboardProvider(leaderboardScores?.Scores.Value.best ?? [], leaderboardScores?.Scope.Value != BeatmapLeaderboardScope.Local);
+            leaderboardProvider = new SoloGameplayLeaderboardProvider(leaderboardScores?.Scores.Value?.best ?? [], leaderboardScores?.Scope.Value != BeatmapLeaderboardScope.Local);
         }
 
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
@@ -64,7 +64,7 @@ namespace osu.Game.Screens.Play
             return new SubmitSoloScoreRequest(score.ScoreInfo, token, beatmap.OnlineID);
         }
 
-        protected override ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score, leaderboardScores?.Scores.Value.best ?? [])
+        protected override ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score, leaderboardScores?.Scores.Value?.best ?? [])
         {
             AllowRetry = true,
             ShowUserStatistics = true,
