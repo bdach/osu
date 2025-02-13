@@ -1,8 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-/*
-
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -11,15 +9,16 @@ using osu.Framework.Testing;
 using osu.Framework.Timing;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Multiplayer;
-using osu.Game.Screens.OnlinePlay.Multiplayer.Spectate;
 using osu.Game.Screens.Play.HUD;
+using osu.Game.Screens.Select.Leaderboards;
 
 namespace osu.Game.Tests.Visual.Multiplayer
 {
     public partial class TestSceneMultiSpectatorLeaderboard : MultiplayerTestScene
     {
         private Dictionary<int, ManualClock> clocks = null!;
-        private MultiSpectatorLeaderboard? leaderboard;
+        private MultiSpectatorLeaderboardProvider? leaderboardProvider;
+        private GameplayLeaderboard leaderboard = null!;
 
         [SetUpSteps]
         public override void SetUpSteps()
@@ -28,7 +27,7 @@ namespace osu.Game.Tests.Visual.Multiplayer
 
             AddStep("reset", () =>
             {
-                leaderboard?.RemoveAndDisposeImmediately();
+                Clear(true);
 
                 clocks = new Dictionary<int, ManualClock>
                 {
@@ -47,21 +46,27 @@ namespace osu.Game.Tests.Visual.Multiplayer
             {
                 Beatmap.Value = CreateWorkingBeatmap(Ruleset.Value);
 
-                LoadComponentAsync(leaderboard = new MultiSpectatorLeaderboard(clocks.Keys.Select(id => new MultiplayerRoomUser(id)).ToArray())
+                LoadComponentAsync(leaderboardProvider = new MultiSpectatorLeaderboardProvider(clocks.Keys.Select(id => new MultiplayerRoomUser(id)).ToArray()), Add);
+                Add(new DependencyProvidingContainer
                 {
-                    Anchor = Anchor.Centre,
-                    Origin = Anchor.Centre,
-                    Expanded = { Value = true }
-                }, Add);
+                    RelativeSizeAxes = Axes.Both,
+                    CachedDependencies = [(typeof(IGameplayLeaderboardProvider), leaderboardProvider)],
+                    Child = leaderboard = new GameplayLeaderboard
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Expanded = { Value = true }
+                    }
+                });
             });
 
-            AddUntilStep("wait for load", () => leaderboard!.IsLoaded);
+            AddUntilStep("wait for load", () => leaderboard.IsLoaded);
             AddUntilStep("wait for user population", () => leaderboard.ChildrenOfType<GameplayLeaderboardScore>().Count() == 2);
 
             AddStep("add clock sources", () =>
             {
                 foreach ((int userId, var clock) in clocks)
-                    leaderboard!.AddClock(userId, clock);
+                    leaderboardProvider!.AddClock(userId, clock);
             });
         }
 
@@ -125,5 +130,3 @@ namespace osu.Game.Tests.Visual.Multiplayer
             => AddUntilStep($"player {userId} has {expectedCombo} combo", () => this.ChildrenOfType<GameplayLeaderboardScore>().Single(s => s.User?.OnlineID == userId).Combo.Value == expectedCombo);
     }
 }
-
-*/

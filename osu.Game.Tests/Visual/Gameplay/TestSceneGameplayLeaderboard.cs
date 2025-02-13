@@ -1,13 +1,11 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-/*
-
-#nullable disable
-
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.PolygonExtensions;
 using osu.Framework.Graphics;
@@ -17,7 +15,10 @@ using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play.HUD;
+using osu.Game.Screens.Select.Leaderboards;
+using osu.Game.Users;
 using osuTK;
 
 namespace osu.Game.Tests.Visual.Gameplay
@@ -25,7 +26,10 @@ namespace osu.Game.Tests.Visual.Gameplay
     [TestFixture]
     public partial class TestSceneGameplayLeaderboard : OsuTestScene
     {
-        private TestGameplayLeaderboard leaderboard;
+        private TestGameplayLeaderboard leaderboard = null!;
+
+        [Cached(typeof(IGameplayLeaderboardProvider))]
+        private TestGameplayLeaderboardProvider leaderboardProvider = new TestGameplayLeaderboardProvider();
 
         private readonly BindableLong playerScore = new BindableLong();
 
@@ -181,6 +185,27 @@ namespace osu.Game.Tests.Visual.Gameplay
                 () => Does.Contain("#FF549A"));
         }
 
+        [Test]
+        public void TestTrackedScorePosition([Values] bool partial)
+        {
+            createLeaderboard(partial);
+
+            AddStep("add many scores in one go", () =>
+            {
+                for (int i = 0; i < 49; i++)
+                    createRandomScore(new APIUser { Username = $"Player {i + 1}" });
+
+                // Add player at end to force an animation down the whole list.
+                playerScore.Value = 0;
+                createLeaderboardScore(playerScore, new APIUser { Username = "You", Id = 3 }, true);
+            });
+
+            if (partial)
+                AddUntilStep("tracked player has null position", () => leaderboard.TrackedScore?.ScorePosition, () => Is.Null);
+            else
+                AddUntilStep("tracked player is #50", () => leaderboard.TrackedScore?.ScorePosition, () => Is.EqualTo(50));
+        }
+
         private void addLocalPlayer()
         {
             AddStep("add local player", () =>
@@ -190,10 +215,12 @@ namespace osu.Game.Tests.Visual.Gameplay
             });
         }
 
-        private void createLeaderboard()
+        private void createLeaderboard(bool partial = false)
         {
             AddStep("create leaderboard", () =>
             {
+                leaderboardProvider.Scores.Clear();
+                leaderboardProvider.IsPartial = partial;
                 Child = leaderboard = new TestGameplayLeaderboard
                 {
                     Anchor = Anchor.Centre,
@@ -207,8 +234,8 @@ namespace osu.Game.Tests.Visual.Gameplay
 
         private void createLeaderboardScore(BindableLong score, APIUser user, bool isTracked = false)
         {
-            var leaderboardScore = leaderboard.Add(user, isTracked);
-            leaderboardScore.TotalScore.BindTo(score);
+            var leaderboardScore = new TestLeaderboardScore(user, isTracked, score);
+            leaderboardProvider.Scores.Add(leaderboardScore);
         }
 
         private partial class TestGameplayLeaderboard : GameplayLeaderboard
@@ -225,7 +252,33 @@ namespace osu.Game.Tests.Visual.Gameplay
             public IEnumerable<GameplayLeaderboardScore> GetAllScoresForUsername(string username)
                 => Flow.Where(i => i.User?.Username == username);
         }
+
+        private class TestGameplayLeaderboardProvider : IGameplayLeaderboardProvider
+        {
+            IBindableList<ILeaderboardScore> IGameplayLeaderboardProvider.Scores => Scores;
+            public BindableList<ILeaderboardScore> Scores { get; } = new BindableList<ILeaderboardScore>();
+            public bool IsPartial { get; set; }
+        }
+
+        private class TestLeaderboardScore : ILeaderboardScore
+        {
+            public IUser User { get; }
+            public bool Tracked { get; }
+            public BindableLong TotalScore { get; } = new BindableLong();
+            public BindableDouble Accuracy { get; } = new BindableDouble();
+            public BindableInt Combo { get; } = new BindableInt();
+            public BindableBool HasQuit { get; } = new BindableBool();
+            public Bindable<long> DisplayOrder { get; } = new BindableLong();
+            public Func<ScoringMode, long> GetDisplayScore { get; set; }
+            public Colour4? TeamColour => null;
+
+            public TestLeaderboardScore(IUser user, bool isTracked, Bindable<long> totalScore)
+            {
+                User = user;
+                Tracked = isTracked;
+                TotalScore.BindTo(totalScore);
+                GetDisplayScore = _ => TotalScore.Value;
+            }
+        }
     }
 }
-
-*/
