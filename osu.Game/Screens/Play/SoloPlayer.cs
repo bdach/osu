@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Game.Beatmaps;
 using osu.Game.Extensions;
@@ -64,7 +65,7 @@ namespace osu.Game.Screens.Play
             return new SubmitSoloScoreRequest(score.ScoreInfo, token, beatmap.OnlineID);
         }
 
-        protected override ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score, leaderboardScores?.Scores.Value?.best ?? [])
+        protected override ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score, leaderboardScores?.Scores.Value?.best.ToArray() ?? [])
         {
             AllowRetry = true,
             ShowUserStatistics = true,

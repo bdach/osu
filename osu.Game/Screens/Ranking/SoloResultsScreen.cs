@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
+using osu.Framework.Logging;
 using osu.Game.Extensions;
 using osu.Game.Online.API;
 using osu.Game.Scoring;
@@ -16,12 +17,12 @@ namespace osu.Game.Screens.Ranking
 {
     public partial class SoloResultsScreen : ResultsScreen
     {
-        private readonly IEnumerable<ScoreInfo>? leaderboardScores;
+        private readonly IReadOnlyList<ScoreInfo>? leaderboardScores;
 
         [Resolved]
         private LeaderboardProvider leaderboardProvider { get; set; } = null!;
 
-        public SoloResultsScreen(ScoreInfo score, IEnumerable<ScoreInfo>? leaderboardScores = null)
+        public SoloResultsScreen(ScoreInfo score, IReadOnlyList<ScoreInfo>? leaderboardScores = null)
             : base(score)
         {
             this.leaderboardScores = leaderboardScores;
@@ -30,42 +31,53 @@ namespace osu.Game.Screens.Ranking
         protected override APIRequest? FetchScores(Action<IEnumerable<ScoreInfo>> scoresCallback)
         {
             if (leaderboardScores != null)
-                scoresCallback.Invoke(leaderboardScores.Where(s => !s.MatchesOnlineID(Score)));
+                setScores(scoresCallback, leaderboardScores);
             else
             {
                 Debug.Assert(Score != null);
                 leaderboardProvider.GetOnlineScoresAsync(Score.BeatmapInfo!, Score.Ruleset, null, BeatmapLeaderboardScope.Global)
                                    .ContinueWith(r =>
                                    {
-                                       var scores = r.GetResultSafely().best.ToList();
-                                       var toDisplay = new List<ScoreInfo>();
-
-                                       for (int i = 0; i < scores.Count; ++i)
+                                       if (r.IsFaulted)
                                        {
-                                           var score = scores[i];
-                                           int position = i + 1;
-
-                                           if (score.MatchesOnlineID(Score))
-                                           {
-                                               Debug.Assert(Score != null);
-
-                                               // we don't want to add the same score twice, but also setting any properties of `Score` this late will have no visible effect,
-                                               // so we have to fish out the actual drawable panel and set the position to it directly.
-                                               var panel = ScorePanelList.GetPanelForScore(Score);
-                                               Score.Position = panel.ScorePosition.Value = position;
-                                           }
-                                           else
-                                           {
-                                               score.Position = position;
-                                               toDisplay.Add(score);
-                                           }
+                                           Logger.Log($"Failed to retrieve global leaderboard: {r.Exception}");
+                                           return;
                                        }
 
-                                       scoresCallback.Invoke(toDisplay);
+                                       var scores = r.GetResultSafely().best.ToList();
+                                       setScores(scoresCallback, scores);
                                    });
             }
 
             return null;
+        }
+
+        private void setScores(Action<IEnumerable<ScoreInfo>> scoresCallback, IReadOnlyList<ScoreInfo> scores)
+        {
+            var toDisplay = new List<ScoreInfo>();
+
+            for (int i = 0; i < scores.Count; ++i)
+            {
+                var score = scores[i];
+                int position = i + 1;
+
+                if (score.MatchesOnlineID(Score))
+                {
+                    Debug.Assert(Score != null);
+
+                    // we don't want to add the same score twice, but also setting any properties of `Score` this late will have no visible effect,
+                    // so we have to fish out the actual drawable panel and set the position to it directly.
+                    var panel = ScorePanelList.GetPanelForScore(Score);
+                    Score.Position = panel.ScorePosition.Value = position;
+                }
+                else
+                {
+                    score.Position = position;
+                    toDisplay.Add(score);
+                }
+            }
+
+            scoresCallback.Invoke(toDisplay);
         }
     }
 }
