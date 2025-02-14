@@ -32,7 +32,7 @@ namespace osu.Game.Screens.Play.HUD
         public GameplayLeaderboardScore? TrackedScore { get; private set; }
 
         [Resolved]
-        private IGameplayLeaderboardProvider leaderboardProvider { get; set; } = null!;
+        private IGameplayLeaderboardProvider? leaderboardProvider { get; set; }
 
         private readonly IBindableList<ILeaderboardScore> scores = new BindableList<ILeaderboardScore>();
 
@@ -65,24 +65,20 @@ namespace osu.Game.Screens.Play.HUD
             };
         }
 
-        [BackgroundDependencyLoader]
-        private void load()
-        {
-            foreach (var score in leaderboardProvider.Scores)
-                Add(score);
-        }
-
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            scores.BindTo(leaderboardProvider.Scores);
-            scores.BindCollectionChanged((_, _) =>
+            if (leaderboardProvider != null)
             {
-                Clear();
-                foreach (var score in scores)
-                    Add(score);
-            }, true);
+                scores.BindTo(leaderboardProvider.Scores);
+                scores.BindCollectionChanged((_, _) =>
+                {
+                    Clear();
+                    foreach (var score in scores)
+                        Add(score);
+                }, true);
+            }
 
             Scheduler.AddDelayed(sort, 1000, true);
         }
@@ -186,7 +182,7 @@ namespace osu.Game.Screens.Play.HUD
             for (int i = 0; i < Flow.Count; i++)
             {
                 Flow.SetLayoutPosition(orderedByScore[i], i);
-                orderedByScore[i].ScorePosition = i + 1 == Flow.Count && leaderboardProvider.IsPartial ? null : i + 1;
+                orderedByScore[i].ScorePosition = i + 1 == Flow.Count && leaderboardProvider?.IsPartial == true ? null : i + 1;
             }
 
             sorting.Validate();

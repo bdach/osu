@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Input.Bindings;
@@ -18,6 +19,7 @@ using osu.Game.Rulesets.Mods;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play.PlayerSettings;
 using osu.Game.Screens.Ranking;
+using osu.Game.Screens.Select.Leaderboards;
 using osu.Game.Users;
 
 namespace osu.Game.Screens.Play
@@ -33,6 +35,9 @@ namespace osu.Game.Screens.Play
 
         private PlaybackSettings playbackSettings;
 
+        [Cached(typeof(IGameplayLeaderboardProvider))]
+        private readonly SoloGameplayLeaderboardProvider leaderboardProvider;
+
         protected override UserActivity InitialActivity => new UserActivity.WatchingReplay(Score.ScoreInfo);
 
         private bool isAutoplayPlayback => GameplayState.Mods.OfType<ModAutoplay>().Any();
@@ -46,16 +51,17 @@ namespace osu.Game.Screens.Play
             return base.CheckModsAllowFailure();
         }
 
-        public ReplayPlayer(Score score, PlayerConfiguration configuration = null)
-            : this((_, _) => score, configuration)
+        public ReplayPlayer(Score score, StateTrackingLeaderboardProvider leaderboardScores = null, PlayerConfiguration configuration = null)
+            : this((_, _) => score, leaderboardScores, configuration)
         {
             replayIsFailedScore = score.ScoreInfo.Rank == ScoreRank.F;
         }
 
-        public ReplayPlayer(Func<IBeatmap, IReadOnlyList<Mod>, Score> createScore, PlayerConfiguration configuration = null)
+        public ReplayPlayer(Func<IBeatmap, IReadOnlyList<Mod>, Score> createScore, [CanBeNull] StateTrackingLeaderboardProvider leaderboardScores = null, PlayerConfiguration configuration = null)
             : base(configuration)
         {
             this.createScore = createScore;
+            this.leaderboardProvider = new SoloGameplayLeaderboardProvider(leaderboardScores?.Scores.Value?.best ?? [], leaderboardScores?.Scope.Value != BeatmapLeaderboardScope.Local);
         }
 
         /// <summary>

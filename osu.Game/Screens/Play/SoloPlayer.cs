@@ -19,7 +19,6 @@ namespace osu.Game.Screens.Play
     public partial class SoloPlayer : SubmittingPlayer
     {
         private readonly StateTrackingLeaderboardProvider? leaderboardScores;
-        private DependencyContainer dependencies = null!;
 
         [Cached(typeof(IGameplayLeaderboardProvider))]
         private readonly SoloGameplayLeaderboardProvider leaderboardProvider;
@@ -30,9 +29,6 @@ namespace osu.Game.Screens.Play
             this.leaderboardScores = leaderboardScores;
             leaderboardProvider = new SoloGameplayLeaderboardProvider(leaderboardScores?.Scores.Value?.best ?? [], leaderboardScores?.Scope.Value != BeatmapLeaderboardScope.Local);
         }
-
-        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
-            => dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
 
         [BackgroundDependencyLoader]
         private void load()
