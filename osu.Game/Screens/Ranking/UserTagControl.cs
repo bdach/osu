@@ -6,15 +6,21 @@ using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
+using osu.Framework.Graphics.UserInterface;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Graphics.UserInterface;
+using osu.Game.Graphics.UserInterfaceV2;
 using osuTK;
 
 namespace osu.Game.Screens.Ranking
@@ -24,7 +30,7 @@ namespace osu.Game.Screens.Ranking
         private TagFlowContainer tagFlow = null!;
 
         public BindableList<UserTag> TopTags { get; } = new BindableList<UserTag>();
-        public BindableList<UserTag> AllTags { get; } = new BindableList<UserTag>();
+        public BindableList<UserTag> ExtraTags { get; } = new BindableList<UserTag>();
 
         [BackgroundDependencyLoader]
         private void load()
@@ -34,6 +40,7 @@ namespace osu.Game.Screens.Ranking
                 Direction = FillDirection.Vertical,
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
+                Spacing = new Vector2(8),
                 Children = new Drawable[]
                 {
                     tagFlow = new TagFlowContainer
@@ -44,6 +51,13 @@ namespace osu.Game.Screens.Ranking
                         LayoutDuration = 300,
                         LayoutEasing = Easing.OutQuint,
                         Spacing = new Vector2(4),
+                    },
+                    new ExtraTagsButton
+                    {
+                        Anchor = Anchor.TopCentre,
+                        Origin = Anchor.TopCentre,
+                        TopTags = { BindTarget = TopTags },
+                        ExtraTags = { BindTarget = ExtraTags },
                     }
                 }
             };
@@ -97,7 +111,7 @@ namespace osu.Game.Screens.Ranking
 
         private void sortTags(ValueChangedEvent<int> _) => tagFlow.Reflow();
 
-        private class TagFlowContainer : FillFlowContainer<DrawableUserTag>
+        private partial class TagFlowContainer : FillFlowContainer<DrawableUserTag>
         {
             public override IEnumerable<DrawableUserTag> FlowingChildren =>
                 base.FlowingChildren.Cast<DrawableUserTag>().OrderByDescending(t => t.VoteCount.Value);
@@ -126,6 +140,7 @@ namespace osu.Game.Screens.Ranking
             {
                 this.userTag = userTag;
                 VoteCount.BindTo(userTag.VoteCount);
+                voted.BindTo(userTag.Voted);
             }
 
             [BackgroundDependencyLoader]
@@ -240,10 +255,71 @@ namespace osu.Game.Screens.Ranking
                 };
             }
         }
+
+        private partial class ExtraTagsButton : GrayButton, IHasPopover
+        {
+            public BindableList<UserTag> TopTags { get; } = new BindableList<UserTag>();
+            public BindableList<UserTag> ExtraTags { get; } = new BindableList<UserTag>();
+
+            public ExtraTagsButton()
+                : base(FontAwesome.Solid.Plus)
+            {
+                Size = new Vector2(30);
+
+                Action = this.ShowPopover;
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                ExtraTags.BindCollectionChanged((_, _) => Enabled.Value = ExtraTags.Count > 0, true);
+            }
+
+            public Popover GetPopover() => new ExtraTagsPopover
+            {
+                TopTags = { BindTarget = TopTags },
+                ExtraTags = { BindTarget = ExtraTags },
+            };
+        }
+
+        private partial class ExtraTagsPopover : OsuPopover
+        {
+            public BindableList<UserTag> TopTags { get; } = new BindableList<UserTag>();
+            public BindableList<UserTag> ExtraTags { get; } = new BindableList<UserTag>();
+
+            public ExtraTagsPopover()
+                : base(false)
+            {
+            }
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Children = new[]
+                {
+                    new OsuMenu(Direction.Vertical, true)
+                    {
+                        Items = items,
+                        MaxHeight = 375,
+                    },
+                };
+            }
+
+            private OsuMenuItem[] items => ExtraTags.Select(tag => new OsuMenuItem(tag.Name, MenuItemType.Standard, () =>
+            {
+                tag.Voted.Value = true;
+                tag.VoteCount.Value += 1;
+                TopTags.Add(tag);
+                ExtraTags.Remove(tag);
+                this.HidePopover();
+            })).ToArray();
+        }
     }
 
     public record UserTag(string Name)
     {
         public BindableInt VoteCount { get; } = new BindableInt();
+        public BindableBool Voted { get; } = new BindableBool();
     }
 }
