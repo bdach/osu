@@ -1,7 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Allocation;
@@ -21,7 +21,7 @@ namespace osu.Game.Screens.Ranking
 {
     public partial class UserTagControl : CompositeDrawable
     {
-        private FillFlowContainer<DrawableUserTag> tagFlow = null!;
+        private TagFlowContainer tagFlow = null!;
 
         public BindableList<UserTag> TopTags { get; } = new BindableList<UserTag>();
         public BindableList<UserTag> AllTags { get; } = new BindableList<UserTag>();
@@ -36,14 +36,14 @@ namespace osu.Game.Screens.Ranking
                 AutoSizeAxes = Axes.Y,
                 Children = new Drawable[]
                 {
-                    tagFlow = new ReverseChildIDFillFlowContainer<DrawableUserTag>
+                    tagFlow = new TagFlowContainer
                     {
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
                         Direction = FillDirection.Full,
                         LayoutDuration = 300,
                         LayoutEasing = Easing.OutQuint,
-                        Spacing = new Vector2(2),
+                        Spacing = new Vector2(4),
                     }
                 }
             };
@@ -64,14 +64,12 @@ namespace osu.Game.Screens.Ranking
             {
                 case NotifyCollectionChangedAction.Add:
                 {
-                    for (int i = Math.Max(0, e.NewStartingIndex); i < oldItems.Length; i++)
-                        tagFlow.SetLayoutPosition(oldItems[i], i + e.NewItems!.Count);
-
                     for (int i = 0; i < e.NewItems!.Count; i++)
                     {
                         var tag = (UserTag)e.NewItems[i]!;
                         var drawableTag = new DrawableUserTag(tag);
                         tagFlow.Insert(e.NewStartingIndex + i, drawableTag);
+                        tag.VoteCount.BindValueChanged(sortTags, true);
                     }
 
                     break;
@@ -79,11 +77,12 @@ namespace osu.Game.Screens.Ranking
 
                 case NotifyCollectionChangedAction.Remove:
                 {
-                    for (int i = e.OldStartingIndex; i < tagFlow.Count; i++)
-                        tagFlow.SetLayoutPosition(oldItems[i], i - e.NewItems!.Count);
-
                     for (int i = 0; i < e.OldItems!.Count; i++)
+                    {
+                        var tag = (UserTag)e.OldItems[i]!;
+                        tag.VoteCount.ValueChanged -= sortTags;
                         tagFlow.Remove(oldItems[e.OldStartingIndex + i], true);
+                    }
 
                     break;
                 }
@@ -96,11 +95,22 @@ namespace osu.Game.Screens.Ranking
             }
         }
 
+        private void sortTags(ValueChangedEvent<int> _) => tagFlow.Reflow();
+
+        private class TagFlowContainer : FillFlowContainer<DrawableUserTag>
+        {
+            public override IEnumerable<DrawableUserTag> FlowingChildren =>
+                base.FlowingChildren.Cast<DrawableUserTag>().OrderByDescending(t => t.VoteCount.Value);
+
+            public void Reflow() => InvalidateLayout();
+        }
+
         private partial class DrawableUserTag : OsuClickableContainer
         {
+            public readonly Bindable<int> VoteCount = new Bindable<int>();
+
             private readonly UserTag userTag;
 
-            private readonly Bindable<int> voteCount = new Bindable<int>();
             private readonly BindableBool voted = new BindableBool();
             private readonly Bindable<bool> confirmed = new BindableBool();
 
@@ -115,7 +125,7 @@ namespace osu.Game.Screens.Ranking
             public DrawableUserTag(UserTag userTag)
             {
                 this.userTag = userTag;
-                voteCount.BindTo(userTag.VoteCount);
+                VoteCount.BindTo(userTag.VoteCount);
             }
 
             [BackgroundDependencyLoader]
@@ -184,22 +194,22 @@ namespace osu.Game.Screens.Ranking
 
                 const double transition_duration = 300;
 
-                voteCount.BindValueChanged(_ => voteCountText.Text = voteCount.Value.ToLocalisableString(), true);
+                VoteCount.BindValueChanged(_ =>
+                {
+                    voteCountText.Text = VoteCount.Value.ToLocalisableString();
+                    confirmed.Value = VoteCount.Value >= 10;
+                }, true);
                 voted.BindValueChanged(v =>
                 {
                     if (v.NewValue)
                     {
                         voteBackground.FadeColour(colours.Lime3, transition_duration, Easing.OutQuint);
                         voteCountText.FadeColour(Colour4.Black, transition_duration, Easing.OutQuint);
-                        this.ScaleTo(1.1f)
-                            .Then().ScaleTo(1, 3 * transition_duration, Easing.OutElasticHalf);
                     }
                     else
                     {
                         voteBackground.FadeColour(ColourInfo.GradientVertical(Colour4.FromHex("#333"), Colour4.FromHex("#111")), transition_duration, Easing.OutQuint);
                         voteCountText.FadeColour(Colour4.White, transition_duration, Easing.OutQuint);
-                        this.ScaleTo(0.9f)
-                            .Then().ScaleTo(1, 3 * transition_duration, Easing.OutElasticHalf);
                     }
                 }, true);
                 confirmed.BindValueChanged(c =>
@@ -222,12 +232,11 @@ namespace osu.Game.Screens.Ranking
                 Action = () =>
                 {
                     if (!voted.Value)
-                        voteCount.Value += 1;
+                        VoteCount.Value += 1;
                     else
-                        voteCount.Value -= 1;
+                        VoteCount.Value -= 1;
 
                     voted.Toggle();
-                    confirmed.Value = voteCount.Value >= 10;
                 };
             }
         }

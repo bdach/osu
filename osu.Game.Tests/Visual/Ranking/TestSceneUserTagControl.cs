@@ -31,7 +31,7 @@ namespace osu.Game.Tests.Visual.Ranking
                 {
                     VoteCount = { Value = topTags.Count }
                 });
-            }, 10);
+            }, 11);
         }
     }
 }
