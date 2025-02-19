@@ -128,7 +128,11 @@ namespace osu.Game.Screens.OnlinePlay
             {
                 freeModsFooterButton.Enabled.Value = false;
                 freeModsFooterButton.Enabled.Value = false;
-                ModsFooterButton.Enabled.Value = false;
+
+                if (room.Type == MatchType.Playlists)
+                    ModsFooterButton.Enabled.Value = false;
+                else
+                    ModSelect.IsValidMod = m => ModUtils.IsValidModForMatchType(m, room.Type) && !m.ValidForMultiplayerAsFreeMod;
 
                 ModSelect.Hide();
                 freeModSelect.Hide();
@@ -140,6 +144,7 @@ namespace osu.Game.Screens.OnlinePlay
             {
                 freeModsFooterButton.Enabled.Value = true;
                 ModsFooterButton.Enabled.Value = true;
+                ModSelect.IsValidMod = mod => ModUtils.IsValidModForMatchType(mod, room.Type);
             }
         }
 
@@ -193,10 +198,7 @@ namespace osu.Game.Screens.OnlinePlay
             return base.OnExiting(e);
         }
 
-        protected override ModSelectOverlay CreateModSelectOverlay() => new UserModSelectOverlay(OverlayColourScheme.Plum)
-        {
-            IsValidMod = isValidMod
-        };
+        protected override ModSelectOverlay CreateModSelectOverlay() => new UserModSelectOverlay(OverlayColourScheme.Plum);
 
         protected override IEnumerable<(FooterButton button, OverlayContainer? overlay)> CreateSongSelectFooterButtons()
         {
@@ -219,13 +221,6 @@ namespace osu.Game.Screens.OnlinePlay
 
             return baseButtons;
         }
-
-        /// <summary>
-        /// Checks whether a given <see cref="Mod"/> is valid for global selection.
-        /// </summary>
-        /// <param name="mod">The <see cref="Mod"/> to check.</param>
-        /// <returns>Whether <paramref name="mod"/> is a valid mod for online play.</returns>
-        private bool isValidMod(Mod mod) => ModUtils.IsValidModForMatchType(mod, room.Type);
 
         /// <summary>
         /// Checks whether a given <see cref="Mod"/> is valid for per-player free-mod selection.
