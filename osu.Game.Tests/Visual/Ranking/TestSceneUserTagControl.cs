@@ -1,22 +1,69 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using osu.Framework.Bindables;
+using System.Linq;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Testing;
+using osu.Game.Beatmaps;
+using osu.Game.Online.API;
+using osu.Game.Online.API.Requests;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Screens.Ranking;
 
 namespace osu.Game.Tests.Visual.Ranking
 {
     public partial class TestSceneUserTagControl : OsuTestScene
     {
-        private readonly BindableList<UserTag> topTags = new BindableList<UserTag>();
-        private readonly BindableList<UserTag> extraTags = new BindableList<UserTag>();
+        private DummyAPIAccess dummyAPI => (DummyAPIAccess)API;
 
         [SetUpSteps]
         public void SetUpSteps()
         {
+            AddStep("set up working beatmap", () =>
+            {
+                Beatmap.Value.BeatmapInfo.OnlineID = 42;
+            });
+            AddStep("set up network requests", () =>
+            {
+                dummyAPI.HandleRequest = request =>
+                {
+                    switch (request)
+                    {
+                        case ListTagsRequest listTagsRequest:
+                        {
+                            listTagsRequest.TriggerSuccess([
+                                new APITag { Id = 1, Name = "tech", },
+                                new APITag { Id = 2, Name = "alt", },
+                                new APITag { Id = 3, Name = "aim", },
+                                new APITag { Id = 4, Name = "tap", },
+                            ]);
+                            return true;
+                        }
+
+                        case GetBeatmapSetRequest getBeatmapSetRequest:
+                        {
+                            var beatmapSet = CreateAPIBeatmapSet(Beatmap.Value.BeatmapInfo);
+                            beatmapSet.Beatmaps.Single().TopTags =
+                            [
+                                new APIBeatmapTag { TagId = 1, VoteCount = 5 },
+                                new APIBeatmapTag { TagId = 3, VoteCount = 9 },
+                            ];
+                            getBeatmapSetRequest.TriggerSuccess(beatmapSet);
+                            return true;
+                        }
+
+                        case AddBeatmapTagRequest:
+                        case RemoveBeatmapTagRequest:
+                        {
+                            Scheduler.AddDelayed(request.TriggerSuccess, 500);
+                            return true;
+                        }
+                    }
+
+                    return false;
+                };
+            });
             AddStep("create control", () =>
             {
                 Child = new PopoverContainer
@@ -27,21 +74,9 @@ namespace osu.Game.Tests.Visual.Ranking
                         Width = 500,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        TopTags = { BindTarget = topTags },
-                        ExtraTags = { BindTarget = extraTags },
                     }
                 };
             });
-            AddRepeatStep("add some tags", () =>
-            {
-                topTags.Add(new UserTag($"tag #{topTags.Count}")
-                {
-                    VoteCount = { Value = topTags.Count }
-                });
-            }, 11);
-            AddRepeatStep("add some extra tags", () => extraTags.Add(new UserTag($"extra tag #{extraTags.Count}")), 5);
-            AddStep("remove a top tag", () => topTags.RemoveAt(0));
-            AddStep("remove an extra tag", () => extraTags.RemoveAt(0));
         }
     }
 }
