@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Caching;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
@@ -27,7 +28,11 @@ namespace osu.Game.Screens.Ranking
 {
     public partial class UserTagControl : CompositeDrawable
     {
-        private TagFlowContainer tagFlow = null!;
+        public override bool HandlePositionalInput => true;
+
+        private readonly Cached layout = new Cached();
+
+        private FillFlowContainer<DrawableUserTag> tagFlow = null!;
 
         public BindableList<UserTag> TopTags { get; } = new BindableList<UserTag>();
         public BindableList<UserTag> ExtraTags { get; } = new BindableList<UserTag>();
@@ -35,6 +40,7 @@ namespace osu.Game.Screens.Ranking
         [BackgroundDependencyLoader]
         private void load()
         {
+            AutoSizeAxes = Axes.Y;
             InternalChild = new FillFlowContainer
             {
                 Direction = FillDirection.Vertical,
@@ -43,7 +49,7 @@ namespace osu.Game.Screens.Ranking
                 Spacing = new Vector2(8),
                 Children = new Drawable[]
                 {
-                    tagFlow = new TagFlowContainer
+                    tagFlow = new FillFlowContainer<DrawableUserTag>
                     {
                         RelativeSizeAxes = Axes.X,
                         AutoSizeAxes = Axes.Y,
@@ -82,8 +88,9 @@ namespace osu.Game.Screens.Ranking
                     {
                         var tag = (UserTag)e.NewItems[i]!;
                         var drawableTag = new DrawableUserTag(tag);
-                        tagFlow.Insert(e.NewStartingIndex + i, drawableTag);
+                        tagFlow.Insert(tagFlow.Count, drawableTag);
                         tag.VoteCount.BindValueChanged(sortTags, true);
+                        layout.Invalidate();
                     }
 
                     break;
@@ -109,22 +116,31 @@ namespace osu.Game.Screens.Ranking
             }
         }
 
-        private void sortTags(ValueChangedEvent<int> _) => tagFlow.Reflow();
+        private void sortTags(ValueChangedEvent<int> _) => layout.Invalidate();
 
-        private partial class TagFlowContainer : FillFlowContainer<DrawableUserTag>
+        protected override void Update()
         {
-            public override IEnumerable<DrawableUserTag> FlowingChildren =>
-                base.FlowingChildren.Cast<DrawableUserTag>().OrderByDescending(t => t.VoteCount.Value);
+            base.Update();
 
-            public void Reflow() => InvalidateLayout();
+            if (!layout.IsValid && !IsHovered)
+            {
+                var sortedTags = new Dictionary<UserTag, int>(
+                    TopTags.OrderByDescending(t => t.VoteCount.Value)
+                           .ThenByDescending(t => t.Voted.Value)
+                           .Select((tag, index) => new KeyValuePair<UserTag, int>(tag, index)));
+
+                foreach (var drawableTag in tagFlow)
+                    tagFlow.SetLayoutPosition(drawableTag, sortedTags[drawableTag.UserTag]);
+
+                layout.Validate();
+            }
         }
 
         private partial class DrawableUserTag : OsuClickableContainer
         {
-            public readonly Bindable<int> VoteCount = new Bindable<int>();
+            public readonly UserTag UserTag;
 
-            private readonly UserTag userTag;
-
+            private readonly Bindable<int> voteCount = new Bindable<int>();
             private readonly BindableBool voted = new BindableBool();
             private readonly Bindable<bool> confirmed = new BindableBool();
 
@@ -138,8 +154,8 @@ namespace osu.Game.Screens.Ranking
 
             public DrawableUserTag(UserTag userTag)
             {
-                this.userTag = userTag;
-                VoteCount.BindTo(userTag.VoteCount);
+                UserTag = userTag;
+                voteCount.BindTo(userTag.VoteCount);
                 voted.BindTo(userTag.Voted);
             }
 
@@ -175,7 +191,7 @@ namespace osu.Game.Screens.Ranking
                         {
                             tagNameText = new OsuSpriteText
                             {
-                                Text = userTag.Name,
+                                Text = UserTag.Name,
                                 Anchor = Anchor.CentreLeft,
                                 Origin = Anchor.CentreLeft,
                             },
@@ -209,10 +225,10 @@ namespace osu.Game.Screens.Ranking
 
                 const double transition_duration = 300;
 
-                VoteCount.BindValueChanged(_ =>
+                voteCount.BindValueChanged(_ =>
                 {
-                    voteCountText.Text = VoteCount.Value.ToLocalisableString();
-                    confirmed.Value = VoteCount.Value >= 10;
+                    voteCountText.Text = voteCount.Value.ToLocalisableString();
+                    confirmed.Value = voteCount.Value >= 10;
                 }, true);
                 voted.BindValueChanged(v =>
                 {
@@ -247,9 +263,9 @@ namespace osu.Game.Screens.Ranking
                 Action = () =>
                 {
                     if (!voted.Value)
-                        VoteCount.Value += 1;
+                        voteCount.Value += 1;
                     else
-                        VoteCount.Value -= 1;
+                        voteCount.Value -= 1;
 
                     voted.Toggle();
                 };
