@@ -10,7 +10,6 @@ using osu.Framework.Caching;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Effects;
@@ -101,6 +100,7 @@ namespace osu.Game.Screens.Ranking
         {
             base.LoadComplete();
 
+            // TODO: while these aren't here, the control is kinda unusable, so consider a loading spinner
             allTags.BindValueChanged(_ => updateTags());
             topTags.BindValueChanged(_ => updateTags());
             updateTags();
