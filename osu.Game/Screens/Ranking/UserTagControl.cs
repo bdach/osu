@@ -148,6 +148,7 @@ namespace osu.Game.Screens.Ranking
             private Box voteBackground = null!;
             private OsuSpriteText tagNameText = null!;
             private OsuSpriteText voteCountText = null!;
+            private LoadingSpinner spinner = null!;
 
             [Resolved]
             private OsuColour colours { get; set; } = null!;
@@ -211,6 +212,11 @@ namespace osu.Game.Screens.Ranking
                                     voteCountText = new OsuSpriteText
                                     {
                                         Margin = new MarginPadding { Horizontal = 6, Vertical = 3, },
+                                    },
+                                    spinner = new LoadingSpinner(withBox: true)
+                                    {
+                                        Alpha = 0,
+                                        Size = new Vector2(18),
                                     }
                                 }
                             }
@@ -262,12 +268,21 @@ namespace osu.Game.Screens.Ranking
 
                 Action = () =>
                 {
-                    if (!voted.Value)
-                        voteCount.Value += 1;
-                    else
-                        voteCount.Value -= 1;
+                    if (spinner.State.Value == Visibility.Visible)
+                        return;
 
-                    voted.Toggle();
+                    spinner.Show();
+                    Scheduler.AddDelayed(() =>
+                    {
+                        spinner.Hide();
+
+                        if (!voted.Value)
+                            voteCount.Value += 1;
+                        else
+                            voteCount.Value -= 1;
+
+                        voted.Toggle();
+                    }, 500);
                 };
             }
         }
