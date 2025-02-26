@@ -95,6 +95,9 @@ namespace osu.Game.Online.API.Requests.Responses
         [JsonProperty(@"failtimes")]
         public APIFailTimes? FailTimes { get; set; }
 
+        [JsonProperty(@"top_tag_ids")]
+        public APIBeatmapTag[]? TopTags { get; set; }
+
         [JsonProperty(@"max_combo")]
         public int? MaxCombo { get; set; }
 
