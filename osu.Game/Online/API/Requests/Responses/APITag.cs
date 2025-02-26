@@ -3,7 +3,7 @@
 
 using Newtonsoft.Json;
 
-namespace osu.Game.Online.API
+namespace osu.Game.Online.API.Requests.Responses
 {
     public class APITag
     {

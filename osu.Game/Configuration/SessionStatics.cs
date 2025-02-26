@@ -4,7 +4,6 @@
 using osu.Framework;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Input;
-using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Mods;

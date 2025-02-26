@@ -32,12 +32,15 @@ namespace osu.Game.Tests.Visual.Ranking
                     {
                         case ListTagsRequest listTagsRequest:
                         {
-                            listTagsRequest.TriggerSuccess([
-                                new APITag { Id = 1, Name = "tech", },
-                                new APITag { Id = 2, Name = "alt", },
-                                new APITag { Id = 3, Name = "aim", },
-                                new APITag { Id = 4, Name = "tap", },
-                            ]);
+                            listTagsRequest.TriggerSuccess(new APITagCollection
+                            {
+                                Tags =[
+                                    new APITag { Id = 1, Name = "tech", },
+                                    new APITag { Id = 2, Name = "alt", },
+                                    new APITag { Id = 3, Name = "aim", },
+                                    new APITag { Id = 4, Name = "tap", },
+                                ]
+                            });
                             return true;
                         }
 
