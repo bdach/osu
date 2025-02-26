@@ -159,6 +159,10 @@ namespace osu.Game.Screens.Ranking.Statistics
                         });
                     }
 
+                    // TODO: this is not how anything should be but for now i just wanna see this work in game
+                    // probably have checks for whether this is an online beatmap, whether the user played it maybe, whether we are online to begin with etc
+                    flow.Add(new StatisticItemContainer(new StatisticItem("Tag the beatmap!", () => new UserTagControl { RelativeSizeAxes = Axes.X })));
+
                     if (anyRequiredHitEvents)
                     {
                         flow.Add(new FillFlowContainer
