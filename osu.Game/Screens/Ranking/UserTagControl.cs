@@ -88,7 +88,7 @@ namespace osu.Game.Screens.Ranking
             if (allTags.Value == null)
             {
                 var listTagsRequest = new ListTagsRequest();
-                listTagsRequest.Success += tags => allTags.Value = tags.ToArray();
+                listTagsRequest.Success += tags => allTags.Value = tags.Tags.ToArray();
                 api.Queue(listTagsRequest);
             }
 
@@ -301,7 +301,7 @@ namespace osu.Game.Screens.Ranking
                     }
                     else
                     {
-                        voteBackground.FadeColour(ColourInfo.GradientVertical(Colour4.FromHex("#333"), Colour4.FromHex("#111")), transition_duration, Easing.OutQuint);
+                        voteBackground.FadeColour(colours.Gray2, transition_duration, Easing.OutQuint);
                         voteCountText.FadeColour(Colour4.White, transition_duration, Easing.OutQuint);
                     }
                 }, true);
@@ -315,7 +315,7 @@ namespace osu.Game.Screens.Ranking
                     }
                     else
                     {
-                        mainBackground.FadeColour(ColourInfo.GradientVertical(Colour4.FromHex("#555"), Colour4.FromHex("#333")), transition_duration, Easing.OutQuint);
+                        mainBackground.FadeColour(colours.Gray4, transition_duration, Easing.OutQuint);
                         tagNameText.FadeColour(Colour4.White, transition_duration, Easing.OutQuint);
                         FadeEdgeEffectTo(0f, transition_duration, Easing.OutQuint);
                     }
