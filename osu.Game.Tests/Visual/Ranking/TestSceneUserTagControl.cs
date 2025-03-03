@@ -32,15 +32,16 @@ namespace osu.Game.Tests.Visual.Ranking
                     {
                         case ListTagsRequest listTagsRequest:
                         {
-                            listTagsRequest.TriggerSuccess(new APITagCollection
+                            Scheduler.AddDelayed(() => listTagsRequest.TriggerSuccess(new APITagCollection
                             {
-                                Tags =[
-                                    new APITag { Id = 1, Name = "tech", },
+                                Tags =
+                                [
+                                    new APITag { Id = 1, Name = "tech", Description = "test description" },
                                     new APITag { Id = 2, Name = "alt", },
                                     new APITag { Id = 3, Name = "aim", },
                                     new APITag { Id = 4, Name = "tap", },
                                 ]
-                            });
+                            }), 500);
                             return true;
                         }
 
@@ -52,7 +53,7 @@ namespace osu.Game.Tests.Visual.Ranking
                                 new APIBeatmapTag { TagId = 1, VoteCount = 5 },
                                 new APIBeatmapTag { TagId = 3, VoteCount = 9 },
                             ];
-                            getBeatmapSetRequest.TriggerSuccess(beatmapSet);
+                            Scheduler.AddDelayed(() => getBeatmapSetRequest.TriggerSuccess(beatmapSet), 500);
                             return true;
                         }
 

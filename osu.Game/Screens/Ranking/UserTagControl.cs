@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
@@ -38,6 +39,7 @@ namespace osu.Game.Screens.Ranking
         private readonly Cached layout = new Cached();
 
         private FillFlowContainer<DrawableUserTag> tagFlow = null!;
+        private LoadingLayer loadingLayer = null!;
 
         private BindableList<UserTag> displayedTags { get; } = new BindableList<UserTag>();
         private BindableList<UserTag> extraTags { get; } = new BindableList<UserTag>();
@@ -55,31 +57,39 @@ namespace osu.Game.Screens.Ranking
         private void load(SessionStatics sessionStatics)
         {
             AutoSizeAxes = Axes.Y;
-            InternalChild = new FillFlowContainer
+            InternalChildren = new Drawable[]
             {
-                Direction = FillDirection.Vertical,
-                RelativeSizeAxes = Axes.X,
-                AutoSizeAxes = Axes.Y,
-                Spacing = new Vector2(8),
-                Children = new Drawable[]
+                new FillFlowContainer
                 {
-                    tagFlow = new FillFlowContainer<DrawableUserTag>
+                    Direction = FillDirection.Vertical,
+                    RelativeSizeAxes = Axes.X,
+                    AutoSizeAxes = Axes.Y,
+                    Spacing = new Vector2(8),
+                    Children = new Drawable[]
                     {
-                        RelativeSizeAxes = Axes.X,
-                        AutoSizeAxes = Axes.Y,
-                        Direction = FillDirection.Full,
-                        LayoutDuration = 300,
-                        LayoutEasing = Easing.OutQuint,
-                        Spacing = new Vector2(4),
+                        tagFlow = new FillFlowContainer<DrawableUserTag>
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            Direction = FillDirection.Full,
+                            LayoutDuration = 300,
+                            LayoutEasing = Easing.OutQuint,
+                            Spacing = new Vector2(4),
+                        },
+                        new ExtraTagsButton
+                        {
+                            Anchor = Anchor.TopCentre,
+                            Origin = Anchor.TopCentre,
+                            OnTagSelected = onExtraTagSelected,
+                            ExtraTags = { BindTarget = extraTags },
+                        },
                     },
-                    new ExtraTagsButton
-                    {
-                        Anchor = Anchor.TopCentre,
-                        Origin = Anchor.TopCentre,
-                        TopTags = { BindTarget = displayedTags },
-                        ExtraTags = { BindTarget = extraTags },
-                    }
-                }
+                },
+                loadingLayer = new LoadingLayer
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    State = { Value = Visibility.Visible }
+                },
             };
 
             allTags = sessionStatics.GetBindable<APITag[]?>(Static.AllBeatmapTags);
@@ -96,11 +106,27 @@ namespace osu.Game.Screens.Ranking
             api.Queue(getBeatmapSetRequest);
         }
 
+        private void onExtraTagSelected(UserTag tag)
+        {
+            loadingLayer.Show();
+            extraTags.Remove(tag);
+
+            var req = new AddBeatmapTagRequest(beatmap.Value.BeatmapInfo.OnlineID, tag.Id);
+            req.Success += () =>
+            {
+                tag.Voted.Value = true;
+                tag.VoteCount.Value += 1;
+                displayedTags.Add(tag);
+                loadingLayer.Hide();
+            };
+            req.Failure += _ => extraTags.Add(tag);
+            api.Queue(req);
+        }
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
-            // TODO: while these aren't here, the control is kinda unusable, so consider a loading spinner
             allTags.BindValueChanged(_ => updateTags());
             topTags.BindValueChanged(_ => updateTags());
             updateTags();
@@ -122,6 +148,8 @@ namespace osu.Game.Screens.Ranking
             }
 
             extraTags.AddRange(allTagsById.Select(t => new UserTag(t.Value)));
+
+            loadingLayer.Hide();
         }
 
         private void displayTags(object? sender, NotifyCollectionChangedEventArgs e)
@@ -242,7 +270,7 @@ namespace osu.Game.Screens.Ranking
                     {
                         AutoSizeAxes = Axes.Both,
                         Direction = FillDirection.Horizontal,
-                        Padding = new MarginPadding { Horizontal = 6, Vertical = 3, },
+                        Padding = new MarginPadding { Left = 6, Right = 3, Vertical = 3, },
                         Spacing = new Vector2(5),
                         Children = new Drawable[]
                         {
@@ -279,6 +307,8 @@ namespace osu.Game.Screens.Ranking
                         }
                     }
                 });
+
+                TooltipText = UserTag.Description;
             }
 
             protected override void LoadComplete()
@@ -301,7 +331,7 @@ namespace osu.Game.Screens.Ranking
                     }
                     else
                     {
-                        voteBackground.FadeColour(colours.Gray2, transition_duration, Easing.OutQuint);
+                        voteBackground.FadeColour(colours.Gray3, transition_duration, Easing.OutQuint);
                         voteCountText.FadeColour(Colour4.White, transition_duration, Easing.OutQuint);
                     }
                 }, true);
@@ -315,7 +345,7 @@ namespace osu.Game.Screens.Ranking
                     }
                     else
                     {
-                        mainBackground.FadeColour(colours.Gray4, transition_duration, Easing.OutQuint);
+                        mainBackground.FadeColour(colours.Gray6, transition_duration, Easing.OutQuint);
                         tagNameText.FadeColour(Colour4.White, transition_duration, Easing.OutQuint);
                         FadeEdgeEffectTo(0f, transition_duration, Easing.OutQuint);
                     }
@@ -371,8 +401,9 @@ namespace osu.Game.Screens.Ranking
 
         private partial class ExtraTagsButton : GrayButton, IHasPopover
         {
-            public BindableList<UserTag> TopTags { get; } = new BindableList<UserTag>();
             public BindableList<UserTag> ExtraTags { get; } = new BindableList<UserTag>();
+
+            public Action<UserTag>? OnTagSelected { get; set; }
 
             public ExtraTagsButton()
                 : base(FontAwesome.Solid.Plus)
@@ -391,15 +422,16 @@ namespace osu.Game.Screens.Ranking
 
             public Popover GetPopover() => new ExtraTagsPopover
             {
-                TopTags = { BindTarget = TopTags },
                 ExtraTags = { BindTarget = ExtraTags },
+                OnSelected = OnTagSelected,
             };
         }
 
         private partial class ExtraTagsPopover : OsuPopover
         {
-            public BindableList<UserTag> TopTags { get; } = new BindableList<UserTag>();
             public BindableList<UserTag> ExtraTags { get; } = new BindableList<UserTag>();
+
+            public Action<UserTag>? OnSelected { get; set; }
 
             public ExtraTagsPopover()
                 : base(false)
@@ -421,8 +453,7 @@ namespace osu.Game.Screens.Ranking
 
             private OsuMenuItem[] items => ExtraTags.Select(tag => new OsuMenuItem(tag.Name, MenuItemType.Standard, () =>
             {
-                TopTags.Add(tag);
-                ExtraTags.Remove(tag);
+                OnSelected?.Invoke(tag);
                 this.HidePopover();
             })).ToArray();
         }
@@ -432,6 +463,7 @@ namespace osu.Game.Screens.Ranking
     {
         public long Id { get; }
         public string Name { get; }
+        public string Description { get; set; }
         public BindableInt VoteCount { get; } = new BindableInt();
         public BindableBool Voted { get; } = new BindableBool();
 
@@ -439,6 +471,7 @@ namespace osu.Game.Screens.Ranking
         {
             Id = tag.Id;
             Name = tag.Name;
+            Description = tag.Description;
         }
     }
 }
