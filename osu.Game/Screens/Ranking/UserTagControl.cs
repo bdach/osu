@@ -219,7 +219,7 @@ namespace osu.Game.Screens.Ranking
             }
         }
 
-        private partial class DrawableUserTag : OsuClickableContainer
+        private partial class DrawableUserTag : OsuAnimatedButton
         {
             public readonly UserTag UserTag;
 
@@ -249,29 +249,29 @@ namespace osu.Game.Screens.Ranking
                 UserTag = userTag;
                 voteCount.BindTo(userTag.VoteCount);
                 voted.BindTo(userTag.Voted);
+
+                AutoSizeAxes = Axes.Both;
             }
 
             [BackgroundDependencyLoader]
             private void load()
             {
-                AutoSizeAxes = Axes.Both;
                 Anchor = Anchor.Centre;
                 Origin = Anchor.Centre;
                 CornerRadius = 8;
                 Masking = true;
-                Content.RelativeSizeAxes = Axes.None;
-                Content.AutoSizeAxes = Axes.Both;
                 EdgeEffect = new EdgeEffectParameters
                 {
                     Colour = colours.Lime1,
                     Radius = 5,
                     Type = EdgeEffectType.Glow,
                 };
-                AddRange(new Drawable[]
+                Content.AddRange(new Drawable[]
                 {
                     mainBackground = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
+                        Depth = float.MaxValue,
                     },
                     new FillFlowContainer
                     {
@@ -440,29 +440,82 @@ namespace osu.Game.Screens.Ranking
 
             public Action<UserTag>? OnSelected { get; set; }
 
-            public ExtraTagsPopover()
-                : base(false)
-            {
-            }
-
             [BackgroundDependencyLoader]
             private void load()
             {
-                Children = new[]
+                Child = new OsuScrollContainer
                 {
-                    new OsuMenu(Direction.Vertical, true)
+                    Width = 250,
+                    Height = 200,
+                    ScrollbarOverlapsContent = false,
+                    Child = new FillFlowContainer
                     {
-                        Items = items,
-                        MaxHeight = 375,
-                    },
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Padding = new MarginPadding { Right = 5 },
+                        Spacing = new Vector2(10),
+                        ChildrenEnumerable = ExtraTags.Select(tag => new DrawableExtraTag(tag)
+                        {
+                            Action = () =>
+                            {
+                                OnSelected?.Invoke(tag);
+                                this.HidePopover();
+                            }
+                        })
+                    }
                 };
             }
+        }
 
-            private OsuMenuItem[] items => ExtraTags.Select(tag => new OsuMenuItem(tag.Name, MenuItemType.Standard, () =>
+        private partial class DrawableExtraTag : OsuAnimatedButton
+        {
+            private readonly UserTag tag;
+
+            public DrawableExtraTag(UserTag tag)
             {
-                OnSelected?.Invoke(tag);
-                this.HidePopover();
-            })).ToArray();
+                this.tag = tag;
+
+                RelativeSizeAxes = Axes.X;
+                AutoSizeAxes = Axes.Y;
+                Anchor = Origin = Anchor.Centre;
+            }
+
+            [BackgroundDependencyLoader]
+            private void load(OsuColour colours)
+            {
+                Content.AddRange(new Drawable[]
+                {
+                    new Box
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Colour = colours.GreySeaFoamDark,
+                        Depth = float.MaxValue,
+                    },
+                    new FillFlowContainer
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        Direction = FillDirection.Vertical,
+                        Spacing = new Vector2(2),
+                        Padding = new MarginPadding(5),
+                        Children = new Drawable[]
+                        {
+                            new OsuTextFlowContainer(t => t.Font = OsuFont.Default.With(weight: FontWeight.Bold))
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Text = tag.Name,
+                            },
+                            new OsuTextFlowContainer(t => t.Font = OsuFont.Default.With(size: 14))
+                            {
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Text = tag.Description,
+                            }
+                        }
+                    }
+                });
+            }
         }
     }
 

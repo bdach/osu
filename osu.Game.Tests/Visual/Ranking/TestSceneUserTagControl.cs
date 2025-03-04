@@ -36,10 +36,10 @@ namespace osu.Game.Tests.Visual.Ranking
                             {
                                 Tags =
                                 [
-                                    new APITag { Id = 1, Name = "tech", Description = "test description" },
-                                    new APITag { Id = 2, Name = "alt", },
-                                    new APITag { Id = 3, Name = "aim", },
-                                    new APITag { Id = 4, Name = "tap", },
+                                    new APITag { Id = 1, Name = "tech", Description = "Tests uncommon skills.", },
+                                    new APITag { Id = 2, Name = "alt", Description = "Colloquial term for maps which use rhythms that encourage the player to alternate notes. Typically distinct from burst or stream maps.", },
+                                    new APITag { Id = 3, Name = "aim", Description = "Category for difficulty relating to cursor movement.", },
+                                    new APITag { Id = 4, Name = "tap", Description = "Category for difficulty relating to tapping input.", },
                                 ]
                             }), 500);
                             return true;
@@ -50,7 +50,6 @@ namespace osu.Game.Tests.Visual.Ranking
                             var beatmapSet = CreateAPIBeatmapSet(Beatmap.Value.BeatmapInfo);
                             beatmapSet.Beatmaps.Single().TopTags =
                             [
-                                new APIBeatmapTag { TagId = 1, VoteCount = 5 },
                                 new APIBeatmapTag { TagId = 3, VoteCount = 9 },
                             ];
                             Scheduler.AddDelayed(() => getBeatmapSetRequest.TriggerSuccess(beatmapSet), 500);
