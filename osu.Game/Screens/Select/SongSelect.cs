@@ -29,6 +29,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Cursor;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Input.Bindings;
+using osu.Game.Online.Leaderboards;
 using osu.Game.Overlays;
 using osu.Game.Overlays.Mods;
 using osu.Game.Overlays.Volume;
@@ -157,6 +158,9 @@ namespace osu.Game.Screens.Select
         internal IOverlayManager? OverlayManager { get; private set; }
 
         private Bindable<bool> configBackgroundBlur = null!;
+
+        [Cached]
+        private Bindable<ILeaderboardProvider?> leaderboardProvider = new Bindable<ILeaderboardProvider?>();
 
         [BackgroundDependencyLoader(true)]
         private void load(AudioManager audio, OsuColour colours, ManageCollectionsDialog? manageCollectionsDialog, DifficultyRecommender? recommender, OsuConfigManager config)
