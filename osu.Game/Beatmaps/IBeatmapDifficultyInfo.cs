@@ -92,8 +92,8 @@ namespace osu.Game.Beatmaps
         /// </list>
         /// </param>
         /// <returns>Value to which the difficulty value maps in the specified range.</returns>
-        static double DifficultyRange(double difficulty, (double od0, double od5, double od10) range)
-            => DifficultyRange(difficulty, range.od0, range.od5, range.od10);
+        static double DifficultyRange(double difficulty, DifficultyRange range)
+            => DifficultyRange(difficulty, range.Min, range.Mid, range.Max);
 
         /// <summary>
         /// Inverse function to <see cref="DifficultyRange(double,double,double,double)"/>.
@@ -110,5 +110,10 @@ namespace osu.Game.Beatmaps
                 ? (difficultyValue - diff5) / (diff10 - diff5) * 5 + 5
                 : (difficultyValue - diff5) / (diff5 - diff0) * 5 + 5;
         }
+
+        static double InverseDifficultyRange(double difficultyValue, DifficultyRange range)
+            => InverseDifficultyRange(difficultyValue, range.Min, range.Mid, range.Max);
     }
+
+    public record struct DifficultyRange(double Min, double Mid, double Max);
 }
