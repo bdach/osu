@@ -24,12 +24,12 @@ namespace osu.Game.Rulesets.Mania.Mods
             switch (hitObject)
             {
                 case Note:
-                    ((ManiaHitWindows)hitObject.HitWindows).SpeedMultiplier = SpeedChange.Value;
+                    ((ManiaHitWindows)hitObject.HitWindows).SpeedMultiplier *= SpeedChange.Value;
                     break;
 
                 case HoldNote hold:
-                    ((ManiaHitWindows)hold.Head.HitWindows).SpeedMultiplier = SpeedChange.Value;
-                    ((ManiaHitWindows)hold.Tail.HitWindows).SpeedMultiplier = SpeedChange.Value;
+                    ((ManiaHitWindows)hold.Head.HitWindows).SpeedMultiplier *= SpeedChange.Value;
+                    ((ManiaHitWindows)hold.Tail.HitWindows).SpeedMultiplier *= SpeedChange.Value;
                     break;
             }
         }
