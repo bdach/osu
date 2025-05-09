@@ -143,7 +143,7 @@ namespace osu.Game.Tests.Visual.Gameplay
             checkValidObjectIndex(0);
 
             // still too far away.
-            seekBeforeIndex(1, 400);
+            seekBeforeIndex(1, 850);
             checkValidObjectIndex(0);
 
             // Still object 1 as it's not hit yet.
@@ -160,7 +160,7 @@ namespace osu.Game.Tests.Visual.Gameplay
             waitForAliveObjectIndex(1);
             checkValidObjectIndex(1);
 
-            seekBeforeIndex(1, 400);
+            seekBeforeIndex(1, 850);
             checkValidObjectIndex(0);
 
             seekBeforeIndex(3);
