@@ -183,6 +183,56 @@ namespace osu.Game.Rulesets.Taiko.Tests
             RunTest($@"EZ single hit @ OD{overallDifficulty}", beatmap, $@"EZ {hitOffset}ms @ OD{overallDifficulty} = {expectedResult}", score, [expectedResult]);
         }
 
+        [Test]
+        public void TestNoteLockOnLateHit()
+        {
+            var cpi = new ControlPointInfo();
+            cpi.Add(0, new TimingControlPoint { BeatLength = 1000 });
+            var beatmap = new TaikoBeatmap
+            {
+                HitObjects =
+                {
+                    new Hit
+                    {
+                        StartTime = 100,
+                        Type = HitType.Centre,
+                    },
+                    new Hit
+                    {
+                        StartTime = 265,
+                        Type = HitType.Centre,
+                    }
+                },
+                Difficulty = new BeatmapDifficulty(),
+                BeatmapInfo =
+                {
+                    Ruleset = new TaikoRuleset().RulesetInfo,
+                },
+                ControlPointInfo = cpi,
+            };
+
+            var replay = new Replay
+            {
+                Frames =
+                {
+                    new TaikoReplayFrame(0),
+                    new TaikoReplayFrame(190, TaikoAction.LeftCentre),
+                    new TaikoReplayFrame(200),
+                }
+            };
+
+            var score = new Score
+            {
+                Replay = replay,
+                ScoreInfo = new ScoreInfo
+                {
+                    Ruleset = CreateRuleset().RulesetInfo,
+                }
+            };
+
+            RunTest($@"late miss notelock", beatmap, @"late miss notelock", score, [HitResult.Miss, HitResult.Miss]);
+        }
+
         private static TaikoBeatmap createBeatmap(float overallDifficulty)
         {
             var cpi = new ControlPointInfo();
