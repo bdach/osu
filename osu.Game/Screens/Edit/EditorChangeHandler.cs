@@ -7,14 +7,33 @@ using System.IO;
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
+using osu.Framework.Graphics;
 
 namespace osu.Game.Screens.Edit
 {
     /// <summary>
     /// Tracks changes to the <see cref="Editor"/>.
     /// </summary>
-    public abstract partial class EditorChangeHandler : TransactionalCommitComponent, IEditorChangeHandler
+    public abstract partial class EditorChangeHandler : Component, IEditorChangeHandler
     {
+        /// <summary>
+        /// Fires whenever a transaction begins. Will not fire on nested transactions.
+        /// </summary>
+        public event Action? TransactionBegan;
+
+        /// <summary>
+        /// Fires when the last transaction completes.
+        /// </summary>
+        public event Action? TransactionEnded;
+
+        /// <summary>
+        /// Fires when <see cref="SaveState"/> is called and results in a non-transactional state save.
+        /// </summary>
+        public event Action? SaveStateTriggered;
+
+        public bool TransactionActive => bulkChangesStarted > 0;
+
+        private int bulkChangesStarted;
         public readonly Bindable<bool> CanUndo = new Bindable<bool>();
         public readonly Bindable<bool> CanRedo = new Bindable<bool>();
 
@@ -42,11 +61,12 @@ namespace osu.Game.Screens.Edit
 
         public const int MAX_SAVED_STATES = 50;
 
-        public override void BeginChange()
+        public void BeginChange()
         {
             ensureStateSaved();
 
-            base.BeginChange();
+            if (bulkChangesStarted++ == 0)
+                TransactionBegan?.Invoke();
         }
 
         private void ensureStateSaved()
@@ -55,8 +75,33 @@ namespace osu.Game.Screens.Edit
                 SaveState();
         }
 
-        protected override void UpdateState()
+        /// <summary>
+        /// Signal the end of a change.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Throws if <see cref="BeginChange"/> was not first called.</exception>
+        public void EndChange()
         {
+            if (bulkChangesStarted == 0)
+                throw new InvalidOperationException($"Cannot call {nameof(EndChange)} without a previous call to {nameof(BeginChange)}.");
+
+            if (--bulkChangesStarted == 0)
+            {
+                SaveState();
+                TransactionEnded?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Force an update of the state with no attached transaction.
+        /// This is a no-op if a transaction is already active. Should generally be used as a safety measure to ensure granular changes are not left outside a transaction.
+        /// </summary>
+        public void SaveState()
+        {
+            if (bulkChangesStarted > 0)
+                return;
+
+            SaveStateTriggered?.Invoke();
+
             if (isRestoring)
                 return;
 
