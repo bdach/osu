@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
@@ -39,9 +39,10 @@ namespace osu.Game.Screens.Edit
 
         public event Action? OnStateChange;
 
-        private readonly List<byte[]> savedStates = new List<byte[]>();
+        private readonly List<ApplyBeatmapSnapshotCommand> commandHistory = new List<ApplyBeatmapSnapshotCommand>();
+        private ApplyBeatmapSnapshotCommand? currentSnapshotCommand;
 
-        private int currentState = -1;
+        private int lastExecutedCommand = -1;
 
         /// <summary>
         /// A SHA-2 hash representing the current visible editor state.
@@ -50,10 +51,10 @@ namespace osu.Game.Screens.Edit
         {
             get
             {
-                ensureStateSaved();
-
-                using (var stream = new MemoryStream(savedStates[currentState]))
-                    return stream.ComputeSHA2Hash();
+                using var stream = new MemoryStream();
+                using var sw = new StreamWriter(stream, Encoding.UTF8, 1024, true);
+                new LegacyBeatmapEncoder(editorBeatmap, editorBeatmap.BeatmapSkin).Encode(sw);
+                return stream.ComputeSHA2Hash();
             }
         }
 
@@ -61,7 +62,6 @@ namespace osu.Game.Screens.Edit
 
         public const int MAX_SAVED_STATES = 50;
 
-        private readonly LegacyEditorBeatmapPatcher patcher;
         private readonly EditorBeatmap editorBeatmap;
 
         /// <summary>
@@ -75,22 +75,14 @@ namespace osu.Game.Screens.Edit
             editorBeatmap.TransactionBegan += BeginChange;
             editorBeatmap.TransactionEnded += EndChange;
             editorBeatmap.SaveStateTriggered += SaveState;
-
-            patcher = new LegacyEditorBeatmapPatcher(editorBeatmap);
         }
 
         public void BeginChange()
         {
-            ensureStateSaved();
+            currentSnapshotCommand ??= new ApplyBeatmapSnapshotCommand(editorBeatmap);
 
             if (bulkChangesStarted++ == 0)
                 TransactionBegan?.Invoke();
-        }
-
-        private void ensureStateSaved()
-        {
-            if (savedStates.Count == 0)
-                SaveState();
         }
 
         /// <summary>
@@ -99,7 +91,7 @@ namespace osu.Game.Screens.Edit
         /// <exception cref="InvalidOperationException">Throws if <see cref="BeginChange"/> was not first called.</exception>
         public void EndChange()
         {
-            if (bulkChangesStarted == 0)
+            if (bulkChangesStarted == 0 || currentSnapshotCommand == null)
                 throw new InvalidOperationException($"Cannot call {nameof(EndChange)} without a previous call to {nameof(BeginChange)}.");
 
             if (--bulkChangesStarted == 0)
@@ -123,46 +115,48 @@ namespace osu.Game.Screens.Edit
             if (isRestoring)
                 return;
 
-            using (var stream = new MemoryStream())
-            {
-                WriteCurrentStateToStream(stream);
-                byte[] newState = stream.ToArray();
+            Debug.Assert(currentSnapshotCommand != null);
 
-                // if the previous state is binary equal we don't need to push a new one, unless this is the initial state.
-                if (savedStates.Count > 0 && newState.SequenceEqual(savedStates[currentState])) return;
+            currentSnapshotCommand.Finish();
 
-                if (currentState < savedStates.Count - 1)
-                    savedStates.RemoveRange(currentState + 1, savedStates.Count - currentState - 1);
+            if (currentSnapshotCommand.IsRedundant == true)
+                return;
 
-                if (savedStates.Count > MAX_SAVED_STATES)
-                    savedStates.RemoveAt(0);
+            if (lastExecutedCommand < commandHistory.Count - 1)
+                commandHistory.RemoveRange(lastExecutedCommand + 1, commandHistory.Count - lastExecutedCommand - 1);
 
-                savedStates.Add(newState);
+            if (commandHistory.Count > MAX_SAVED_STATES)
+                commandHistory.RemoveAt(0);
 
-                currentState = savedStates.Count - 1;
+            commandHistory.Add(currentSnapshotCommand);
+            currentSnapshotCommand = null;
 
-                OnStateChange?.Invoke();
-                updateBindables();
-            }
+            lastExecutedCommand = commandHistory.Count - 1;
+
+            OnStateChange?.Invoke();
+            updateBindables();
         }
 
         public void RestoreState(int direction)
         {
+            if (Math.Abs(direction) != 1)
+                throw new ArgumentException();
+
             if (TransactionActive)
                 return;
 
-            if (savedStates.Count == 0)
+            if (commandHistory.Count == 0)
                 return;
 
-            int newState = Math.Clamp(currentState + direction, 0, savedStates.Count - 1);
-            if (currentState == newState)
-                return;
+            if (direction < 0 && !CanUndo.Value) return;
+            if (direction > 0 && !CanRedo.Value) return;
 
             isRestoring = true;
 
-            ApplyStateChange(savedStates[currentState], savedStates[newState]);
-
-            currentState = newState;
+            if (direction > 0)
+                commandHistory[++lastExecutedCommand].Apply();
+            else
+                commandHistory[lastExecutedCommand--].Rollback();
 
             isRestoring = false;
 
@@ -170,19 +164,10 @@ namespace osu.Game.Screens.Edit
             updateBindables();
         }
 
-        protected void WriteCurrentStateToStream(MemoryStream stream)
-        {
-            using (var sw = new StreamWriter(stream, Encoding.UTF8, 1024, true))
-                new LegacyBeatmapEncoder(editorBeatmap, editorBeatmap.BeatmapSkin).Encode(sw);
-        }
-
-        protected void ApplyStateChange(byte[] previousState, byte[] newState) =>
-            patcher.Patch(previousState, newState);
-
         private void updateBindables()
         {
-            CanUndo.Value = savedStates.Count > 0 && currentState > 0;
-            CanRedo.Value = currentState < savedStates.Count - 1;
+            CanUndo.Value = commandHistory.Count > 0 && lastExecutedCommand >= 0;
+            CanRedo.Value = lastExecutedCommand < commandHistory.Count - 1;
         }
     }
 }
