@@ -182,7 +182,7 @@ namespace osu.Game.Screens.Edit
         private BottomBar bottomBar;
 
         [CanBeNull] // Should be non-null once it can support custom rulesets.
-        private EditorChangeHandler changeHandler;
+        private BeatmapEditorChangeHandler changeHandler;
 
         private DependencyContainer dependencies;
 

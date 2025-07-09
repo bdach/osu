@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Testing;
 using osu.Game.Screens.Edit;
@@ -15,8 +16,53 @@ using osu.Game.Skinning;
 
 namespace osu.Game.Overlays.SkinEditor
 {
-    public partial class SkinEditorChangeHandler : EditorChangeHandler
+    public partial class SkinEditorChangeHandler : Component, IEditorChangeHandler
     {
+        /// <summary>
+        /// Fires whenever a transaction begins. Will not fire on nested transactions.
+        /// </summary>
+        public event Action? TransactionBegan;
+
+        /// <summary>
+        /// Fires when the last transaction completes.
+        /// </summary>
+        public event Action? TransactionEnded;
+
+        /// <summary>
+        /// Fires when <see cref="SaveState"/> is called and results in a non-transactional state save.
+        /// </summary>
+        public event Action? SaveStateTriggered;
+
+        public bool TransactionActive => bulkChangesStarted > 0;
+
+        private int bulkChangesStarted;
+        public readonly Bindable<bool> CanUndo = new Bindable<bool>();
+        public readonly Bindable<bool> CanRedo = new Bindable<bool>();
+
+        public event Action? OnStateChange;
+
+        private readonly List<byte[]> savedStates = new List<byte[]>();
+
+        private int currentState = -1;
+
+        /// <summary>
+        /// A SHA-2 hash representing the current visible editor state.
+        /// </summary>
+        public string CurrentStateHash
+        {
+            get
+            {
+                ensureStateSaved();
+
+                using (var stream = new MemoryStream(savedStates[currentState]))
+                    return stream.ComputeSHA2Hash();
+            }
+        }
+
+        private bool isRestoring;
+
+        public const int MAX_SAVED_STATES = 50;
+
         private readonly ISerialisableDrawableContainer? firstTarget;
 
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
@@ -37,7 +83,98 @@ namespace osu.Game.Overlays.SkinEditor
             components.BindCollectionChanged((_, _) => SaveState(), true);
         }
 
-        protected override void WriteCurrentStateToStream(MemoryStream stream)
+        public void BeginChange()
+        {
+            ensureStateSaved();
+
+            if (bulkChangesStarted++ == 0)
+                TransactionBegan?.Invoke();
+        }
+
+        private void ensureStateSaved()
+        {
+            if (savedStates.Count == 0)
+                SaveState();
+        }
+
+        /// <summary>
+        /// Signal the end of a change.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Throws if <see cref="BeginChange"/> was not first called.</exception>
+        public void EndChange()
+        {
+            if (bulkChangesStarted == 0)
+                throw new InvalidOperationException($"Cannot call {nameof(EndChange)} without a previous call to {nameof(BeginChange)}.");
+
+            if (--bulkChangesStarted == 0)
+            {
+                SaveState();
+                TransactionEnded?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Force an update of the state with no attached transaction.
+        /// This is a no-op if a transaction is already active. Should generally be used as a safety measure to ensure granular changes are not left outside a transaction.
+        /// </summary>
+        public void SaveState()
+        {
+            if (bulkChangesStarted > 0)
+                return;
+
+            SaveStateTriggered?.Invoke();
+
+            if (isRestoring)
+                return;
+
+            using (var stream = new MemoryStream())
+            {
+                WriteCurrentStateToStream(stream);
+                byte[] newState = stream.ToArray();
+
+                // if the previous state is binary equal we don't need to push a new one, unless this is the initial state.
+                if (savedStates.Count > 0 && newState.SequenceEqual(savedStates[currentState])) return;
+
+                if (currentState < savedStates.Count - 1)
+                    savedStates.RemoveRange(currentState + 1, savedStates.Count - currentState - 1);
+
+                if (savedStates.Count > MAX_SAVED_STATES)
+                    savedStates.RemoveAt(0);
+
+                savedStates.Add(newState);
+
+                currentState = savedStates.Count - 1;
+
+                OnStateChange?.Invoke();
+                updateBindables();
+            }
+        }
+
+        public void RestoreState(int direction)
+        {
+            if (TransactionActive)
+                return;
+
+            if (savedStates.Count == 0)
+                return;
+
+            int newState = Math.Clamp(currentState + direction, 0, savedStates.Count - 1);
+            if (currentState == newState)
+                return;
+
+            isRestoring = true;
+
+            ApplyStateChange(savedStates[currentState], savedStates[newState]);
+
+            currentState = newState;
+
+            isRestoring = false;
+
+            OnStateChange?.Invoke();
+            updateBindables();
+        }
+
+        protected void WriteCurrentStateToStream(MemoryStream stream)
         {
             if (firstTarget == null)
                 return;
@@ -47,7 +184,7 @@ namespace osu.Game.Overlays.SkinEditor
             stream.Write(Encoding.UTF8.GetBytes(json));
         }
 
-        protected override void ApplyStateChange(byte[] previousState, byte[] newState)
+        protected void ApplyStateChange(byte[] previousState, byte[] newState)
         {
             if (firstTarget == null)
                 return;
@@ -105,6 +242,12 @@ namespace osu.Game.Overlays.SkinEditor
                 foreach (var component in typeComponents)
                     component.Dispose();
             }
+        }
+
+        private void updateBindables()
+        {
+            CanUndo.Value = savedStates.Count > 0 && currentState > 0;
+            CanRedo.Value = currentState < savedStates.Count - 1;
         }
     }
 }
