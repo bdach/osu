@@ -545,7 +545,7 @@ namespace osu.Game.Rulesets.Edit
         public void CommitPlacement(HitObject hitObject)
         {
             EditorBeatmap.PlacementObject.Value = null;
-            EditorBeatmap.Add(hitObject);
+            EditorBeatmap.SubmitCommand(new AddHitObjectCommand(hitObject));
 
             if (autoSeekOnPlacement.Value && EditorClock.CurrentTime < hitObject.StartTime)
                 EditorClock.SeekSmoothlyTo(hitObject.StartTime);

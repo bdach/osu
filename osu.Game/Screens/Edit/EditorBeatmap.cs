@@ -565,7 +565,7 @@ namespace osu.Game.Screens.Edit
 
         public event Action OnStateChange;
 
-        private readonly List<ApplyBeatmapSnapshotCommand> commandHistory = new List<ApplyBeatmapSnapshotCommand>();
+        private readonly List<ICommand> commandHistory = new List<ICommand>();
 
         private byte[] lastSnapshot;
 
@@ -605,7 +605,7 @@ namespace osu.Game.Screens.Edit
             if (isRestoring)
                 return;
 
-            currentSnapshotCommand = new ApplyBeatmapSnapshotCommand(this, lastSnapshot);
+            currentSnapshotCommand = new ApplyBeatmapSnapshotCommand(lastSnapshot);
 
             if (bulkChangesStarted++ == 0)
                 TransactionBegan?.Invoke();
@@ -633,6 +633,15 @@ namespace osu.Game.Screens.Edit
             }
         }
 
+        public void SubmitCommand(ICommand command)
+        {
+            TransactionBegan?.Invoke();
+            command.Apply(this);
+            addCommandToHistory(command);
+            UpdateState();
+            TransactionEnded?.Invoke();
+        }
+
         /// <summary>
         /// Force an update of the state with no attached transaction.
         /// This is a no-op if a transaction is already active. Should generally be used as a safety measure to ensure granular changes are not left outside a transaction.
@@ -655,13 +664,18 @@ namespace osu.Game.Screens.Edit
             if (currentSnapshotCommand.IsRedundant == true)
                 return;
 
+            addCommandToHistory(currentSnapshotCommand);
+        }
+
+        private void addCommandToHistory(ICommand command)
+        {
             if (lastExecutedCommand < commandHistory.Count - 1)
                 commandHistory.RemoveRange(lastExecutedCommand + 1, commandHistory.Count - lastExecutedCommand - 1);
 
             if (commandHistory.Count > MAX_SAVED_STATES)
                 commandHistory.RemoveAt(0);
 
-            commandHistory.Add(currentSnapshotCommand);
+            commandHistory.Add(command);
             currentSnapshotCommand = null;
 
             lastExecutedCommand = commandHistory.Count - 1;
@@ -687,9 +701,9 @@ namespace osu.Game.Screens.Edit
             isRestoring = true;
 
             if (direction > 0)
-                commandHistory[++lastExecutedCommand].Apply();
+                commandHistory[++lastExecutedCommand].Apply(this);
             else
-                commandHistory[lastExecutedCommand--].Rollback();
+                commandHistory[lastExecutedCommand--].Rollback(this);
 
             isRestoring = false;
 

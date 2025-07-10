@@ -6,16 +6,13 @@ using System.Linq;
 
 namespace osu.Game.Screens.Edit
 {
-    public class ApplyBeatmapSnapshotCommand
+    public class ApplyBeatmapSnapshotCommand : ICommand
     {
-        private readonly LegacyEditorBeatmapPatcher patcher;
-
         private readonly byte[] initialState;
         private byte[]? finalState;
 
-        public ApplyBeatmapSnapshotCommand(EditorBeatmap editorBeatmap, byte[] initialState)
+        public ApplyBeatmapSnapshotCommand(byte[] initialState)
         {
-            patcher = new LegacyEditorBeatmapPatcher(editorBeatmap);
             this.initialState = initialState;
         }
 
@@ -26,20 +23,20 @@ namespace osu.Game.Screens.Edit
 
         public bool? IsRedundant => finalState?.SequenceEqual(initialState);
 
-        public void Apply()
+        public void Apply(EditorBeatmap editorBeatmap)
         {
             if (finalState == null)
                 throw new InvalidOperationException();
 
-            patcher.Patch(initialState, finalState);
+            new LegacyEditorBeatmapPatcher(editorBeatmap).Patch(initialState, finalState);
         }
 
-        public void Rollback()
+        public void Rollback(EditorBeatmap editorBeatmap)
         {
             if (finalState == null)
                 throw new InvalidOperationException();
 
-            patcher.Patch(finalState, initialState);
+            new LegacyEditorBeatmapPatcher(editorBeatmap).Patch(finalState, initialState);
         }
     }
 }
