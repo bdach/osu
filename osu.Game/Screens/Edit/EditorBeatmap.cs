@@ -141,6 +141,8 @@ namespace osu.Game.Screens.Edit
             });
 
             BeatmapVersion = PlayableBeatmap.BeatmapVersion;
+
+            lastSnapshot = getBeatmapSnapshot();
         }
 
         /// <summary>
@@ -564,6 +566,10 @@ namespace osu.Game.Screens.Edit
         public event Action OnStateChange;
 
         private readonly List<ApplyBeatmapSnapshotCommand> commandHistory = new List<ApplyBeatmapSnapshotCommand>();
+
+        private byte[] lastSnapshot;
+
+        [CanBeNull]
         private ApplyBeatmapSnapshotCommand currentSnapshotCommand;
 
         private int lastExecutedCommand = -1;
@@ -576,10 +582,18 @@ namespace osu.Game.Screens.Edit
             get
             {
                 using var stream = new MemoryStream();
-                using var sw = new StreamWriter(stream, Encoding.UTF8, 1024, true);
-                new LegacyBeatmapEncoder(this, BeatmapSkin).Encode(sw);
+                using (var sw = new StreamWriter(stream, Encoding.UTF8, 1024, true))
+                    new LegacyBeatmapEncoder(this, BeatmapSkin).Encode(sw);
                 return stream.ComputeSHA2Hash();
             }
+        }
+
+        private byte[] getBeatmapSnapshot()
+        {
+            using var stream = new MemoryStream();
+            using (var sw = new StreamWriter(stream, Encoding.UTF8, 1024, true))
+                new LegacyBeatmapEncoder(this, BeatmapSkin).Encode(sw);
+            return stream.ToArray();
         }
 
         private bool isRestoring;
@@ -591,7 +605,7 @@ namespace osu.Game.Screens.Edit
             if (isRestoring)
                 return;
 
-            currentSnapshotCommand ??= new ApplyBeatmapSnapshotCommand(this);
+            currentSnapshotCommand = new ApplyBeatmapSnapshotCommand(this, lastSnapshot);
 
             if (bulkChangesStarted++ == 0)
                 TransactionBegan?.Invoke();
@@ -604,7 +618,10 @@ namespace osu.Game.Screens.Edit
         public void EndChange()
         {
             if (isRestoring)
+            {
+                UpdateState();
                 return;
+            }
 
             if (bulkChangesStarted == 0 || currentSnapshotCommand == null)
                 throw new InvalidOperationException($"Cannot call {nameof(EndChange)} without a previous call to {nameof(BeginChange)}.");
@@ -633,7 +650,7 @@ namespace osu.Game.Screens.Edit
             Debug.Assert(currentSnapshotCommand != null);
 
             UpdateState();
-            currentSnapshotCommand.Finish();
+            currentSnapshotCommand.Finish(lastSnapshot = getBeatmapSnapshot());
 
             if (currentSnapshotCommand.IsRedundant == true)
                 return;
@@ -678,6 +695,7 @@ namespace osu.Game.Screens.Edit
 
             OnStateChange?.Invoke();
             updateBindables();
+            lastSnapshot = getBeatmapSnapshot();
         }
 
         private void updateBindables()
