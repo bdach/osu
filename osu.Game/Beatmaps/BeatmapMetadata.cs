@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osu.Game.Models;
@@ -42,6 +43,8 @@ namespace osu.Game.Beatmaps
 
         [JsonProperty(@"tags")]
         public string Tags { get; set; } = string.Empty;
+
+        public IList<string> UserTags { get; } = null!;
 
         /// <summary>
         /// The time in milliseconds to begin playing the track for preview purposes.

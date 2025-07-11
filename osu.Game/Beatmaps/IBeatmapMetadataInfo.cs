@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Game.Users;
 
 namespace osu.Game.Beatmaps
@@ -45,6 +46,8 @@ namespace osu.Game.Beatmaps
         /// The tags of this beatmap.
         /// </summary>
         string Tags { get; }
+
+        IList<string> UserTags { get; }
 
         /// <summary>
         /// The time in milliseconds to begin playing the track for preview purposes.

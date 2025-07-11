@@ -31,6 +31,12 @@ namespace osu.Game.Beatmaps
             if (filter.Matches(metadataInfo.Source)) return true;
             if (filter.Matches(metadataInfo.Tags)) return true;
 
+            foreach (string userTag in metadataInfo.UserTags)
+            {
+                if (filter.Matches(userTag))
+                    return true;
+            }
+
             return false;
         }
 

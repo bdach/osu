@@ -208,6 +208,7 @@ namespace osu.Game
 
         private UserLookupCache userCache;
         private BeatmapLookupCache beatmapCache;
+        private BeatmapSetLookupCache beatmapSetCache;
         protected LeaderboardManager LeaderboardManager { get; private set; }
 
         private RulesetConfigCache rulesetConfigCache;
@@ -346,6 +347,9 @@ namespace osu.Game
 
             dependencies.Cache(beatmapCache = new BeatmapLookupCache());
             base.Content.Add(beatmapCache);
+
+            dependencies.Cache(beatmapSetCache = new BeatmapSetLookupCache());
+            base.Content.Add(beatmapSetCache);
 
             dependencies.CacheAs<IRulesetConfigCache>(rulesetConfigCache = new RulesetConfigCache(realm, RulesetStore));
 
