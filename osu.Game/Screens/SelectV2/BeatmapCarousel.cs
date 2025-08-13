@@ -126,6 +126,12 @@ namespace osu.Game.Screens.SelectV2
 
         #region Beatmap source hookup
 
+        /// <summary>
+        /// Maps a <see cref="BeatmapInfo"/> <see cref="BeatmapInfo.ID"/> onto its index in <see cref="Carousel{T}.Items"/>.
+        /// Done to avoid overhead from calling <see cref="BindableList{T}.IndexOf"/> in the "replace" case in the change callback below.
+        /// </summary>
+        private readonly Dictionary<Guid, int> beatmapIdToIndexMap = new Dictionary<Guid, int>();
+
         private void beatmapSetsChanged(object? beatmaps, NotifyCollectionChangedEventArgs changed) => Schedule(() =>
         {
             // This callback is scheduled to ensure there's no added overhead during gameplay.
@@ -140,10 +146,20 @@ namespace osu.Game.Screens.SelectV2
             IEnumerable<BeatmapSetInfo>? newItems = changed.NewItems?.Cast<BeatmapSetInfo>();
             IEnumerable<BeatmapSetInfo>? oldItems = changed.OldItems?.Cast<BeatmapSetInfo>();
 
+            int itemsCountBefore = Items.Count;
+
             switch (changed.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    Items.AddRange(newItems!.SelectMany(s => s.Beatmaps));
+                    var newBeatmaps = newItems!.SelectMany(s => s.Beatmaps).ToList();
+                    Items.AddRange(newBeatmaps);
+
+                    foreach (var beatmap in newBeatmaps)
+                    {
+                        beatmapIdToIndexMap[beatmap.ID] = itemsCountBefore;
+                        itemsCountBefore++;
+                    }
+
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
@@ -157,6 +173,10 @@ namespace osu.Game.Screens.SelectV2
                             selectedSetDeleted |= CheckModelEquality(CurrentSelection, beatmap);
                         }
                     }
+
+                    // recompute the beatmap-to-index mapping
+                    // probably can be improved but applying this only to items whose indices were actually changed is VERY ANNOYING and requires iterating through all items anyway so this is maybe fine
+                    reconstructBeatmapIdToIndexMap();
 
                     // After removing all items in this batch, we want to make an immediate reselection
                     // based on adjacency to the previous selection if it was deleted.
@@ -239,12 +259,11 @@ namespace osu.Game.Screens.SelectV2
                     // have been processed) if it becomes an issue for animation or performance reasons.
                     foreach (var beatmap in oldSetBeatmaps)
                     {
-                        int previousIndex = Items.IndexOf(beatmap);
-                        Debug.Assert(previousIndex >= 0);
+                        int previousIndex = beatmapIdToIndexMap[beatmap.ID];
 
                         BeatmapInfo? matchingNewBeatmap =
-                            newSetBeatmaps.SingleOrDefault(b => b.OnlineID > 0 && b.OnlineID == beatmap.OnlineID) ??
-                            newSetBeatmaps.SingleOrDefault(b => b.DifficultyName == beatmap.DifficultyName && b.Ruleset.Equals(beatmap.Ruleset));
+                            newSetBeatmaps.FirstOrDefault(b => b.OnlineID > 0 && b.OnlineID == beatmap.OnlineID) ??
+                            newSetBeatmaps.FirstOrDefault(b => b.DifficultyName == beatmap.DifficultyName && b.Ruleset.Equals(beatmap.Ruleset));
 
                         if (matchingNewBeatmap != null)
                         {
@@ -259,20 +278,38 @@ namespace osu.Game.Screens.SelectV2
                         else
                         {
                             Items.RemoveAt(previousIndex);
+                            // recompute the beatmap-to-index mapping
+                            // probably can be improved but applying this only to items whose indices were actually changed is VERY ANNOYING and requires iterating through all items anyway so this is maybe fine
+                            reconstructBeatmapIdToIndexMap();
                         }
                     }
 
                     // Add any items which weren't found in the previous pass (difficulty names didn't match).
                     foreach (var beatmap in newSetBeatmaps)
+                    {
                         Items.Add(beatmap);
+                        beatmapIdToIndexMap[beatmap.ID] = itemsCountBefore;
+                        itemsCountBefore++;
+                    }
 
                     break;
 
                 case NotifyCollectionChangedAction.Reset:
                     Items.Clear();
+                    beatmapIdToIndexMap.Clear();
                     break;
             }
         });
+
+        private void reconstructBeatmapIdToIndexMap()
+        {
+            beatmapIdToIndexMap.Clear();
+
+            for (int i = 0; i < Items.Count; i++)
+            {
+                beatmapIdToIndexMap[Items[i].ID] = i;
+            }
+        }
 
         #endregion
 
