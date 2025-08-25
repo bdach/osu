@@ -959,6 +959,7 @@ namespace osu.Game.Screens.Play
             Debug.Assert(!GameplayState.HasQuit);
 
             GameplayState.HasFailed = true;
+            Logger.Log($"gameplay state marked failed from:\n{string.Join(string.Empty, new StackTrace(true).GetFrames().Select(f => f.ToString()))}");
 
             updateGameplayState();
 

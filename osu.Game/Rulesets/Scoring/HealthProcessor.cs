@@ -3,6 +3,8 @@
 
 using System;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.TypeExtensions;
+using osu.Framework.Logging;
 using osu.Framework.Utils;
 using osu.Game.Rulesets.Judgements;
 
@@ -54,7 +56,10 @@ namespace osu.Game.Rulesets.Scoring
             Health.Value += GetHealthIncreaseFor(result);
 
             if (meetsAnyFailCondition(result))
+            {
+                Logger.Log($"attempting to trigger fail from ho:{result.HitObject.GetType().ReadableName()} @ {result.HitObject.StartTime} resultType={result.Type} timeOffset={result.TimeOffset}");
                 TriggerFailure();
+            }
         }
 
         protected override void RevertResultInternal(JudgementResult result)
