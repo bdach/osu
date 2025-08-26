@@ -27,17 +27,19 @@ namespace osu.Game.Screens.SelectV2
         public int BeatmapItemsCount { get; private set; }
 
         /// <summary>
-        /// Beatmap sets contain difficulties as related panels. This dictionary holds the relationships between set-difficulties to allow expanding them on selection.
-        /// </summary>
-        public IDictionary<BeatmapSetInfo, HashSet<CarouselItem>> SetItems => setMap;
-
-        /// <summary>
         /// Groups contain children which are group-selectable. This dictionary holds the relationships between groups-panels to allow expanding them on selection.
         /// </summary>
         public IDictionary<GroupDefinition, HashSet<CarouselItem>> GroupItems => groupMap;
 
-        private Dictionary<BeatmapSetInfo, HashSet<CarouselItem>> setMap = new Dictionary<BeatmapSetInfo, HashSet<CarouselItem>>();
+        public record BeatmapSetUnderGrouping(GroupDefinition? Group, BeatmapSetInfo BeatmapSet);
+
+        /// <summary>
+        /// Beatmap sets contain difficulties as related panels. This dictionary holds the relationships between set-difficulties to allow expanding them on selection.
+        /// </summary>
+        public IDictionary<BeatmapSetUnderGrouping, HashSet<CarouselItem>> SetItems => setMap;
+
         private Dictionary<GroupDefinition, HashSet<CarouselItem>> groupMap = new Dictionary<GroupDefinition, HashSet<CarouselItem>>();
+        private Dictionary<BeatmapSetUnderGrouping, HashSet<CarouselItem>> setMap = new Dictionary<BeatmapSetUnderGrouping, HashSet<CarouselItem>>();
 
         private readonly Func<FilterCriteria> getCriteria;
         private readonly Func<List<BeatmapCollection>> getCollections;
@@ -55,8 +57,8 @@ namespace osu.Game.Screens.SelectV2
             return await Task.Run(() =>
             {
                 // preallocate space for the new mappings using last known estimates
-                var newSetMap = new Dictionary<BeatmapSetInfo, HashSet<CarouselItem>>(setMap.Count);
                 var newGroupMap = new Dictionary<GroupDefinition, HashSet<CarouselItem>>(groupMap.Count);
+                var newSetMap = new Dictionary<BeatmapSetUnderGrouping, HashSet<CarouselItem>>(setMap.Count);
 
                 var criteria = getCriteria();
                 var newItems = new List<CarouselItem>();
@@ -96,8 +98,9 @@ namespace osu.Game.Screens.SelectV2
 
                         if (newBeatmapSet)
                         {
-                            if (!newSetMap.TryGetValue(beatmap.BeatmapSet!, out currentSetItems))
-                                newSetMap[beatmap.BeatmapSet!] = currentSetItems = new HashSet<CarouselItem>();
+                            var setUnderGrouping = new BeatmapSetUnderGrouping(group, beatmap.BeatmapSet!);
+                            if (!newSetMap.TryGetValue(setUnderGrouping, out currentSetItems))
+                                newSetMap[setUnderGrouping] = currentSetItems = new HashSet<CarouselItem>();
                         }
 
                         if (BeatmapSetsGroupedTogether)
@@ -107,7 +110,7 @@ namespace osu.Game.Screens.SelectV2
                                 if (groupItem != null)
                                     groupItem.NestedItemCount++;
 
-                                addItem(new CarouselItem(beatmap.BeatmapSet!)
+                                addItem(new CarouselItem(new BeatmapSetUnderGrouping(group, beatmap.BeatmapSet!))
                                 {
                                     DrawHeight = PanelBeatmapSet.HEIGHT,
                                     DepthLayer = -1
@@ -134,7 +137,7 @@ namespace osu.Game.Screens.SelectV2
                         currentGroupItems?.Add(i);
                         currentSetItems?.Add(i);
 
-                        i.IsVisible = i.Model is GroupDefinition || (group == null && (i.Model is BeatmapSetInfo || !BeatmapSetsGroupedTogether));
+                        i.IsVisible = i.Model is GroupDefinition || (group == null && (i.Model is BeatmapSetUnderGrouping || i.Model is BeatmapSetInfo || !BeatmapSetsGroupedTogether));
                     }
                 }
 

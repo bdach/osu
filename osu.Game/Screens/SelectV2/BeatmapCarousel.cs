@@ -69,11 +69,11 @@ namespace osu.Game.Screens.SelectV2
             if (grouping.BeatmapSetsGroupedTogether)
             {
                 // Give some space around the expanded beatmap set, at the top..
-                if (bottom.Model is BeatmapSetInfo && bottom.IsExpanded)
+                if ((bottom.Model is BeatmapSetInfo || bottom.Model is BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping) && bottom.IsExpanded)
                     return SPACING * 2;
 
                 // ..and the bottom.
-                if (top.Model is BeatmapInfo && bottom.Model is BeatmapSetInfo)
+                if (top.Model is BeatmapInfo && (bottom.Model is BeatmapSetInfo || bottom.Model is BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping))
                     return SPACING * 2;
 
                 // Beatmap difficulty panels do not overlap with themselves or any other panel.
@@ -214,6 +214,15 @@ namespace osu.Game.Screens.SelectV2
                                     RequestRecommendedSelection(beatmapSetInfo.Beatmaps);
                                     return true;
                                 }
+
+                                if (item.Model is BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping bsug)
+                                {
+                                    if (oldItems.Contains(bsug.BeatmapSet))
+                                        return false;
+
+                                    RequestRecommendedSelection(bsug.BeatmapSet.Beatmaps);
+                                    return true;
+                                }
                             }
 
                             return false;
@@ -282,7 +291,7 @@ namespace osu.Game.Screens.SelectV2
 
         protected GroupDefinition? ExpandedGroup { get; private set; }
 
-        protected BeatmapSetInfo? ExpandedBeatmapSet { get; private set; }
+        protected BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping? ExpandedBeatmapSet { get; private set; }
 
         protected override bool ShouldActivateOnKeyboardSelection(CarouselItem item) =>
             grouping.BeatmapSetsGroupedTogether && item.Model is BeatmapInfo;
@@ -310,8 +319,8 @@ namespace osu.Game.Screens.SelectV2
 
                         return;
 
-                    case BeatmapSetInfo setInfo:
-                        selectRecommendedDifficultyForBeatmapSet(setInfo);
+                    case BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping setUnderGrouping:
+                        selectRecommendedDifficultyForBeatmapSet(setUnderGrouping);
                         return;
 
                     case BeatmapInfo beatmapInfo:
@@ -338,6 +347,7 @@ namespace osu.Game.Screens.SelectV2
             switch (model)
             {
                 case BeatmapSetInfo:
+                case BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping:
                 case GroupDefinition:
                     throw new InvalidOperationException("Groups should never become selected");
 
@@ -348,7 +358,7 @@ namespace osu.Game.Screens.SelectV2
                     setExpandedGroup(containingGroup);
 
                     if (grouping.BeatmapSetsGroupedTogether)
-                        setExpandedSet(beatmapInfo);
+                        setExpandedSet(containingGroup, beatmapInfo);
                     break;
             }
         }
@@ -372,10 +382,10 @@ namespace osu.Game.Screens.SelectV2
                 setExpandedGroup(groupForReselection);
         }
 
-        private void selectRecommendedDifficultyForBeatmapSet(BeatmapSetInfo beatmapSet)
+        private void selectRecommendedDifficultyForBeatmapSet(BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping setUnderGrouping)
         {
             // Selecting a set isn't valid – let's re-select the first visible difficulty.
-            if (grouping.SetItems.TryGetValue(beatmapSet, out var items))
+            if (grouping.SetItems.TryGetValue(setUnderGrouping, out var items))
             {
                 var beatmaps = items.Select(i => i.Model).OfType<BeatmapInfo>();
                 RequestRecommendedSelection(beatmaps);
@@ -424,6 +434,7 @@ namespace osu.Game.Screens.SelectV2
             switch (item.Model)
             {
                 case BeatmapSetInfo:
+                case BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping:
                     return true;
 
                 case BeatmapInfo:
@@ -462,11 +473,11 @@ namespace osu.Game.Screens.SelectV2
                                 i.IsExpanded = true;
                                 break;
 
-                            case BeatmapSetInfo set:
+                            case BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping setUnderGrouping:
                                 // Case where there are set headers, header should be visible
                                 // and items should use the set's expanded state.
                                 i.IsVisible = true;
-                                setExpansionStateOfSetItems(set, i.IsExpanded);
+                                setExpansionStateOfSetItems(setUnderGrouping, i.IsExpanded);
                                 break;
 
                             default:
@@ -496,21 +507,21 @@ namespace osu.Game.Screens.SelectV2
             }
         }
 
-        private void setExpandedSet(BeatmapInfo beatmapInfo)
+        private void setExpandedSet(GroupDefinition containingGroup, BeatmapInfo beatmapInfo)
         {
             if (ExpandedBeatmapSet != null)
                 setExpansionStateOfSetItems(ExpandedBeatmapSet, false);
-            ExpandedBeatmapSet = beatmapInfo.BeatmapSet!;
+            ExpandedBeatmapSet = new BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping(containingGroup, beatmapInfo.BeatmapSet!);
             setExpansionStateOfSetItems(ExpandedBeatmapSet, true);
         }
 
-        private void setExpansionStateOfSetItems(BeatmapSetInfo set, bool expanded)
+        private void setExpansionStateOfSetItems(BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping set, bool expanded)
         {
             if (grouping.SetItems.TryGetValue(set, out var items))
             {
                 foreach (var i in items)
                 {
-                    if (i.Model is BeatmapSetInfo)
+                    if (i.Model is BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping)
                         i.IsExpanded = expanded;
                     else
                         i.IsVisible = expanded;
@@ -549,6 +560,7 @@ namespace osu.Game.Screens.SelectV2
                         return;
 
                     case BeatmapSetInfo:
+                    case BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping:
                         sampleChangeSet?.Play();
                         return;
 
@@ -687,6 +699,9 @@ namespace osu.Game.Screens.SelectV2
             // it is doing a Replace operation on the list. If it is, then check the local handling in beatmapSetsChanged
             // before changing matching requirements here.
 
+            if (x is BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping bsugX && y is BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping bsugY)
+                return bsugX.Equals(bsugY);
+
             if (x is BeatmapSetInfo beatmapSetX && y is BeatmapSetInfo beatmapSetY)
                 return beatmapSetX.Equals(beatmapSetY);
 
@@ -719,6 +734,7 @@ namespace osu.Game.Screens.SelectV2
                     return beatmapPanelPool.Get();
 
                 case BeatmapSetInfo:
+                case BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping:
                     return setPanelPool.Get();
             }
 
@@ -836,7 +852,7 @@ namespace osu.Game.Screens.SelectV2
                 // using the `SetItems` method until we get a group HIT.
                 ? grouping.GroupItems[ExpandedGroup].Select(i => i.Model).OfType<BeatmapSetInfo>().ToArray()
                 // This is the fastest way to retrieve sets for randomisation.
-                : grouping.SetItems.Keys;
+                : grouping.SetItems.Keys.Select(bsug => bsug.BeatmapSet).ToArray();
 
             BeatmapSetInfo set;
 
@@ -869,7 +885,7 @@ namespace osu.Game.Screens.SelectV2
                     throw new ArgumentOutOfRangeException();
             }
 
-            selectRecommendedDifficultyForBeatmapSet(set);
+            selectRecommendedDifficultyForBeatmapSet(new BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping(ExpandedGroup, set));
             return true;
         }
 

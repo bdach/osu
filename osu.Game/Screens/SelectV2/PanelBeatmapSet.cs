@@ -181,7 +181,22 @@ namespace osu.Game.Screens.SelectV2
 
             Debug.Assert(Item != null);
 
-            var beatmapSet = (BeatmapSetInfo)Item.Model;
+            BeatmapSetInfo beatmapSet;
+
+            switch (Item.Model)
+            {
+                // TODO probably removable
+                case BeatmapSetInfo bsi:
+                    beatmapSet = bsi;
+                    break;
+
+                case BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping bsug:
+                    beatmapSet = bsug.BeatmapSet;
+                    break;
+
+                default:
+                    throw new InvalidOperationException(@"nani the fuck");
+            }
 
             // Choice of background image matches BSS implementation (always uses the lowest `beatmap_id` from the set).
             setBackground.Beatmap = beatmaps.GetWorkingBeatmap(beatmapSet.Beatmaps.MinBy(b => b.OnlineID));
