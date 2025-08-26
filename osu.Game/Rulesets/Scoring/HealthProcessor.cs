@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
+using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
@@ -42,7 +44,10 @@ namespace osu.Game.Rulesets.Scoring
                 return;
 
             if (Failed?.Invoke() != false)
+            {
+                Logger.Log($"health processor marked failed from:\n{string.Join(string.Empty, new StackTrace(true).GetFrames().Select(f => f.ToString()))}");
                 HasFailed = true;
+            }
         }
 
         protected override void ApplyResultInternal(JudgementResult result)
@@ -68,7 +73,10 @@ namespace osu.Game.Rulesets.Scoring
             // but it also acts up (sometimes rewinding a replay several times around the fail boundary moves the point of fail forward).
             // needs further investigation.
             if (result.FailedAtJudgement)
+            {
+                Logger.Log($"health processor fail reverted by:\n{string.Join(string.Empty, new StackTrace(true).GetFrames().Select(f => f.ToString()))}");
                 HasFailed = false;
+            }
 
             if (HasFailed)
                 return;
@@ -117,6 +125,7 @@ namespace osu.Game.Rulesets.Scoring
 
             Health.Value = 1;
             HasFailed = false;
+            Logger.Log($"health processor fail reset by:\n{string.Join(string.Empty, new StackTrace(true).GetFrames().Select(f => f.ToString()))}");
         }
     }
 }
