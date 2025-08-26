@@ -24,6 +24,7 @@ using osuTK;
 using osu.Game.Rulesets.Objects.Pooling;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics.Primitives;
+using osu.Framework.Logging;
 
 namespace osu.Game.Rulesets.UI
 {
@@ -282,6 +283,7 @@ namespace osu.Game.Rulesets.UI
                 if (Time.Current >= result.RawTime.Value)
                     break;
 
+                Logger.Log($@"WE GOING BACK, BACK TO THE PAST (from:{result.RawTime.Value} to:{Time.Current})");
                 revertResult(judgedEntries.Pop());
             }
         }
