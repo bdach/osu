@@ -32,8 +32,6 @@ namespace osu.Game.Screens.SelectV2
         /// </summary>
         public IDictionary<GroupDefinition, HashSet<CarouselItem>> GroupItems => groupMap;
 
-        public record BeatmapSetUnderGrouping(GroupDefinition? Group, BeatmapSetInfo BeatmapSet);
-
         /// <summary>
         /// Beatmap sets contain difficulties as related panels. This dictionary holds the relationships between set-difficulties to allow expanding them on selection.
         /// </summary>
