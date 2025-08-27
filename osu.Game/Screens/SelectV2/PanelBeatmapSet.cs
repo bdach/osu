@@ -190,7 +190,7 @@ namespace osu.Game.Screens.SelectV2
                     beatmapSet = bsi;
                     break;
 
-                case BeatmapCarouselFilterGrouping.BeatmapSetUnderGrouping bsug:
+                case BeatmapSetUnderGrouping bsug:
                     beatmapSet = bsug.BeatmapSet;
                     break;
 

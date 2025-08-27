@@ -124,7 +124,7 @@ namespace osu.Game.Screens.SelectV2
                             item.DrawHeight = PanelBeatmapStandalone.HEIGHT;
                         }
 
-                        addItem(item);
+                        addItem(new CarouselItem(new BeatmapUnderGrouping(group, beatmap)));
                         lastBeatmap = beatmap;
                         displayedBeatmapsCount++;
                     }
@@ -136,7 +136,7 @@ namespace osu.Game.Screens.SelectV2
                         currentGroupItems?.Add(i);
                         currentSetItems?.Add(i);
 
-                        i.IsVisible = i.Model is GroupDefinition || (group == null && (i.Model is BeatmapSetUnderGrouping || i.Model is BeatmapSetInfo || !BeatmapSetsGroupedTogether));
+                        i.IsVisible = i.Model is GroupDefinition || (group == null && (i.Model is BeatmapSetUnderGrouping || !BeatmapSetsGroupedTogether));
                     }
                 }
 

@@ -43,6 +43,7 @@ namespace osu.Game.Screens.SelectV2
         private OsuSpriteText authorText = null!;
         private FillFlowContainer mainFill = null!;
 
+        private BeatmapInfo? beatmap;
         private IBindable<StarDifficulty>? starDifficultyBindable;
         private CancellationTokenSource? starDifficultyCancellationSource;
 
@@ -217,7 +218,20 @@ namespace osu.Game.Screens.SelectV2
             base.PrepareForUse();
 
             Debug.Assert(Item != null);
-            var beatmap = (BeatmapInfo)Item.Model;
+
+            switch (Item.Model)
+            {
+                case BeatmapInfo bi:
+                    beatmap = bi;
+                    break;
+
+                case BeatmapUnderGrouping bug:
+                    beatmap = bug.Beatmap;
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
             difficultyIcon.Icon = getRulesetIcon(beatmap.Ruleset);
 
@@ -243,6 +257,7 @@ namespace osu.Game.Screens.SelectV2
         {
             base.FreeAfterUse();
 
+            beatmap = null;
             localRank.Beatmap = null;
             starDifficultyBindable = null;
 
@@ -254,10 +269,8 @@ namespace osu.Game.Screens.SelectV2
             starDifficultyCancellationSource?.Cancel();
             starDifficultyCancellationSource = new CancellationTokenSource();
 
-            if (Item == null)
+            if (beatmap == null)
                 return;
-
-            var beatmap = (BeatmapInfo)Item.Model;
 
             starDifficultyBindable = difficultyCache.GetBindableDifficulty(beatmap, starDifficultyCancellationSource.Token, SongSelect.SELECTION_DEBOUNCE);
             starDifficultyBindable.BindValueChanged(starDifficulty =>
@@ -299,10 +312,8 @@ namespace osu.Game.Screens.SelectV2
 
         private void updateKeyCount()
         {
-            if (Item == null)
+            if (beatmap == null)
                 return;
-
-            var beatmap = (BeatmapInfo)Item.Model;
 
             if (ruleset.Value.OnlineID == 3)
             {
@@ -322,13 +333,13 @@ namespace osu.Game.Screens.SelectV2
         {
             get
             {
-                if (Item == null)
+                if (beatmap == null)
                     return Array.Empty<MenuItem>();
 
                 List<MenuItem> items = new List<MenuItem>();
 
                 if (songSelect != null)
-                    items.AddRange(songSelect.GetForwardActions((BeatmapInfo)Item.Model));
+                    items.AddRange(songSelect.GetForwardActions(beatmap));
 
                 return items.ToArray();
             }

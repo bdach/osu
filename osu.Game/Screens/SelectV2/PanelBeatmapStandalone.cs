@@ -230,7 +230,22 @@ namespace osu.Game.Screens.SelectV2
 
             Debug.Assert(Item != null);
 
-            var beatmap = (BeatmapInfo)Item.Model;
+            BeatmapInfo beatmap;
+
+            switch (Item.Model)
+            {
+                case BeatmapInfo bi:
+                    beatmap = bi;
+                    break;
+
+                case BeatmapUnderGrouping bug:
+                    beatmap = bug.Beatmap;
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
             var beatmapSet = beatmap.BeatmapSet!;
 
             beatmapBackground.Beatmap = beatmaps.GetWorkingBeatmap(beatmap);

@@ -289,9 +289,10 @@ namespace osu.Game.Screens.SelectV2
             });
         }
 
-        private void requestRecommendedSelection(IEnumerable<BeatmapInfo> b)
+        private void requestRecommendedSelection(BeatmapSetUnderGrouping beatmapSetUnderGrouping)
         {
-            queueBeatmapSelection(difficultyRecommender?.GetRecommendedBeatmap(b) ?? b.First());
+            var b = beatmapSetUnderGrouping.BeatmapSet.Beatmaps;
+            queueBeatmapSelection(new BeatmapUnderGrouping(beatmapSetUnderGrouping.Group, difficultyRecommender?.GetRecommendedBeatmap(b) ?? b.First())); // TODO: probably TURBO dodgy
         }
 
         /// <summary>
@@ -472,22 +473,22 @@ namespace osu.Game.Screens.SelectV2
         /// - After <see cref="SELECTION_DEBOUNCE"/>, update the global beatmap. This in turn causes song select visuals (title, details, leaderboard) to update.
         ///   This debounce is intended to avoid high overheads from churning lookups while a user is changing selection via rapid keyboard operations.
         /// </remarks>
-        /// <param name="beatmap">The beatmap to be selected.</param>
-        private void queueBeatmapSelection(BeatmapInfo beatmap)
+        /// <param name="bug">The beatmap to be selected.</param>
+        private void queueBeatmapSelection(BeatmapUnderGrouping bug)
         {
             if (!this.IsCurrentScreen())
                 return;
 
-            carousel.CurrentSelection = beatmap;
+            carousel.CurrentSelection = bug;
 
             // Debounce consideration is to avoid beatmap churn on key repeat selection.
             selectionDebounce?.Cancel();
             selectionDebounce = Scheduler.AddDelayed(() =>
             {
-                if (Beatmap.Value.BeatmapInfo.Equals(beatmap))
+                if (Beatmap.Value.BeatmapInfo.Equals(bug.Beatmap))
                     return;
 
-                Beatmap.Value = beatmaps.GetWorkingBeatmap(beatmap);
+                Beatmap.Value = beatmaps.GetWorkingBeatmap(bug.Beatmap);
             }, SELECTION_DEBOUNCE);
         }
 
@@ -532,7 +533,7 @@ namespace osu.Game.Screens.SelectV2
 
                 if (validBeatmaps.Any())
                 {
-                    requestRecommendedSelection(validBeatmaps);
+                    Beatmap.Value = beatmaps.GetWorkingBeatmap(difficultyRecommender?.GetRecommendedBeatmap(validBeatmaps) ?? validBeatmaps.First());
                     return true;
                 }
             }
