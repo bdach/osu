@@ -129,6 +129,8 @@ namespace osu.Game.Screens.SelectV2
 
         #region Beatmap source hookup
 
+        private BeatmapInfo? lastDeletedBeatmap;
+
         private void beatmapSetsChanged(object? beatmaps, NotifyCollectionChangedEventArgs changed) => Schedule(() =>
         {
             // This callback is scheduled to ensure there's no added overhead during gameplay.
@@ -149,7 +151,19 @@ namespace osu.Game.Screens.SelectV2
                     if (!newItems!.Any())
                         return;
 
-                    Items.AddRange(newItems!.SelectMany(s => s.Beatmaps));
+                    var newBeatmaps = newItems!.SelectMany(s => s.Beatmaps);
+                    Items.AddRange(newBeatmaps);
+
+                    foreach (var newBeatmap in newBeatmaps)
+                    {
+                        if (newBeatmap.OnlineID == lastDeletedBeatmap?.OnlineID
+                            || (newBeatmap.BeatmapSet!.OnlineID == lastDeletedBeatmap?.BeatmapSet?.OnlineID
+                                && newBeatmap.DifficultyName.Equals(lastDeletedBeatmap.DifficultyName, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            RequestSelection(new GroupedBeatmap(null, newBeatmap));
+                        }
+                    }
+
                     break;
 
                 case NotifyCollectionChangedAction.Remove:
@@ -160,7 +174,12 @@ namespace osu.Game.Screens.SelectV2
                         foreach (var beatmap in set.Beatmaps)
                         {
                             Items.RemoveAll(i => i is BeatmapInfo bi && beatmap.Equals(bi));
-                            selectedSetDeleted |= CheckModelEquality((CurrentSelection as GroupedBeatmap)?.Beatmap, beatmap);
+
+                            if (CheckModelEquality(CurrentGroupedBeatmap?.Beatmap, beatmap))
+                            {
+                                selectedSetDeleted = true;
+                                lastDeletedBeatmap = CurrentBeatmap;
+                            }
                         }
                     }
 
