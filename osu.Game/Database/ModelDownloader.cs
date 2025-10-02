@@ -11,11 +11,12 @@ using osu.Framework.Logging;
 using osu.Game.Extensions;
 using osu.Game.Online.API;
 using osu.Game.Overlays.Notifications;
+using Realms;
 
 namespace osu.Game.Database
 {
     public abstract partial class ModelDownloader<TModel, T> : IModelDownloader<T>
-        where TModel : class, IHasGuidPrimaryKey, ISoftDelete, IEquatable<TModel>, T
+        where TModel : RealmObjectBase, IHasGuidPrimaryKey, ISoftDelete, IEquatable<TModel>, T
         where T : class
     {
         public Action<Notification>? PostNotification { protected get; set; }
@@ -43,13 +44,19 @@ namespace osu.Game.Database
         /// <returns>The request object.</returns>
         protected abstract ArchiveDownloadRequest<T> CreateDownloadRequest(T model, bool minimiseDownloadSize);
 
-        public bool Download(T model, bool minimiseDownloadSize = false) => Download(model, minimiseDownloadSize, null);
+        public Task<T?> Download(T model, bool minimiseDownloadSize = false) => Download(model, minimiseDownloadSize, null);
 
-        public void DownloadAsUpdate(TModel originalModel, bool minimiseDownloadSize) => Download(originalModel, minimiseDownloadSize, originalModel);
+        public Task<T?> DownloadAsUpdate(TModel originalModel, bool minimiseDownloadSize) => Download(originalModel, minimiseDownloadSize, originalModel);
 
-        protected bool Download(T model, bool minimiseDownloadSize, TModel? originalModel)
+        protected Task<T?> Download(T model, bool minimiseDownloadSize, TModel? originalModel)
         {
-            if (!canDownload(model)) return false;
+            var tcs = new TaskCompletionSource<T?>();
+
+            if (!canDownload(model))
+            {
+                tcs.SetCanceled();
+                return tcs.Task;
+            }
 
             var request = CreateDownloadRequest(model, minimiseDownloadSize);
 
@@ -73,15 +80,38 @@ namespace osu.Game.Database
                     try
                     {
                         if (originalModel != null)
-                            importSuccessful = (await importer.ImportAsUpdate(notification, new ImportTask(filename), originalModel).ConfigureAwait(false)) != null;
+                        {
+                            var import = await importer.ImportAsUpdate(notification, new ImportTask(filename), originalModel).ConfigureAwait(false);
+
+                            if (import != null)
+                            {
+                                tcs.SetResult(import.PerformRead<T>(t => t.Detach()));
+                                importSuccessful = true;
+                            }
+                        }
                         else
-                            importSuccessful = (await importer.Import(notification, new[] { new ImportTask(filename) }).ConfigureAwait(false)).Any();
+                        {
+                            var import = (await importer.Import(notification, new[] { new ImportTask(filename) }).ConfigureAwait(false)).SingleOrDefault();
+
+                            if (import != null)
+                            {
+                                tcs.SetResult(import.PerformRead<T>(t => t.Detach()));
+                                importSuccessful = true;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.SetException(ex);
                     }
                     finally
                     {
                         // for now a failed import will be marked as a failed download for simplicity.
                         if (!importSuccessful)
+                        {
                             DownloadFailed?.Invoke(request);
+                            tcs.TrySetResult(null);
+                        }
 
                         CurrentDownloads.Remove(request);
                     }
@@ -93,6 +123,7 @@ namespace osu.Game.Database
             notification.CancelRequested += () =>
             {
                 request.Cancel();
+                tcs.TrySetCanceled();
                 return true;
             };
 
@@ -102,7 +133,7 @@ namespace osu.Game.Database
             api?.PerformAsync(request);
 
             DownloadBegan?.Invoke(request);
-            return true;
+            return tcs.Task;
 
             void triggerFailure(Exception error)
             {
@@ -122,6 +153,8 @@ namespace osu.Game.Database
                     else
                         Logger.Error(error, $"{importer.HumanisedModelName.Titleize()} download failed!");
                 }
+
+                tcs.SetException(error);
             }
         }
 

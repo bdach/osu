@@ -1,9 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
+using System.Threading.Tasks;
 using osu.Game.Online.API;
 
 namespace osu.Game.Database
@@ -33,13 +32,13 @@ namespace osu.Game.Database
         /// <param name="item">The <stypeparamref name="T"/> to be downloaded.</param>
         /// <param name="minimiseDownloadSize">Whether this download should be optimised for slow connections. Generally means extras are not included in the download bundle..</param>
         /// <returns>Whether the download was started.</returns>
-        bool Download(T item, bool minimiseDownloadSize);
+        Task<T?> Download(T item, bool minimiseDownloadSize);
 
         /// <summary>
         /// Gets an existing <typeparamref name="T"/> download request if it exists.
         /// </summary>
         /// <param name="item">The <typeparamref name="T"/> whose request is wanted.</param>
         /// <returns>The <see cref="ArchiveDownloadRequest{T}"/> object if it exists, otherwise null.</returns>
-        ArchiveDownloadRequest<T> GetExistingDownload(T item);
+        ArchiveDownloadRequest<T>? GetExistingDownload(T item);
     }
 }
