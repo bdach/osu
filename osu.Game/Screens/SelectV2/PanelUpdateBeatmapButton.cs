@@ -1,15 +1,19 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
+using osu.Framework.Platform;
 using osu.Game.Beatmaps;
 using osu.Game.Configuration;
 using osu.Game.Graphics;
@@ -48,6 +52,9 @@ namespace osu.Game.Screens.SelectV2
         private BeatmapModelDownloader beatmapDownloader { get; set; } = null!;
 
         [Resolved]
+        private Bindable<WorkingBeatmap> workingBeatmap { get; set; } = null!;
+
+        [Resolved]
         private IAPIProvider api { get; set; } = null!;
 
         [Resolved]
@@ -55,6 +62,12 @@ namespace osu.Game.Screens.SelectV2
 
         [Resolved]
         private IDialogOverlay? dialogOverlay { get; set; }
+
+        [Resolved]
+        private OsuGame? osuGame { get; set; }
+
+        [Resolved]
+        private GameHost gameHost { get; set; }
 
         public PanelUpdateBeatmapButton()
         {
@@ -173,7 +186,16 @@ namespace osu.Game.Screens.SelectV2
 
             updateConfirmed = false;
 
-            beatmapDownloader.DownloadAsUpdate(beatmapSet, preferNoVideo.Value);
+            beatmapDownloader.DownloadAsUpdate(beatmapSet, preferNoVideo.Value)
+                             .ContinueWith(t =>
+                             {
+                                 var downloadedSet = t.GetResultSafely();
+                                 if (downloadedSet == null)
+                                     return;
+
+                                 gameHost.UpdateThread.Scheduler.Add(() => osuGame?.PresentBeatmap(downloadedSet, b => b.OnlineID == workingBeatmap.Value.BeatmapInfo.OnlineID
+                                                                                                                       || b.DifficultyName.Equals(workingBeatmap.Value.BeatmapInfo.DifficultyName, StringComparison.OrdinalIgnoreCase)));
+                             }, TaskContinuationOptions.OnlyOnRanToCompletion);
             attachExistingDownload();
         }
 
