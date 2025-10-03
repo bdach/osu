@@ -258,7 +258,14 @@ namespace osu.Game.Screens.SelectV2
                                                                 BleedTop = FilterControl.HEIGHT_FROM_SCREEN_TOP + 5,
                                                                 BleedBottom = ScreenFooter.HEIGHT + 5,
                                                                 RelativeSizeAxes = Axes.Both,
-                                                                RequestPresentBeatmap = b => SelectAndRun(b, OnStart),
+                                                                RequestPresentBeatmap = b =>
+                                                                {
+                                                                    if (IsFiltering)
+                                                                        return false;
+
+                                                                    SelectAndRun(b, OnStart);
+                                                                    return true;
+                                                                },
                                                                 RequestSelection = queueBeatmapSelection,
                                                                 RequestRecommendedSelection = requestRecommendedSelection,
                                                                 NewItemsPresented = newItemsPresented,

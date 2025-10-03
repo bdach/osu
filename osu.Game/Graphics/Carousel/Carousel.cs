@@ -343,6 +343,8 @@ namespace osu.Game.Graphics.Carousel
 
         private async Task<IEnumerable<CarouselItem>> performFilter()
         {
+            var semaphore = new SemaphoreSlim(0);
+
             Stopwatch stopwatch = Stopwatch.StartNew();
             var cts = new CancellationTokenSource();
 
@@ -403,8 +405,10 @@ namespace osu.Game.Graphics.Carousel
                     ScrollToSelection();
 
                 NewItemsPresented?.Invoke(carouselItems);
+                semaphore.Release();
             });
 
+            await semaphore.WaitAsync(10000, cts.Token).ConfigureAwait(false);
             return items;
 
             void log(string text) => Logger.Log($"Carousel[op {cts.GetHashCode().ToString()}] {stopwatch.ElapsedMilliseconds} ms: {text}");

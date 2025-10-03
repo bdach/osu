@@ -19,6 +19,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Pooling;
 using osu.Framework.Localisation;
+using osu.Framework.Logging;
 using osu.Framework.Threading;
 using osu.Framework.Utils;
 using osu.Game.Beatmaps;
@@ -38,7 +39,7 @@ namespace osu.Game.Screens.SelectV2
     [Cached]
     public partial class BeatmapCarousel : Carousel<BeatmapInfo>
     {
-        public Action<BeatmapInfo>? RequestPresentBeatmap { private get; init; }
+        public Func<BeatmapInfo, bool>? RequestPresentBeatmap { private get; init; }
 
         /// <summary>
         /// From the provided beatmaps, select the most appropriate one for the user's skill.
@@ -389,7 +390,17 @@ namespace osu.Game.Screens.SelectV2
                     case GroupedBeatmap groupedBeatmap:
                         if (CurrentSelection != null && CheckModelEquality(CurrentSelection, groupedBeatmap))
                         {
-                            RequestPresentBeatmap?.Invoke(groupedBeatmap.Beatmap);
+                            bool? beatmapPresented = RequestPresentBeatmap?.Invoke(groupedBeatmap.Beatmap);
+
+                            if (beatmapPresented == false)
+                            {
+                                Schedule(() =>
+                                {
+                                    if (CurrentSelectionItem != null)
+                                        Activate(CurrentSelectionItem);
+                                });
+                            }
+
                             return;
                         }
 
