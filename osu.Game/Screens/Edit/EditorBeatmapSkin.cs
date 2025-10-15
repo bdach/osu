@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -59,6 +61,41 @@ namespace osu.Game.Screens.Edit
             for (int i = 0; i < ComboColours.Count; ++i)
                 Skin.Configuration.CustomComboColours.Add(ComboColours[(ComboColours.Count + i - 1) % ComboColours.Count]);
             invokeSkinChanged();
+        }
+
+        public record SampleSet(int SampleSetIndex, string Name);
+
+        public IEnumerable<SampleSet> GetAvailableSampleSets()
+        {
+            string[] possibleSounds = [HitSampleInfo.HIT_NORMAL, ..HitSampleInfo.ALL_ADDITIONS];
+            string[] possibleBanks = HitSampleInfo.ALL_BANKS;
+
+            string[] possiblePrefixes = possibleSounds.SelectMany(sound => possibleBanks.Select(bank => $@"{bank}-{sound}")).ToArray();
+
+            HashSet<int> indices = new HashSet<int>();
+
+            if (Skin.Samples != null)
+            {
+                foreach (string sample in Skin.Samples.GetAvailableResources())
+                {
+                    foreach (string possiblePrefix in possiblePrefixes)
+                    {
+                        if (!sample.StartsWith(possiblePrefix, StringComparison.InvariantCultureIgnoreCase))
+                            continue;
+
+                        string indexString = Path.GetFileNameWithoutExtension(sample)[possiblePrefix.Length..];
+                        if (string.IsNullOrEmpty(indexString))
+                            indices.Add(1);
+                        if (int.TryParse(indexString, out int index))
+                            indices.Add(index);
+                    }
+                }
+            }
+
+            if (indices.Count == 0)
+                return [];
+
+            return indices.OrderBy(i => i).Select(i => new SampleSet(i, $"Custom #{i}")).Prepend(new SampleSet(0, "User skin"));
         }
 
         #region Delegated ISkin implementation

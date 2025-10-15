@@ -20,9 +20,9 @@ using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Rulesets.Objects;
-using osu.Game.Screens.Edit.Components.TernaryButtons;
 using osu.Game.Rulesets.Objects.Drawables;
 using osu.Game.Rulesets.Objects.Types;
+using osu.Game.Screens.Edit.Components.TernaryButtons;
 using osu.Game.Screens.Edit.Timing;
 using osuTK;
 using osuTK.Graphics;
@@ -189,7 +189,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
             private LabelledDropdown<string> bank = null!;
             private LabelledDropdown<string> additionBank = null!;
-            private LabelledNumberBox suffix = null!;
+            private FillFlowContainer<SampleSetTernaryButton> sampleSetsFlow = null!;
             private IndeterminateSliderWithTextBoxInput<int> volume = null!;
 
             private FillFlowContainer togglesCollection = null!;
@@ -264,9 +264,11 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                                 Label = "Addition Bank",
                                 Items = HitSampleInfo.ALL_BANKS,
                             },
-                            suffix = new LabelledNumberBox
+                            sampleSetsFlow = new FillFlowContainer<SampleSetTernaryButton>
                             {
-                                Label = "Suffix"
+                                RelativeSizeAxes = Axes.X,
+                                AutoSizeAxes = Axes.Y,
+                                Spacing = new Vector2(5),
                             },
                             volume = new IndeterminateSliderWithTextBoxInput<int>("Volume", new BindableInt(100)
                             {
@@ -276,6 +278,17 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                         }
                     }
                 };
+
+                if (beatmap.BeatmapSkin != null)
+                {
+                    foreach (var sampleSet in beatmap.BeatmapSkin.GetAvailableSampleSets())
+                    {
+                        sampleSetsFlow.Add(new SampleSetTernaryButton(sampleSet)
+                        {
+                            Description = sampleSet.Name,
+                        });
+                    }
+                }
 
                 volume.TabbableContentContainer = flow;
 
@@ -309,12 +322,18 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                     updateAdditionBankState();
                 });
 
-                updateSuffixState();
-                suffix.Current.BindValueChanged(val =>
+                updateSampleSetState();
+
+                foreach (var ternary in sampleSetsFlow)
                 {
-                    setSuffix(val.NewValue);
-                    updateSuffixState();
-                });
+                    ternary.Current.BindValueChanged(val =>
+                    {
+                        if (val.NewValue == TernaryState.True)
+                            setSampleSet(ternary.SampleSet);
+
+                        updateSampleSetState();
+                    });
+                }
 
                 volume.Current.BindValueChanged(val =>
                 {
@@ -325,6 +344,11 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                 createStateBindables();
                 updateTernaryStates();
                 togglesCollection.AddRange(createTernaryButtons());
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
             }
 
             private string? getCommonBank() => allRelevantSamples.Select(h => GetBankValue(h.samples)).Distinct().Count() == 1
@@ -359,12 +383,22 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                     additionBank.Hide();
             }
 
-            private void updateSuffixState()
+            private void updateSampleSetState()
             {
-                string?[] suffixes = allRelevantSamples.SelectMany(h => h.samples.Select(s => s.Suffix)).Distinct().ToArray();
-                suffix.Current.Value = suffixes.Length == 1 ? suffixes[0] : null;
-                // TODO: temporary, because it doesn't explain what CSS=1 is or anything. doing this for now just to see if it breaks hard
-                suffix.PlaceholderText = suffixes.Length == 1 ? "(no suffix)" : "(multiple)";
+                HashSet<int> toHighlight = new HashSet<int>();
+
+                foreach (var sample in allRelevantSamples.SelectMany(h => h.samples))
+                {
+                    if (sample.Suffix == null)
+                        toHighlight.Add(sample.UseBeatmapSamples ? 1 : 0);
+                    else if (int.TryParse(sample.Suffix, out int suffix))
+                        toHighlight.Add(suffix);
+                }
+
+                var onState = toHighlight.Count > 1 ? TernaryState.Indeterminate : TernaryState.True;
+
+                foreach (var ternary in sampleSetsFlow)
+                    ternary.Current.Value = toHighlight.Contains(ternary.SampleSet.SampleSetIndex) ? onState : TernaryState.False;
             }
 
             /// <summary>
@@ -420,16 +454,15 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                 });
             }
 
-            private void setSuffix(string? newSuffix)
+            private void setSampleSet(EditorBeatmapSkin.SampleSet newSampleSet)
             {
-                if (string.IsNullOrWhiteSpace(newSuffix))
-                    newSuffix = null;
-
                 updateAllRelevantSamples((_, relevantSamples) =>
                 {
                     for (int i = 0; i < relevantSamples.Count; i++)
                     {
-                        relevantSamples[i] = relevantSamples[i].With(newSuffix: newSuffix);
+                        relevantSamples[i] = relevantSamples[i].With(
+                            newSuffix: newSampleSet.SampleSetIndex >= 2 ? newSampleSet.SampleSetIndex.ToString() : null,
+                            newUseBeatmapSamples: newSampleSet.SampleSetIndex >= 1);
                     }
                 });
             }
