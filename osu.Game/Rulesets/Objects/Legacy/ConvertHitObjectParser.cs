@@ -626,27 +626,24 @@ namespace osu.Game.Rulesets.Objects.Legacy
             public bool BankSpecified;
 
             public LegacyHitSampleInfo(string name, string? bank = null, int volume = 0, bool editorAutoBank = false, int customSampleBank = 0, bool isLayered = false)
-                : base(name, bank ?? SampleControlPoint.DEFAULT_BANK, customSampleBank >= 2 ? customSampleBank.ToString() : null, volume, editorAutoBank)
+                : base(name, bank ?? SampleControlPoint.DEFAULT_BANK, customSampleBank >= 2 ? customSampleBank.ToString() : null, volume, editorAutoBank, customSampleBank >= 1)
             {
                 BankSpecified = !string.IsNullOrEmpty(bank);
                 IsLayered = isLayered;
             }
 
             public sealed override HitSampleInfo With(Optional<string> newName = default, Optional<string> newBank = default, Optional<string?> newSuffix = default, Optional<int> newVolume = default,
-                                                      Optional<bool> newEditorAutoBank = default)
+                                                      Optional<bool> newEditorAutoBank = default, Optional<bool> newUseBeatmapSamples = default)
             {
-                int newCustomSampleBank;
+                string? suffix = newSuffix.GetOr(Suffix);
+                bool useBeatmapSamples = newUseBeatmapSamples.GetOr(UseBeatmapSamples);
+                int newCustomSampleBank = 0;
 
-                if (newSuffix.HasValue)
-                {
-                    if (newSuffix.Value == null)
-                        newCustomSampleBank = 0;
-                    else
-                        // bit dodgy
-                        _ = int.TryParse(newSuffix.Value, out newCustomSampleBank);
-                }
-                else
-                    newCustomSampleBank = CustomSampleBank;
+                if (suffix != null)
+                    _ = int.TryParse(suffix, out newCustomSampleBank);
+
+                if (newCustomSampleBank == 0 && useBeatmapSamples)
+                    newCustomSampleBank = 1;
 
                 return With(newName, newBank, newVolume, newEditorAutoBank, newCustomSampleBank);
             }
