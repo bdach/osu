@@ -189,6 +189,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
             private LabelledDropdown<string> bank = null!;
             private LabelledDropdown<string> additionBank = null!;
+            private LabelledNumberBox suffix = null!;
             private IndeterminateSliderWithTextBoxInput<int> volume = null!;
 
             private FillFlowContainer togglesCollection = null!;
@@ -263,6 +264,10 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                                 Label = "Addition Bank",
                                 Items = HitSampleInfo.ALL_BANKS,
                             },
+                            suffix = new LabelledNumberBox
+                            {
+                                Label = "Suffix"
+                            },
                             volume = new IndeterminateSliderWithTextBoxInput<int>("Volume", new BindableInt(100)
                             {
                                 MinValue = DrawableHitObject.MINIMUM_SAMPLE_VOLUME,
@@ -302,6 +307,13 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
                     setAdditionBank(val.NewValue);
                     updateAdditionBankState();
+                });
+
+                updateSuffixState();
+                suffix.Current.BindValueChanged(val =>
+                {
+                    setSuffix(val.NewValue);
+                    updateSuffixState();
                 });
 
                 volume.Current.BindValueChanged(val =>
@@ -345,6 +357,14 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                     additionBank.Show();
                 else
                     additionBank.Hide();
+            }
+
+            private void updateSuffixState()
+            {
+                string?[] suffixes = allRelevantSamples.SelectMany(h => h.samples.Select(s => s.Suffix)).Distinct().ToArray();
+                suffix.Current.Value = suffixes.Length == 1 ? suffixes[0] : null;
+                // TODO: temporary, because it doesn't explain what CSS=1 is or anything. doing this for now just to see if it breaks hard
+                suffix.PlaceholderText = suffixes.Length == 1 ? "(no suffix)" : "(multiple)";
             }
 
             /// <summary>
@@ -396,6 +416,20 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                         }
                         else
                             relevantSamples[i] = relevantSamples[i].With(newBank: newBank, newEditorAutoBank: false);
+                    }
+                });
+            }
+
+            private void setSuffix(string? newSuffix)
+            {
+                if (string.IsNullOrWhiteSpace(newSuffix))
+                    newSuffix = null;
+
+                updateAllRelevantSamples((_, relevantSamples) =>
+                {
+                    for (int i = 0; i < relevantSamples.Count; i++)
+                    {
+                        relevantSamples[i] = relevantSamples[i].With(newSuffix: newSuffix);
                     }
                 });
             }
