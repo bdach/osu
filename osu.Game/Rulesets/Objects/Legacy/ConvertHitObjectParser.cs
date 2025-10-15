@@ -608,7 +608,7 @@ namespace osu.Game.Rulesets.Objects.Legacy
 
         public class LegacyHitSampleInfo : HitSampleInfo, IEquatable<LegacyHitSampleInfo>
         {
-            public readonly int CustomSampleBank;
+            public int CustomSampleBank => Suffix != null ? int.Parse(Suffix) : 0;
 
             /// <summary>
             /// Whether this hit sample is layered.
@@ -628,14 +628,28 @@ namespace osu.Game.Rulesets.Objects.Legacy
             public LegacyHitSampleInfo(string name, string? bank = null, int volume = 0, bool editorAutoBank = false, int customSampleBank = 0, bool isLayered = false)
                 : base(name, bank ?? SampleControlPoint.DEFAULT_BANK, customSampleBank >= 2 ? customSampleBank.ToString() : null, volume, editorAutoBank)
             {
-                CustomSampleBank = customSampleBank;
                 BankSpecified = !string.IsNullOrEmpty(bank);
                 IsLayered = isLayered;
             }
 
             public sealed override HitSampleInfo With(Optional<string> newName = default, Optional<string> newBank = default, Optional<string?> newSuffix = default, Optional<int> newVolume = default,
                                                       Optional<bool> newEditorAutoBank = default)
-                => With(newName, newBank, newVolume, newEditorAutoBank);
+            {
+                int newCustomSampleBank;
+
+                if (newSuffix.HasValue)
+                {
+                    if (newSuffix.Value == null)
+                        newCustomSampleBank = 0;
+                    else
+                        // bit dodgy
+                        _ = int.TryParse(newSuffix.Value, out newCustomSampleBank);
+                }
+                else
+                    newCustomSampleBank = CustomSampleBank;
+
+                return With(newName, newBank, newVolume, newEditorAutoBank, newCustomSampleBank);
+            }
 
             public virtual LegacyHitSampleInfo With(Optional<string> newName = default, Optional<string> newBank = default, Optional<int> newVolume = default,
                                                     Optional<bool> newEditorAutoBank = default, Optional<int> newCustomSampleBank = default, Optional<bool> newIsLayered = default)
