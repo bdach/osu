@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -321,9 +322,11 @@ namespace osu.Game.Beatmaps.Formats
                     int volume = samples.Max(o => o.Volume);
                     string bank = samples.Where(s => s.Name == HitSampleInfo.HIT_NORMAL).Select(s => s.Bank).FirstOrDefault()
                                   ?? samples.Select(s => s.Bank).First();
+
+                    Debug.Assert(samples.All(o => o is ConvertHitObjectParser.LegacyHitSampleInfo) || samples.All(o => o.GetType() == typeof(HitSampleInfo)));
                     int customIndex = samples.Any(o => o is ConvertHitObjectParser.LegacyHitSampleInfo)
                         ? samples.OfType<ConvertHitObjectParser.LegacyHitSampleInfo>().Max(o => o.CustomSampleBank)
-                        : -1;
+                        : samples.Max(s => int.TryParse(s.Suffix, out int index) ? index : -1);
 
                     return new LegacyBeatmapDecoder.LegacySampleControlPoint { Time = time, SampleVolume = volume, SampleBank = bank, CustomSampleBank = customIndex };
                 }
