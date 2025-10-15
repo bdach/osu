@@ -310,6 +310,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
                     setBank(val.NewValue);
                     updatePrimaryBankState();
+                    updateDemoSamples();
                 });
 
                 updateAdditionBankState();
@@ -320,6 +321,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
                     setAdditionBank(val.NewValue);
                     updateAdditionBankState();
+                    updateDemoSamples();
                 });
 
                 updateSampleSetState();
@@ -332,6 +334,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                             setSampleSet(ternary.SampleSet);
 
                         updateSampleSetState();
+                        updateDemoSamples();
                     });
                 }
 
@@ -399,6 +402,16 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
                 foreach (var ternary in sampleSetsFlow)
                     ternary.Current.Value = toHighlight.Contains(ternary.SampleSet.SampleSetIndex) ? onState : TernaryState.False;
+            }
+
+            private void updateDemoSamples()
+            {
+                foreach (var ternary in sampleSetsFlow)
+                {
+                    ternary.DemoSamples = allRelevantSamples.First().samples.Select(s => s.With(
+                        newSuffix: ternary.SampleSet.SampleSetIndex >= 2 ? ternary.SampleSet.SampleSetIndex.ToString() : null,
+                        newUseBeatmapSamples: ternary.SampleSet.SampleSetIndex >= 1)).Cast<ISampleInfo>().ToArray();
+                }
             }
 
             /// <summary>
