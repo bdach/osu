@@ -281,6 +281,11 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
                 if (beatmap.BeatmapSkin != null)
                 {
+                    var sampleSets = beatmap.BeatmapSkin.GetAvailableSampleSets().ToList();
+
+                    if (sampleSets.Count > 0)
+                        sampleSets.Insert(0, new EditorBeatmapSkin.SampleSet(0, "User skin"));
+
                     foreach (var sampleSet in beatmap.BeatmapSkin.GetAvailableSampleSets())
                     {
                         sampleSetsFlow.Add(new SampleSetTernaryButton(sampleSet)

@@ -10,10 +10,12 @@ using osu.Framework.Graphics;
 using osu.Framework.Localisation;
 using osu.Framework.Logging;
 using osu.Game.Beatmaps;
+using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Localisation;
 using osu.Game.Models;
 using osu.Game.Overlays;
 using osu.Game.Screens.Backgrounds;
+using osu.Game.Screens.Edit.Components;
 using osu.Game.Utils;
 
 namespace osu.Game.Screens.Edit.Setup
@@ -22,6 +24,10 @@ namespace osu.Game.Screens.Edit.Setup
     {
         private FormBeatmapFileSelector audioTrackChooser = null!;
         private FormBeatmapFileSelector backgroundChooser = null!;
+        private FormDropdown<EditorBeatmapSkin.SampleSet?> sampleSetChooser = null!;
+        private FormSampleSet sampleSetEditor = null!;
+
+        private readonly Bindable<EditorBeatmapSkin.SampleSet?> currentSampleSet = new Bindable<EditorBeatmapSkin.SampleSet?>();
 
         public override LocalisableString Title => EditorSetupStrings.ResourcesHeader;
 
@@ -65,6 +71,15 @@ namespace osu.Game.Screens.Edit.Setup
                     Caption = EditorSetupStrings.AudioTrack,
                     PlaceholderText = EditorSetupStrings.ClickToSelectTrack,
                 },
+                sampleSetChooser = new FormDropdown<EditorBeatmapSkin.SampleSet?>
+                {
+                    Caption = "Custom sample sets",
+                    Current = { BindTarget = currentSampleSet },
+                },
+                sampleSetEditor = new FormSampleSet
+                {
+                    Current = { BindTarget = currentSampleSet },
+                },
             };
 
             backgroundChooser.PreviewContainer.Add(headerBackground);
@@ -77,6 +92,17 @@ namespace osu.Game.Screens.Edit.Setup
 
             backgroundChooser.Current.BindValueChanged(backgroundChanged);
             audioTrackChooser.Current.BindValueChanged(audioTrackChanged);
+
+            populateSampleSetChooser();
+            if (Beatmap.BeatmapSkin != null)
+                Beatmap.BeatmapSkin.BeatmapSkinChanged += populateSampleSetChooser;
+        }
+
+        private void populateSampleSetChooser()
+        {
+            var items = Beatmap.BeatmapSkin?.GetAvailableSampleSets().ToList() ?? [];
+            //items.Add(new EditorBeatmapSkin.SampleSet(-1, "Add new..."));
+            sampleSetChooser.Items = items;
         }
 
         public bool ChangeBackgroundImage(FileInfo source, bool applyToAllDifficulties)
@@ -238,6 +264,14 @@ namespace osu.Game.Screens.Edit.Setup
                 audioTrackChooser.Current.Value = file.OldValue;
                 rollingBackAudioChange = false;
             }
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            if (Beatmap.BeatmapSkin != null)
+                Beatmap.BeatmapSkin.BeatmapSkinChanged -= populateSampleSetChooser;
+
+            base.Dispose(isDisposing);
         }
     }
 }

@@ -52,7 +52,7 @@ namespace osu.Game.Screens.Edit
             ComboColours.BindCollectionChanged((_, _) => updateColours());
         }
 
-        private void invokeSkinChanged() => BeatmapSkinChanged?.Invoke();
+        public void InvokeSkinChanged() => BeatmapSkinChanged?.Invoke();
 
         private void updateColours()
         {
@@ -60,10 +60,13 @@ namespace osu.Game.Screens.Edit
             Skin.Configuration.CustomComboColours.Clear();
             for (int i = 0; i < ComboColours.Count; ++i)
                 Skin.Configuration.CustomComboColours.Add(ComboColours[(ComboColours.Count + i - 1) % ComboColours.Count]);
-            invokeSkinChanged();
+            InvokeSkinChanged();
         }
 
-        public record SampleSet(int SampleSetIndex, string Name);
+        public record SampleSet(int SampleSetIndex, string Name)
+        {
+            public override string ToString() => Name;
+        }
 
         public IEnumerable<SampleSet> GetAvailableSampleSets()
         {
@@ -92,10 +95,7 @@ namespace osu.Game.Screens.Edit
                 }
             }
 
-            if (indices.Count == 0)
-                return [];
-
-            return indices.OrderBy(i => i).Select(i => new SampleSet(i, $"Custom #{i}")).Prepend(new SampleSet(0, "User skin"));
+            return indices.OrderBy(i => i).Select(i => new SampleSet(i, $"Custom #{i}"));
         }
 
         #region Delegated ISkin implementation
