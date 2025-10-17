@@ -286,7 +286,7 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                     if (sampleSets.Count > 0)
                         sampleSets.Insert(0, new EditorBeatmapSkin.SampleSet(0, "User skin"));
 
-                    foreach (var sampleSet in beatmap.BeatmapSkin.GetAvailableSampleSets())
+                    foreach (var sampleSet in sampleSets)
                     {
                         // TODO: this kind of doesn't work on some beatmaps.
                         // there are behemoths such as https://osu.ppy.sh/beatmapsets/1018061#osu/2197383 which use HUNDREDS of disparate sample sets.
