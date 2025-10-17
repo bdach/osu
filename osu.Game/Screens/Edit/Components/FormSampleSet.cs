@@ -19,6 +19,7 @@ using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Audio;
+using osu.Game.Beatmaps;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.Sprites;
@@ -138,7 +139,10 @@ namespace osu.Game.Screens.Edit.Components
             if (set != null)
             {
                 foreach (var (sound, button) in buttons)
-                    button.Filename.Value = set?.FindSound(sound.sound, sound.bank);
+                {
+                    button.ExpectedFilename.Value = $@"{sound.bank}-{sound.sound}{(set!.SampleSetIndex > 1 ? set.SampleSetIndex : null)}";
+                    button.ActualFilename.Value = set?.FindSound(sound.sound, sound.bank);
+                }
             }
         }
 
@@ -167,9 +171,11 @@ namespace osu.Game.Screens.Edit.Components
 
         public partial class SampleButton : OsuButton, IHasPopover, IHasContextMenu
         {
-            public Bindable<string?> Filename { get; set; } = new Bindable<string?>();
+            public Bindable<string> ExpectedFilename { get; } = new Bindable<string>();
 
-            private Bindable<FileInfo?> selectedFile { get; set; } = new Bindable<FileInfo?>();
+            public Bindable<string?> ActualFilename { get; } = new Bindable<string?>();
+
+            private Bindable<FileInfo?> selectedFile { get; } = new Bindable<FileInfo?>();
 
             private TrianglesV2? triangles { get; set; }
 
@@ -180,6 +186,12 @@ namespace osu.Game.Screens.Edit.Components
 
             [Resolved]
             private OverlayColourProvider overlayColourProvider { get; set; } = null!;
+
+            [Resolved]
+            private Bindable<WorkingBeatmap> workingBeatmap { get; set; } = null!;
+
+            [Resolved]
+            private BeatmapManager? beatmaps { get; set; }
 
             [BackgroundDependencyLoader]
             private void load()
@@ -195,7 +207,7 @@ namespace osu.Game.Screens.Edit.Components
 
                 Action = () =>
                 {
-                    if (Filename.Value == null)
+                    if (ActualFilename.Value == null)
                     {
                         selectedFile.Value = null;
                         this.ShowPopover();
@@ -217,15 +229,15 @@ namespace osu.Game.Screens.Edit.Components
                     Depth = float.MaxValue,
                 });
 
-                Filename.BindValueChanged(_ => updateState(), true);
+                ActualFilename.BindValueChanged(_ => updateState(), true);
                 selectedFile.BindValueChanged(_ => addSample());
             }
 
             private void updateState()
             {
-                BackgroundColour = Filename.Value == null ? overlayColourProvider.Background3 : overlayColourProvider.Colour3;
+                BackgroundColour = ActualFilename.Value == null ? overlayColourProvider.Background3 : overlayColourProvider.Colour3;
                 triangleGradientSecondColour = BackgroundColour.Lighten(0.2f);
-                icon.Icon = Filename.Value == null ? FontAwesome.Solid.Plus : FontAwesome.Solid.Play;
+                icon.Icon = ActualFilename.Value == null ? FontAwesome.Solid.Plus : FontAwesome.Solid.Play;
 
                 if (triangles == null)
                     return;
@@ -253,20 +265,29 @@ namespace osu.Game.Screens.Edit.Components
                     return;
 
                 this.HidePopover();
-                // TODO: make this actually do what it's supposed to
-                Filename.Value = selectedFile.Value.FullName;
+
+                string actualFilename = $"{ExpectedFilename.Value}{selectedFile.Value.Extension}";
+                using (var stream = selectedFile.Value.OpenRead())
+                    beatmaps?.AddFile(workingBeatmap.Value.BeatmapSetInfo, stream, actualFilename);
+                ActualFilename.Value = actualFilename;
             }
 
             private void deleteSample()
             {
-                Filename.Value = null;
-                // TODO: actually delete from the map too
+                if (ActualFilename.Value == null)
+                    return;
+
+                var file = workingBeatmap.Value.BeatmapSetInfo.GetFile(ActualFilename.Value);
+                if (file != null)
+                    beatmaps?.DeleteFile(workingBeatmap.Value.BeatmapSetInfo, file);
+
+                ActualFilename.Value = null;
             }
 
-            public Popover? GetPopover() => Filename.Value == null ? new FormFileSelector.FileChooserPopover(SupportedExtensions.AUDIO_EXTENSIONS, selectedFile, null) : null;
+            public Popover? GetPopover() => ActualFilename.Value == null ? new FormFileSelector.FileChooserPopover(SupportedExtensions.AUDIO_EXTENSIONS, selectedFile, null) : null;
 
             public MenuItem[]? ContextMenuItems =>
-                Filename.Value != null
+                ActualFilename.Value != null
                     ? [new OsuMenuItem("Delete", MenuItemType.Destructive, deleteSample)]
                     : null;
         }
