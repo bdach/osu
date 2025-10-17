@@ -326,7 +326,7 @@ namespace osu.Game.Beatmaps.Formats
                     Debug.Assert(samples.All(o => o is ConvertHitObjectParser.LegacyHitSampleInfo) || samples.All(o => o.GetType() == typeof(HitSampleInfo)));
                     int customIndex = samples.Any(o => o is ConvertHitObjectParser.LegacyHitSampleInfo)
                         ? samples.OfType<ConvertHitObjectParser.LegacyHitSampleInfo>().Max(o => o.CustomSampleBank)
-                        : samples.Max(s => int.TryParse(s.Suffix, out int index) ? index : -1);
+                        : samples.Max(s => int.TryParse(s.Suffix, out int index) ? index : (s.UseBeatmapSamples ? 1 : -1));
 
                     return new LegacyBeatmapDecoder.LegacySampleControlPoint { Time = time, SampleVolume = volume, SampleBank = bank, CustomSampleBank = customIndex };
                 }

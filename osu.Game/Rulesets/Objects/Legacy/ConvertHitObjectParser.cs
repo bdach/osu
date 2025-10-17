@@ -608,7 +608,7 @@ namespace osu.Game.Rulesets.Objects.Legacy
 
         public class LegacyHitSampleInfo : HitSampleInfo, IEquatable<LegacyHitSampleInfo>
         {
-            public int CustomSampleBank => Suffix != null ? int.Parse(Suffix) : 0;
+            public int CustomSampleBank => Suffix != null ? int.Parse(Suffix) : (UseBeatmapSamples ? 1 : 0);
 
             /// <summary>
             /// Whether this hit sample is layered.
