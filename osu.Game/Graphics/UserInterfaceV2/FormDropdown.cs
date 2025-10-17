@@ -231,6 +231,8 @@ namespace osu.Game.Graphics.UserInterfaceV2
             [BackgroundDependencyLoader]
             private void load(OverlayColourProvider colourProvider)
             {
+                MaxHeight = 250;
+
                 ItemsContainer.Padding = new MarginPadding(9);
                 Margin = new MarginPadding { Top = 5 };
 

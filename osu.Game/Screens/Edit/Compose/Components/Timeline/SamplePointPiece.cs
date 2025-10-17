@@ -288,6 +288,9 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
 
                     foreach (var sampleSet in beatmap.BeatmapSkin.GetAvailableSampleSets())
                     {
+                        // TODO: this kind of doesn't work on some beatmaps.
+                        // there are behemoths such as https://osu.ppy.sh/beatmapsets/1018061#osu/2197383 which use HUNDREDS of disparate sample sets.
+                        // for those cases maybe change this to a dropdown or something...
                         sampleSetsFlow.Add(new SampleSetTernaryButton(sampleSet)
                         {
                             Description = sampleSet.Name,
