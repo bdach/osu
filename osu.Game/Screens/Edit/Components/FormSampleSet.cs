@@ -2,21 +2,32 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Audio;
 using osu.Game.Graphics;
+using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Overlays;
+using osu.Game.Utils;
 using osuTK;
+using osuTK.Graphics;
 
 namespace osu.Game.Screens.Edit.Components
 {
@@ -29,10 +40,10 @@ namespace osu.Game.Screens.Edit.Components
         }
 
         private readonly BindableWithCurrent<EditorBeatmapSkin.SampleSet?> current = new BindableWithCurrent<EditorBeatmapSkin.SampleSet?>();
+        private readonly Dictionary<(string sound, string bank), SampleButton> buttons = new Dictionary<(string, string), SampleButton>();
 
         private Box background = null!;
         private FormFieldCaption caption = null!;
-        private GridContainer grid = null!;
 
         [Resolved]
         private OverlayColourProvider colourProvider { get; set; } = null!;
@@ -63,11 +74,11 @@ namespace osu.Game.Screens.Edit.Components
                     Children = new Drawable[]
                     {
                         caption = new FormFieldCaption(),
-                        grid = new GridContainer
+                        new GridContainer
                         {
                             AutoSizeAxes = Axes.Both,
                             RowDimensions = Enumerable.Repeat(new Dimension(GridSizeMode.AutoSize), 4).ToArray(),
-                            ColumnDimensions = Enumerable.Repeat(new Dimension(GridSizeMode.Absolute, 100), 4).Prepend(new Dimension(GridSizeMode.AutoSize)).ToArray(),
+                            ColumnDimensions = Enumerable.Repeat(new Dimension(GridSizeMode.AutoSize), 5).ToArray(),
                             Content = createTableContent().ToArray(),
                         }
                     },
@@ -83,7 +94,14 @@ namespace osu.Game.Screens.Edit.Components
             yield return columns.Select(makeTableHeading).Prepend(Empty()).ToArray();
 
             foreach (string row in rows)
-                yield return columns.Select(_ => makeButton()).Cast<Drawable>().Prepend(makeTableHeading(row)).ToArray();
+            {
+                List<Drawable> drawables = [makeTableHeading(row)];
+
+                foreach (string col in columns)
+                    drawables.Add(buttons[(col, row)] = makeButton());
+
+                yield return drawables.ToArray();
+            }
         }
 
         private OsuSpriteText makeTableHeading(string text) => new OsuSpriteText
@@ -94,13 +112,12 @@ namespace osu.Game.Screens.Edit.Components
             Origin = Anchor.Centre,
         };
 
-        private FormButton.Button makeButton() => new FormButton.Button
+        private SampleButton makeButton() => new SampleButton
         {
-            Text = "+",
-            Width = 96,
+            Width = 60,
             Anchor = Anchor.Centre,
             Origin = Anchor.Centre,
-            Margin = new MarginPadding(2),
+            Margin = new MarginPadding(5),
         };
 
         protected override void LoadComplete()
@@ -108,11 +125,21 @@ namespace osu.Game.Screens.Edit.Components
             base.LoadComplete();
 
             updateState();
-            Current.BindValueChanged(_ =>
+            Current.BindValueChanged(setChanged, true);
+        }
+
+        private void setChanged(ValueChangedEvent<EditorBeatmapSkin.SampleSet?> valueChangedEvent)
+        {
+            var set = valueChangedEvent.NewValue;
+
+            caption.Caption = set?.Name ?? default(LocalisableString);
+            Alpha = set != null ? 1 : 0;
+
+            if (set != null)
             {
-                caption.Caption = Current.Value?.Name ?? default(LocalisableString);
-                Alpha = Current.Value != null ? 1 : 0;
-            }, true);
+                foreach (var (sound, button) in buttons)
+                    button.Filename.Value = set?.FindSound(sound.sound, sound.bank);
+            }
         }
 
         protected override bool OnHover(HoverEvent e)
@@ -136,6 +163,112 @@ namespace osu.Game.Screens.Edit.Components
 
             if (IsHovered)
                 BorderColour = colourProvider.Light4;
+        }
+
+        public partial class SampleButton : OsuButton, IHasPopover, IHasContextMenu
+        {
+            public Bindable<string?> Filename { get; set; } = new Bindable<string?>();
+
+            private Bindable<FileInfo?> selectedFile { get; set; } = new Bindable<FileInfo?>();
+
+            private TrianglesV2? triangles { get; set; }
+
+            protected override float HoverLayerFinalAlpha => 0;
+
+            private Color4? triangleGradientSecondColour;
+            private SpriteIcon icon = null!;
+
+            [Resolved]
+            private OverlayColourProvider overlayColourProvider { get; set; } = null!;
+
+            [BackgroundDependencyLoader]
+            private void load()
+            {
+                Add(icon = new SpriteIcon
+                {
+                    Icon = FontAwesome.Solid.Plus,
+                    Size = new Vector2(16),
+                    Shadow = true,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                });
+
+                Action = () =>
+                {
+                    if (Filename.Value == null)
+                    {
+                        selectedFile.Value = null;
+                        this.ShowPopover();
+                    }
+                };
+            }
+
+            protected override void LoadComplete()
+            {
+                base.LoadComplete();
+
+                Content.CornerRadius = 4;
+
+                Add(triangles = new TrianglesV2
+                {
+                    Thickness = 0.02f,
+                    SpawnRatio = 0.6f,
+                    RelativeSizeAxes = Axes.Both,
+                    Depth = float.MaxValue,
+                });
+
+                Filename.BindValueChanged(_ => updateState(), true);
+                selectedFile.BindValueChanged(_ => addSample());
+            }
+
+            private void updateState()
+            {
+                BackgroundColour = Filename.Value == null ? overlayColourProvider.Background3 : overlayColourProvider.Colour3;
+                triangleGradientSecondColour = BackgroundColour.Lighten(0.2f);
+                icon.Icon = Filename.Value == null ? FontAwesome.Solid.Plus : FontAwesome.Solid.Play;
+
+                if (triangles == null)
+                    return;
+
+                triangles.Colour = ColourInfo.GradientVertical(triangleGradientSecondColour.Value, BackgroundColour);
+            }
+
+            protected override bool OnHover(HoverEvent e)
+            {
+                Debug.Assert(triangleGradientSecondColour != null);
+
+                Background.FadeColour(triangleGradientSecondColour.Value, 300, Easing.OutQuint);
+                return base.OnHover(e);
+            }
+
+            protected override void OnHoverLost(HoverLostEvent e)
+            {
+                Background.FadeColour(BackgroundColour, 300, Easing.OutQuint);
+                base.OnHoverLost(e);
+            }
+
+            private void addSample()
+            {
+                if (selectedFile.Value == null)
+                    return;
+
+                this.HidePopover();
+                // TODO: make this actually do what it's supposed to
+                Filename.Value = selectedFile.Value.FullName;
+            }
+
+            private void deleteSample()
+            {
+                Filename.Value = null;
+                // TODO: actually delete from the map too
+            }
+
+            public Popover? GetPopover() => Filename.Value == null ? new FormFileSelector.FileChooserPopover(SupportedExtensions.AUDIO_EXTENSIONS, selectedFile, null) : null;
+
+            public MenuItem[]? ContextMenuItems =>
+                Filename.Value != null
+                    ? [new OsuMenuItem("Delete", MenuItemType.Destructive, deleteSample)]
+                    : null;
         }
     }
 }

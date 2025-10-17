@@ -2,6 +2,8 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using osu.Framework.Graphics;
+using osu.Framework.Graphics.Cursor;
+using osu.Game.Graphics.Cursor;
 using osu.Game.Screens.Edit;
 using osu.Game.Screens.Edit.Components;
 using osu.Game.Tests.Visual.UserInterface;
@@ -15,12 +17,26 @@ namespace osu.Game.Tests.Visual.Editing
         {
         }
 
-        protected override Drawable CreateContent() => new FormSampleSet
+        protected override Drawable CreateContent() => new PopoverContainer
         {
-            Current = { Value = new EditorBeatmapSkin.SampleSet(3, "Custom set #3") },
-            Anchor = Anchor.Centre,
-            Origin = Anchor.Centre,
-            Width = 0.4f,
+            RelativeSizeAxes = Axes.Both,
+            Child = new OsuContextMenuContainer
+            {
+                RelativeSizeAxes = Axes.Both,
+                Child = new FormSampleSet
+                {
+                    Current =
+                    {
+                        Value = new EditorBeatmapSkin.SampleSet(3, "Custom set #3")
+                        {
+                            Filenames = ["normal-hitwhistle3.wav"]
+                        }
+                    },
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Width = 0.4f,
+                }
+            }
         };
     }
 }

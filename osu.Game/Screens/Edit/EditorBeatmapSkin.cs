@@ -66,6 +66,14 @@ namespace osu.Game.Screens.Edit
         public record SampleSet(int SampleSetIndex, string Name)
         {
             public override string ToString() => Name;
+
+            public HashSet<string> Filenames = [];
+
+            public string? FindSound(string soundName, string bankName)
+                => Filenames.SingleOrDefault(f => f.StartsWith($@"{bankName}-{soundName}{(SampleSetIndex > 1 ? SampleSetIndex : null)}", StringComparison.Ordinal));
+
+            public virtual bool Equals(SampleSet? other) => SampleSetIndex == other?.SampleSetIndex;
+            public override int GetHashCode() => SampleSetIndex;
         }
 
         public IEnumerable<SampleSet> GetAvailableSampleSets()
@@ -75,7 +83,7 @@ namespace osu.Game.Screens.Edit
 
             string[] possiblePrefixes = possibleSounds.SelectMany(sound => possibleBanks.Select(bank => $@"{bank}-{sound}")).ToArray();
 
-            HashSet<int> indices = new HashSet<int>();
+            Dictionary<int, SampleSet> sampleSets = new Dictionary<int, SampleSet>();
 
             if (Skin.Samples != null)
             {
@@ -83,19 +91,30 @@ namespace osu.Game.Screens.Edit
                 {
                     foreach (string possiblePrefix in possiblePrefixes)
                     {
-                        if (!sample.StartsWith(possiblePrefix, StringComparison.InvariantCultureIgnoreCase))
+                        if (!sample.StartsWith(possiblePrefix, StringComparison.Ordinal))
                             continue;
 
                         string indexString = Path.GetFileNameWithoutExtension(sample)[possiblePrefix.Length..];
+                        int? index = null;
+
                         if (string.IsNullOrEmpty(indexString))
-                            indices.Add(1);
-                        if (int.TryParse(indexString, out int index))
-                            indices.Add(index);
+                            index = 1;
+                        if (int.TryParse(indexString, out int parsed))
+                            index = parsed;
+
+                        if (!index.HasValue)
+                            continue;
+
+                        SampleSet? sampleSet;
+                        if (!sampleSets.TryGetValue(index.Value, out sampleSet))
+                            sampleSet = sampleSets[index.Value] = new SampleSet(index.Value, $@"Custom #{index}");
+
+                        sampleSet.Filenames.Add(sample);
                     }
                 }
             }
 
-            return indices.OrderBy(i => i).Select(i => new SampleSet(i, $"Custom #{i}"));
+            return sampleSets.OrderBy(i => i.Key).Select(i => i.Value);
         }
 
         #region Delegated ISkin implementation
