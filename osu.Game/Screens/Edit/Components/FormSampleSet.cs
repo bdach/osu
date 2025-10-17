@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
 using osu.Framework.Extensions.Color4Extensions;
@@ -141,7 +142,7 @@ namespace osu.Game.Screens.Edit.Components
                 foreach (var (sound, button) in buttons)
                 {
                     button.ExpectedFilename.Value = $@"{sound.bank}-{sound.sound}{(set!.SampleSetIndex > 1 ? set.SampleSetIndex : null)}";
-                    button.ActualFilename.Value = set?.FindSound(sound.sound, sound.bank);
+                    button.ActualFilename.Value = set.FindSound(sound.sound, sound.bank);
                 }
             }
         }
@@ -193,6 +194,17 @@ namespace osu.Game.Screens.Edit.Components
             [Resolved]
             private BeatmapManager? beatmaps { get; set; }
 
+            [Resolved]
+            private EditorBeatmap? editorBeatmap { get; set; }
+
+            private HoverSounds? hoverSounds;
+            private ISample? sample;
+
+            public SampleButton()
+                : base(null)
+            {
+            }
+
             [BackgroundDependencyLoader]
             private void load()
             {
@@ -212,6 +224,8 @@ namespace osu.Game.Screens.Edit.Components
                         selectedFile.Value = null;
                         this.ShowPopover();
                     }
+                    else
+                        sample?.Play();
                 };
             }
 
@@ -238,6 +252,12 @@ namespace osu.Game.Screens.Edit.Components
                 BackgroundColour = ActualFilename.Value == null ? overlayColourProvider.Background3 : overlayColourProvider.Colour3;
                 triangleGradientSecondColour = BackgroundColour.Lighten(0.2f);
                 icon.Icon = ActualFilename.Value == null ? FontAwesome.Solid.Plus : FontAwesome.Solid.Play;
+
+                if (hoverSounds != null)
+                    RemoveInternal(hoverSounds, true);
+                AddInternal(hoverSounds = (ActualFilename.Value == null ? new HoverClickSounds(HoverSampleSet.Button) : new HoverSounds(HoverSampleSet.Button)));
+
+                sample = ActualFilename.Value == null ? null : editorBeatmap?.BeatmapSkin?.Skin.Samples?.Get(ActualFilename.Value);
 
                 if (triangles == null)
                     return;
