@@ -354,11 +354,6 @@ namespace osu.Game.Screens.Edit.Compose.Components.Timeline
                 togglesCollection.AddRange(createTernaryButtons());
             }
 
-            protected override void LoadComplete()
-            {
-                base.LoadComplete();
-            }
-
             private string? getCommonBank() => allRelevantSamples.Select(h => GetBankValue(h.samples)).Distinct().Count() == 1
                 ? GetBankValue(allRelevantSamples.First().samples)
                 : null;
