@@ -137,7 +137,7 @@ namespace osu.Game.Screens.Edit.Components
             var set = valueChangedEvent.NewValue;
 
             caption.Caption = set?.Name ?? default(LocalisableString);
-            Alpha = set != null ? 1 : 0;
+            Alpha = set != null && set.SampleSetIndex > 0 ? 1 : 0;
 
             if (set != null)
             {
