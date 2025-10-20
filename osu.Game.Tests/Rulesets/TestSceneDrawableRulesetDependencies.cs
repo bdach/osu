@@ -152,6 +152,7 @@ namespace osu.Game.Tests.Rulesets
             public int PlaybackConcurrency { get; set; }
 
             public void AddExtension(string extension) => throw new NotImplementedException();
+            public void Invalidate(string name) => throw new NotImplementedException();
         }
 
         private class TestShaderManager : ShaderManager
