@@ -141,7 +141,7 @@ namespace osu.Game.Screens.Edit.Components
             {
                 foreach (var (sound, button) in buttons)
                 {
-                    button.ExpectedFilename.Value = $@"{sound.bank}-{sound.sound}{(set!.SampleSetIndex > 1 ? set.SampleSetIndex : null)}";
+                    button.ExpectedFilename.Value = $@"{sound.bank}-{sound.sound}{(set.SampleSetIndex > 1 ? set.SampleSetIndex : null)}";
                     button.ActualFilename.Value = set.FindSound(sound.sound, sound.bank);
                 }
             }
@@ -289,7 +289,9 @@ namespace osu.Game.Screens.Edit.Components
                 string actualFilename = $"{ExpectedFilename.Value}{selectedFile.Value.Extension}";
                 using (var stream = selectedFile.Value.OpenRead())
                     beatmaps?.AddFile(workingBeatmap.Value.BeatmapSetInfo, stream, actualFilename);
+
                 ActualFilename.Value = actualFilename;
+                invalidateSampleCache();
             }
 
             private void deleteSample()
@@ -301,7 +303,16 @@ namespace osu.Game.Screens.Edit.Components
                 if (file != null)
                     beatmaps?.DeleteFile(workingBeatmap.Value.BeatmapSetInfo, file);
 
+                invalidateSampleCache();
                 ActualFilename.Value = null;
+            }
+
+            private void invalidateSampleCache()
+            {
+                Debug.Assert(ActualFilename.Value != null);
+                editorBeatmap?.BeatmapSkin?.Skin.Samples?.Invalidate(ActualFilename.Value);
+                editorBeatmap?.BeatmapSkin?.Skin.Samples?.Invalidate(ExpectedFilename.Value);
+                editorBeatmap?.BeatmapSkin?.InvokeSkinChanged();
             }
 
             public Popover? GetPopover() => ActualFilename.Value == null ? new FormFileSelector.FileChooserPopover(SupportedExtensions.AUDIO_EXTENSIONS, selectedFile, null) : null;

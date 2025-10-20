@@ -164,6 +164,7 @@ namespace osu.Game.Rulesets.UI
             }
 
             public void AddExtension(string extension) => throw new NotSupportedException();
+            public void Invalidate(string name) => throw new NotSupportedException();
 
             public void Dispose()
             {
