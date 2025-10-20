@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -21,6 +22,7 @@ using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Audio;
 using osu.Game.Beatmaps;
+using osu.Game.Database;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Backgrounds;
 using osu.Game.Graphics.Sprites;
@@ -197,8 +199,12 @@ namespace osu.Game.Screens.Edit.Components
             [Resolved]
             private EditorBeatmap? editorBeatmap { get; set; }
 
+            [Resolved]
+            private RealmAccess realm { get; set; } = null!;
+
             private HoverSounds? hoverSounds;
             private ISample? sample;
+            private IDisposable? subscription;
 
             public SampleButton()
                 : base(null)
@@ -245,6 +251,16 @@ namespace osu.Game.Screens.Edit.Components
 
                 ActualFilename.BindValueChanged(_ => updateState(), true);
                 selectedFile.BindValueChanged(_ => addSample());
+
+                // the reason why this is based on a realm subscription rather than just `ActualFilename` is that
+                // sample lookups go through `EditorBeatmapSkin`, which internally uses a `RealmBackedResourceStore`,
+                // which has an internally-cached mapping of user-facing filenames to their actual file store locations.
+                // this cached mapping gets invalidated when a new file is added, but it happens on an indeterminate delay
+                // because that invalidation is *also* based on realm subscriptions.
+                // therefore this is the least-worst way of ensuring that we actually *can* access the sample we want to.
+                subscription = realm.RegisterForNotifications(
+                    r => r.All<BeatmapSetInfo>().Where(s => s.ID == workingBeatmap.Value.BeatmapSetInfo.ID),
+                    (_, _) => recycleSamples());
             }
 
             private void updateState()
@@ -253,16 +269,23 @@ namespace osu.Game.Screens.Edit.Components
                 triangleGradientSecondColour = BackgroundColour.Lighten(0.2f);
                 icon.Icon = ActualFilename.Value == null ? FontAwesome.Solid.Plus : FontAwesome.Solid.Play;
 
-                if (hoverSounds != null)
-                    RemoveInternal(hoverSounds, true);
-                AddInternal(hoverSounds = (ActualFilename.Value == null ? new HoverClickSounds(HoverSampleSet.Button) : new HoverSounds(HoverSampleSet.Button)));
-
-                sample = ActualFilename.Value == null ? null : editorBeatmap?.BeatmapSkin?.Skin.Samples?.Get(ActualFilename.Value);
-
                 if (triangles == null)
                     return;
 
                 triangles.Colour = ColourInfo.GradientVertical(triangleGradientSecondColour.Value, BackgroundColour);
+            }
+
+            private void recycleSamples()
+            {
+                if (hoverSounds != null)
+                {
+                    RemoveInternal(hoverSounds, true);
+                    hoverSounds = null;
+                }
+
+                AddInternal(hoverSounds = (ActualFilename.Value == null ? new HoverClickSounds(HoverSampleSet.Button) : new HoverSounds(HoverSampleSet.Button)));
+
+                sample = ActualFilename.Value == null ? null : editorBeatmap?.BeatmapSkin?.Skin.Samples?.Get(ActualFilename.Value);
             }
 
             protected override bool OnHover(HoverEvent e)
@@ -321,6 +344,12 @@ namespace osu.Game.Screens.Edit.Components
                 ActualFilename.Value != null
                     ? [new OsuMenuItem("Delete", MenuItemType.Destructive, deleteSample)]
                     : null;
+
+            protected override void Dispose(bool isDisposing)
+            {
+                subscription?.Dispose();
+                base.Dispose(isDisposing);
+            }
         }
     }
 }
