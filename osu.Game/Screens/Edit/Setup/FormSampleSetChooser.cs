@@ -50,7 +50,7 @@ namespace osu.Game.Screens.Edit.Setup
         private void populateItems()
         {
             var items = beatmapSkin?.GetAvailableSampleSets().ToList() ?? [];
-            items.Insert(0, new EditorBeatmapSkin.SampleSet(-1, "Add new..."));
+            items.Add(new EditorBeatmapSkin.SampleSet(-1, "Add new..."));
             Items = items;
         }
 
@@ -73,7 +73,9 @@ namespace osu.Game.Screens.Edit.Setup
                 }
 
                 var sampleSet = new EditorBeatmapSkin.SampleSet(idx.Value, $@"Custom #{idx}");
-                Items = Items.Append(sampleSet).OrderBy(s => s?.SampleSetIndex).ToList();
+                var newItems = Items.ToList();
+                newItems.Insert(newItems.Count - 1, sampleSet);
+                Items = newItems;
                 Current.Value = sampleSet;
             });
 
