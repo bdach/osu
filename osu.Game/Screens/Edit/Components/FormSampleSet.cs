@@ -277,7 +277,7 @@ namespace osu.Game.Screens.Edit.Components
 
             private void recycleSamples()
             {
-                if (hoverSounds != null)
+                if (hoverSounds?.Parent == this)
                 {
                     RemoveInternal(hoverSounds, true);
                     hoverSounds = null;
