@@ -15,7 +15,6 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
-using osu.Framework.Logging;
 using osu.Game.Graphics.UserInterfaceV2;
 
 namespace osu.Game.Screens.Edit.Setup
@@ -56,7 +55,7 @@ namespace osu.Game.Screens.Edit.Setup
             if (IsDisposed || Parent == null)
             {
                 string foo = $"populatin items from\n{string.Join(string.Empty, new StackTrace().GetFrames().Select(f => f.ToString()))}";
-                string foo2 = $"disposed={IsDisposed} parent={Parent} thread={Thread.CurrentThread.Name} (tid:{Environment.CurrentManagedThreadId})";
+                string foo2 = $"disposed={IsDisposed} parent={Parent} thread={Thread.CurrentThread.Name} (tid:{Environment.CurrentManagedThreadId}) test={TestContext.CurrentContext.Test.Name}";
 
                 Assert.Fail($"wee woo wee woo something has gone TERRIBAD\n{foo}\n{foo2}");
                 return;
