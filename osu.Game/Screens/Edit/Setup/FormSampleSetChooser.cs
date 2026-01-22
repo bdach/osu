@@ -2,8 +2,11 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
+using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Extensions;
 using osu.Framework.Graphics;
@@ -12,6 +15,7 @@ using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
+using osu.Framework.Logging;
 using osu.Game.Graphics.UserInterfaceV2;
 
 namespace osu.Game.Screens.Edit.Setup
@@ -49,6 +53,15 @@ namespace osu.Game.Screens.Edit.Setup
 
         private void populateItems()
         {
+            if (IsDisposed || Parent == null)
+            {
+                string foo = $"populatin items from\n{string.Join(string.Empty, new StackTrace().GetFrames().Select(f => f.ToString()))}";
+                string foo2 = $"disposed={IsDisposed} parent={Parent} thread={Thread.CurrentThread.Name} (tid:{Environment.CurrentManagedThreadId})";
+
+                Assert.Fail($"wee woo wee woo something has gone TERRIBAD\n{foo}\n{foo2}");
+                return;
+            }
+
             var items = beatmapSkin?.GetAvailableSampleSets().ToList() ?? [new EditorBeatmapSkin.SampleSet(1)];
             items.Add(new EditorBeatmapSkin.SampleSet(-1, "Add new..."));
             Items = items;
