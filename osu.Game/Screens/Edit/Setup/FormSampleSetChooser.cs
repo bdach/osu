@@ -52,18 +52,17 @@ namespace osu.Game.Screens.Edit.Setup
 
         private void populateItems()
         {
-            if (IsDisposed || Parent == null)
+            try
             {
-                string foo = $"populatin items from\n{string.Join(string.Empty, new StackTrace().GetFrames().Select(f => f.ToString()))}";
-                string foo2 = $"disposed={IsDisposed} parent={Parent} thread={Thread.CurrentThread.Name} (tid:{Environment.CurrentManagedThreadId}) test={TestContext.CurrentContext.Test.Name}";
-
-                Assert.Fail($"wee woo wee woo something has gone TERRIBAD\n{foo}\n{foo2}");
-                return;
+                var items = beatmapSkin?.GetAvailableSampleSets().ToList() ?? [new EditorBeatmapSkin.SampleSet(1)];
+                items.Add(new EditorBeatmapSkin.SampleSet(-1, "Add new..."));
+                Items = items;
             }
-
-            var items = beatmapSkin?.GetAvailableSampleSets().ToList() ?? [new EditorBeatmapSkin.SampleSet(1)];
-            items.Add(new EditorBeatmapSkin.SampleSet(-1, "Add new..."));
-            Items = items;
+            catch (Exception e)
+            {
+                string foo = $"disposed={IsDisposed} parent={Parent} thread={Thread.CurrentThread.Name} (tid:{Environment.CurrentManagedThreadId}) test={TestContext.CurrentContext.Test.Name}";
+                Assert.Fail($"wee woo wee woo something has gone TERRIBAD\n{foo}\n{e}");
+            }
         }
 
         protected override LocalisableString GenerateItemText(EditorBeatmapSkin.SampleSet? item)
