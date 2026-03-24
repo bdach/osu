@@ -433,6 +433,9 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
                 if (!ApplyButton.Enabled.Value)
                     return;
 
+                // TODO: this should be better but w/e
+                byte? maxParticipants = !string.IsNullOrWhiteSpace(MaxParticipantsField.Text) && byte.TryParse(MaxParticipantsField.Text, out byte max) ? max : null;
+
                 ErrorText.FadeOut(50);
 
                 Debug.Assert(applyingSettingsOperation == null);
@@ -448,7 +451,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
                               matchType: TypePicker.Current.Value,
                               queueMode: QueueModeDropdown.Current.Value,
                               autoStartDuration: TimeSpan.FromSeconds((int)startModeDropdown.Current.Value),
-                              autoSkip: AutoSkipCheckbox.Current.Value)
+                              autoSkip: AutoSkipCheckbox.Current.Value,
+                              maxParticipants: maxParticipants)
                           .ContinueWith(t => Schedule(() =>
                           {
                               if (t.IsCompletedSuccessfully)
@@ -466,6 +470,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
                     room.AutoStartDuration = TimeSpan.FromSeconds((int)startModeDropdown.Current.Value);
                     room.AutoSkip = AutoSkipCheckbox.Current.Value;
                     room.Playlist = drawablePlaylist.Items.ToArray();
+                    room.MaxParticipants = maxParticipants;
 
                     client.CreateRoom(room).ContinueWith(t => Schedule(() =>
                     {

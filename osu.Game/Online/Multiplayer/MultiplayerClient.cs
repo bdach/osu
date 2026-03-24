@@ -403,7 +403,7 @@ namespace osu.Game.Online.Multiplayer
         /// <param name="autoStartDuration">The new auto-start countdown duration, if any.</param>
         /// <param name="autoSkip">The new auto-skip setting.</param>
         public Task ChangeSettings(Optional<string> name = default, Optional<string> password = default, Optional<MatchType> matchType = default, Optional<QueueMode> queueMode = default,
-                                   Optional<TimeSpan> autoStartDuration = default, Optional<bool> autoSkip = default)
+                                   Optional<TimeSpan> autoStartDuration = default, Optional<bool> autoSkip = default, Optional<byte?> maxParticipants = default)
         {
             if (Room == null)
                 throw new InvalidOperationException("Must be joined to a match to change settings.");
@@ -415,7 +415,8 @@ namespace osu.Game.Online.Multiplayer
                 MatchType = matchType.GetOr(Room.Settings.MatchType),
                 QueueMode = queueMode.GetOr(Room.Settings.QueueMode),
                 AutoStartDuration = autoStartDuration.GetOr(Room.Settings.AutoStartDuration),
-                AutoSkip = autoSkip.GetOr(Room.Settings.AutoSkip)
+                AutoSkip = autoSkip.GetOr(Room.Settings.AutoSkip),
+                MaxParticipants = maxParticipants.GetOr(Room.Settings.MaxParticipants),
             });
         }
 
