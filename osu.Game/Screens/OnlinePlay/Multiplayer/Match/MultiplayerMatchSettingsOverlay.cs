@@ -52,8 +52,6 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
         protected partial class MatchSettings : CompositeDrawable
         {
-            private const float disabled_alpha = 0.2f;
-
             public override bool IsPresent => base.IsPresent || Scheduler.HasPendingTasks;
 
             public Action? SettingsApplied;
@@ -223,12 +221,11 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
                                                             {
                                                                 new Section("Max participants")
                                                                 {
-                                                                    Alpha = disabled_alpha,
                                                                     Child = MaxParticipantsField = new OsuNumberBox
                                                                     {
                                                                         RelativeSizeAxes = Axes.X,
                                                                         TabbableContentContainer = this,
-                                                                        ReadOnly = true,
+                                                                        PlaceholderText = "No limit"
                                                                     },
                                                                 },
                                                                 new Section("Password (optional)")
