@@ -32,6 +32,7 @@ namespace osu.Game.Online
             (typeof(CountdownStartedEvent), typeof(MatchServerEvent)),
             (typeof(CountdownStoppedEvent), typeof(MatchServerEvent)),
             (typeof(RollEvent), typeof(MatchServerEvent)),
+            (typeof(StandardMatchRoomState), typeof(MatchRoomState)),
             (typeof(TeamVersusRoomState), typeof(MatchRoomState)),
             (typeof(TeamVersusUserState), typeof(MatchUserState)),
             (typeof(MatchStartCountdown), typeof(MultiplayerCountdown)),
