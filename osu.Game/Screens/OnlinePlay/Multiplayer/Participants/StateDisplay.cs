@@ -85,12 +85,20 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants
 
         private OsuColour colours = null!;
 
-        public void UpdateStatus(MultiplayerRoomUser user)
+        public void UpdateStatus(Participant participant)
         {
             // the only case where the progress bar is used does its own local fade in.
             // starting by fading out is a sane default.
             progressBar.FadeOut(fade_time);
+
+            if (participant.IsEmpty)
+            {
+                this.FadeOut(fade_time);
+                return;
+            }
+
             this.FadeIn(fade_time);
+            var user = participant.User!;
 
             if (user.Role == MultiplayerRoomUserRole.Referee)
             {
