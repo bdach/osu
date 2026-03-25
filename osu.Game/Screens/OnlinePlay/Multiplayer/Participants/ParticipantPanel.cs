@@ -330,7 +330,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants
                 {
                     return new MenuItem[]
                     {
-                        new OsuMenuItem("Move to slot", MenuItemType.Highlighted, () => { }) // TODO
+                        // TODO: this should also happen on click but lets Worry About This Later!!
+                        new OsuMenuItem("Move to slot", MenuItemType.Highlighted, () => client.SendMatchRequest(new ChangeSlotRequest { SlotID = current.Value.SlotId.Value }).FireAndForget())
                     };
                 }
 

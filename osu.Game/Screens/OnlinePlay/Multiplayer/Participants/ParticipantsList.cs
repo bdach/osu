@@ -60,9 +60,9 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants
                 if (participants.Count > slots.Length)
                     participants.RemoveRange(slots.Length, participants.Count - slots.Length);
 
-                for (int i = 0; i < slots.Length; ++i)
+                for (byte i = 0; i < slots.Length; ++i)
                 {
-                    var participant = slots[i] == null ? Participant.EmptySlot : Participant.FromUser(client.Room.Users.Single(u => u.UserID == slots[i]));
+                    var participant = slots[i] == null ? Participant.EmptySlot(i) : Participant.FromUser(client.Room.Users.Single(u => u.UserID == slots[i]));
 
                     if (i >= participants.Count)
                         participants.Add(participant);
@@ -119,19 +119,23 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Participants
 
     public record Participant
     {
-        [MemberNotNullWhen(true, nameof(User))]
+        [MemberNotNullWhen(false, nameof(User))]
+        [MemberNotNullWhen(true, nameof(SlotId))]
         public bool IsEmpty { get; }
 
         public MultiplayerRoomUser? User { get; }
 
-        private Participant(bool isEmpty, MultiplayerRoomUser? user)
+        public byte? SlotId { get; }
+
+        private Participant(bool isEmpty, MultiplayerRoomUser? user, byte? slotId)
         {
             IsEmpty = isEmpty;
             User = user;
+            SlotId = slotId;
         }
 
-        public static Participant FromUser(MultiplayerRoomUser user) => new Participant(false, user);
+        public static Participant FromUser(MultiplayerRoomUser user) => new Participant(false, user, null);
 
-        public static Participant EmptySlot => new Participant(true, null);
+        public static Participant EmptySlot(byte slotId) => new Participant(true, null, slotId);
     }
 }
