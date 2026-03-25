@@ -6,12 +6,9 @@ using MessagePack;
 namespace osu.Game.Online.Multiplayer
 {
     [MessagePackObject]
-    public class StandardMatchRoomState : MatchRoomState
+    public class ChangeSlotRequest : MatchUserRequest
     {
-        [Key(1)]
-        public bool Locked { get; set; }
-
-        [Key(2)]
-        public int?[]? Slots { get; set; }
+        [Key(0)]
+        public byte SlotID { get; set; }
     }
 }
