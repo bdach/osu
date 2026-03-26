@@ -196,6 +196,8 @@ namespace osu.Game.Online.Multiplayer
             }
         }
 
+        public bool IsReferee => LocalUser?.Role == MultiplayerRoomUserRole.Referee;
+
         [Resolved]
         protected IAPIProvider API { get; private set; } = null!;
 
@@ -306,7 +308,8 @@ namespace osu.Game.Online.Multiplayer
                 APIRoom.EndDate = null;
 
                 Debug.Assert(LocalUser != null);
-                addUserToAPIRoom(LocalUser);
+                if (APIRoom.RecentParticipants.All(p => p.OnlineID != LocalUser.UserID))
+                    addUserToAPIRoom(LocalUser);
 
                 foreach (var user in joinedRoom.Users)
                     updateUserPlayingState(user.UserID, user.State);

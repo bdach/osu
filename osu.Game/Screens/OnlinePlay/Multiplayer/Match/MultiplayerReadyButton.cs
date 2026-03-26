@@ -149,7 +149,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
                 {
                     case MultiplayerUserState.Spectating:
                     case MultiplayerUserState.Ready:
-                        Text = multiplayerClient.IsHost
+                        Text = (multiplayerClient.IsHost || multiplayerClient.IsReferee)
                             ? $"Start match {countText}"
                             : $"Waiting for host... {countText}";
                         break;
@@ -158,6 +158,8 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
                         // Show the abort button for the host as long as gameplay is in progress.
                         if (multiplayerClient.IsHost && room.State != MultiplayerRoomState.Open)
                             Text = "Abort the match";
+                        else if (multiplayerClient.IsReferee)
+                            Text = $"Start match {countText}";
                         else
                             Text = "Ready";
                         break;
@@ -197,7 +199,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
             {
                 default:
                     // Show the abort button for the host as long as gameplay is in progress.
-                    if (multiplayerClient.IsHost && room.State != MultiplayerRoomState.Open)
+                    if ((multiplayerClient.IsHost || multiplayerClient.IsReferee) && room.State != MultiplayerRoomState.Open)
                         setRed();
                     else
                         setGreen();
@@ -205,7 +207,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
 
                 case MultiplayerUserState.Spectating:
                 case MultiplayerUserState.Ready:
-                    if (multiplayerClient.IsHost && !room.ActiveCountdowns.Any(c => c is MatchStartCountdown))
+                    if ((multiplayerClient.IsHost || multiplayerClient.IsReferee) && !room.ActiveCountdowns.Any(c => c is MatchStartCountdown))
                         setGreen();
                     else
                         setYellow();
@@ -232,9 +234,10 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer.Match
         {
             get
             {
+                bool isReadiedUpHost = multiplayerClient.IsHost && multiplayerClient.LocalUser?.State == MultiplayerUserState.Ready;
+
                 if (room?.ActiveCountdowns.Any(c => c is MatchStartCountdown) == true
-                    && multiplayerClient.IsHost
-                    && multiplayerClient.LocalUser?.State == MultiplayerUserState.Ready
+                    && (isReadiedUpHost || multiplayerClient.IsReferee)
                     && !room.Settings.AutoStartEnabled)
                 {
                     return "Cancel countdown";

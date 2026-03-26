@@ -596,6 +596,9 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                     break;
 
                 default:
+                    if (client.LocalUser.Role == MultiplayerRoomUserRole.Referee)
+                        break;
+
                     targetScreen.Push(new MultiplayerPlayerLoader(() => new MultiplayerPlayer(room, new PlaylistItem(client.Room.CurrentPlaylistItem), users)));
                     break;
             }
@@ -922,7 +925,7 @@ namespace osu.Game.Screens.OnlinePlay.Multiplayer
                 return;
 
             // If there's only one playlist item and we are the host, assume we want to change it. Else add a new one.
-            PlaylistItem? itemToEdit = client.IsHost && room.Playlist.Count == 1 ? room.Playlist.Single() : null;
+            PlaylistItem? itemToEdit = (client.IsHost || client.IsReferee) && room.Playlist.Count == 1 ? room.Playlist.Single() : null;
 
             ShowSongSelect(itemToEdit);
 
