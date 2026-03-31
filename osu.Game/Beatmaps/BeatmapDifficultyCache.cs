@@ -222,6 +222,8 @@ namespace osu.Game.Beatmaps
         /// </summary>
         private void cancelTrackedBindableUpdate()
         {
+            Logger.Log($"canceling tracked difficulty update @\n{string.Join(string.Empty, new StackTrace().GetFrames().Select(t => t.ToString()))}");
+
             lock (bindableUpdateLock)
             {
                 debouncedModSettingsChange?.Cancel();
@@ -262,6 +264,7 @@ namespace osu.Game.Beatmaps
 
                         if (starDifficulty != null)
                             bindable.Value = starDifficulty.Value;
+                        Logger.Log($"updated bindable#{bindable.GetHashCode()} to {bindable.Value}");
                     });
                 }, cancellationToken);
         }

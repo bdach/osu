@@ -13,6 +13,7 @@ using NUnit.Framework.Legacy;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions;
+using osu.Framework.Logging;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
@@ -91,7 +92,11 @@ namespace osu.Game.Tests.Beatmaps
             });
 
             AddAssert("stars is now zero", () => actualDifficultyCache.GetDifficultyAsync(postEditBeatmapInfo).GetResultSafely()!.Value.Stars, () => Is.Zero);
-            AddUntilStep("bindable stars is now zero", () => bindableDifficulty.Value.Stars, () => Is.Zero);
+            AddUntilStep("bindable stars is now zero", () =>
+            {
+                Logger.Log($"inspecting bindable#{bindableDifficulty.GetHashCode()} ({bindableDifficulty.Value})");
+                return bindableDifficulty.Value.Stars;
+            }, () => Is.Zero);
         }
 
         [Test]
