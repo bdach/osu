@@ -79,7 +79,11 @@ namespace osu.Game.Tests.Beatmaps
                 bindableDifficulty = actualDifficultyCache.GetBindableDifficulty(preEditBeatmapInfo);
             });
 
-            AddUntilStep("wait for stars retrieved", () => bindableDifficulty.Value.Stars, () => Is.GreaterThan(0));
+            AddUntilStep("wait for stars retrieved", () =>
+            {
+                Logger.Log($"before removal of all objects bindable#{bindableDifficulty.GetHashCode()} is ({bindableDifficulty.Value})");
+                return bindableDifficulty.Value.Stars;
+            }, () => Is.GreaterThan(0));
 
             AddStep("remove all hitobjects", () =>
             {

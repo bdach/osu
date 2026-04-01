@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
+using osu.Framework.Logging;
 using osu.Framework.Statistics;
 
 namespace osu.Game.Database
@@ -70,7 +71,10 @@ namespace osu.Game.Database
             foreach (var kvp in cache)
             {
                 if (matchKeyPredicate(kvp.Key))
+                {
+                    Logger.Log($"{GetType().ReadableName()} purging cache for {kvp.Key}");
                     cache.TryRemove(kvp.Key, out _);
+                }
             }
 
             statistics.Value.Usage = cache.Count;

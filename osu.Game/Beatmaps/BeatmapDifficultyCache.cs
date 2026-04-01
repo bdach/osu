@@ -113,6 +113,7 @@ namespace osu.Game.Beatmaps
 
                 foreach (var bsd in trackedBindables.Where(bsd => bsd.BeatmapInfo.Equals(oldBeatmap)))
                 {
+                    Logger.Log($"tracked bindable#{bsd.GetHashCode()} (value = {bsd.BeatmapInfo}) needs updating");
                     bsd.BeatmapInfo = newBeatmap;
                     trackedBindablesRefreshRequired = true;
                 }
@@ -288,6 +289,8 @@ namespace osu.Game.Beatmaps
 
                 PlayableCachedWorkingBeatmap workingBeatmap = new PlayableCachedWorkingBeatmap(beatmapManager.GetWorkingBeatmap(key.BeatmapInfo));
                 IBeatmap playableBeatmap = workingBeatmap.GetPlayableBeatmap(ruleset.RulesetInfo, key.OrderedMods, cancellationToken);
+
+                Logger.Log($"playable beatmap {beatmapInfo} has {playableBeatmap.HitObjects.Count} hitobjects");
 
                 var difficulty = ruleset.CreateDifficultyCalculator(workingBeatmap).Calculate(key.OrderedMods, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
