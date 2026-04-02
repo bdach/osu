@@ -105,6 +105,7 @@ namespace osu.Game.Beatmaps
         /// <param name="newBeatmap">The updated beatmap model.</param>
         public void Invalidate(IBeatmapInfo oldBeatmap, IBeatmapInfo newBeatmap)
         {
+            Logger.Log($"attempting to invalidate difficulty cache for {oldBeatmap} (#{oldBeatmap.GetHashCode()})");
             base.Invalidate(lookup => lookup.BeatmapInfo.Equals(oldBeatmap));
 
             lock (bindableUpdateLock)
@@ -290,7 +291,7 @@ namespace osu.Game.Beatmaps
                 PlayableCachedWorkingBeatmap workingBeatmap = new PlayableCachedWorkingBeatmap(beatmapManager.GetWorkingBeatmap(key.BeatmapInfo));
                 IBeatmap playableBeatmap = workingBeatmap.GetPlayableBeatmap(ruleset.RulesetInfo, key.OrderedMods, cancellationToken);
 
-                Logger.Log($"playable beatmap {beatmapInfo} has {playableBeatmap.HitObjects.Count} hitobjects");
+                Logger.Log($"playable beatmap {beatmapInfo} has {playableBeatmap.HitObjects.Count} hitobjects. computing difficulty from\n{string.Join(string.Empty, new StackTrace().GetFrames().Select(t => t.ToString()))}");
 
                 var difficulty = ruleset.CreateDifficultyCalculator(workingBeatmap).Calculate(key.OrderedMods, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
@@ -382,6 +383,9 @@ namespace osu.Game.Beatmaps
 
                 return hashCode.ToHashCode();
             }
+
+            public override string ToString()
+                => $"{nameof(DifficultyCacheLookup)} (beatmap is {BeatmapInfo} #{BeatmapInfo.GetHashCode()})";
         }
 
         private class BindableStarDifficulty : Bindable<StarDifficulty>

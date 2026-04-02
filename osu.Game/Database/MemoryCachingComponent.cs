@@ -70,9 +70,11 @@ namespace osu.Game.Database
         {
             foreach (var kvp in cache)
             {
+                Logger.Log($"{GetType().ReadableName()}: testing {kvp.Key} for cache purge");
+
                 if (matchKeyPredicate(kvp.Key))
                 {
-                    Logger.Log($"{GetType().ReadableName()} purging cache for {kvp.Key}");
+                    Logger.Log($"{GetType().ReadableName()}: purging cache for {kvp.Key}");
                     cache.TryRemove(kvp.Key, out _);
                 }
             }
