@@ -72,6 +72,8 @@ namespace osu.Game.Tests.Beatmaps
 
             IBindable<StarDifficulty> bindableDifficulty = null;
 
+            AddStep("purge cache", () => actualDifficultyCache.Clear());
+
             AddStep("get bindable stars", () =>
             {
                 preEditBeatmapInfo = importedSet.Beatmaps.First();
