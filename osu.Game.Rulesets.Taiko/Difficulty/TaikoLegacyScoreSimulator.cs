@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using osu.Framework.Logging;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Objects;
@@ -144,9 +145,16 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
                     addScoreComboMultiplier = true;
                     break;
 
-                case DrumRoll:
-                    foreach (var nested in hitObject.NestedHitObjects)
-                        simulateHit(nested, ref attributes);
+                case DrumRoll drumRoll:
+                    double minHitDelay = get_SliderTaiko_MinHitDelay(drumRoll);
+                    // https://github.com/peppy/osu-stable-reference/blob/c34a74fb61c17c5667486a12548485d1f03baa2e/osu!/GameplayElements/HitObjects/Taiko/SliderTaiko.cs#L288
+                    // https://github.com/peppy/osu-stable-reference/blob/c34a74fb61c17c5667486a12548485d1f03baa2e/osu!/GameplayElements/HitObjects/Taiko/SliderTaiko.cs#L74-L92
+                    // https://github.com/peppy/osu-stable-reference/blob/c34a74fb61c17c5667486a12548485d1f03baa2e/osu!/GameplayElements/HitObjects/Taiko/SliderTaiko.cs#L157
+                    // note that this treatment is probably not entirely correct because i haven't ported
+                    // https://github.com/peppy/osu-stable-reference/blob/c34a74fb61c17c5667486a12548485d1f03baa2e/osu!/GameplayElements/HitObjects/Taiko/SliderTaiko.cs#L226-L228
+                    // but at this point i fart in stable's general direction
+                    for (double i = drumRoll.StartTime; i < drumRoll.EndTime + minHitDelay; i += minHitDelay)
+                        simulateHit(new DrumRollTick(drumRoll), ref attributes);
                     return;
 
                 case StrongNestedHitObject:
@@ -195,6 +203,8 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
                 comboScoreIncrease *= 2;
             }
 
+            Logger.Log($"{hitObject.GetType()} @ {hitObject.StartTime} => +{scoreIncrease}");
+
             scoreIncrease -= comboScoreIncrease;
 
             if (addScoreComboMultiplier)
@@ -210,6 +220,30 @@ namespace osu.Game.Rulesets.Taiko.Difficulty
 
             if (increaseCombo)
                 combo++;
+        }
+
+        private double get_SliderTaiko_MinHitDelay(DrumRoll drumRoll)
+        {
+            double maxRate;
+            double beatLength = playableBeatmap.ControlPointInfo.TimingPointAt(drumRoll.StartTime).BeatLength;
+
+            if (playableBeatmap.BeatmapVersion >= 8)
+            {
+                double sliderTickRate = playableBeatmap.Difficulty.SliderTickRate;
+                if (sliderTickRate == 3 || sliderTickRate == 6 || sliderTickRate == 1.5d)
+                    maxRate = beatLength / 6;
+                else
+                    maxRate = beatLength / 8;
+            }
+            else
+                maxRate = beatLength / 8;
+
+            while (maxRate < 60)
+                maxRate *= 2;
+            while (maxRate > 120)
+                maxRate /= 2;
+
+            return maxRate;
         }
 
         public double GetLegacyScoreMultiplier(IReadOnlyList<Mod> mods, LegacyBeatmapConversionDifficultyInfo difficulty)
