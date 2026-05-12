@@ -221,7 +221,7 @@ namespace osu.Game.Screens.Select
             if (rulesetInstance is null)
                 return new SpriteIcon { Icon = FontAwesome.Regular.QuestionCircle };
 
-            return rulesetInstance.CreateIcon();
+            return rulesetInstance.CreateIconSafe();
         }
 
         protected override void FreeAfterUse()

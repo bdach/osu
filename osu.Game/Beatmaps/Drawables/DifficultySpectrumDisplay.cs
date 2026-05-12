@@ -129,7 +129,7 @@ namespace osu.Game.Beatmaps.Drawables
                 Spacing = new Vector2(1, 0);
                 Direction = FillDirection.Horizontal;
 
-                var icon = rulesets.GetRuleset(RulesetId)?.CreateInstance().CreateIcon() ?? new SpriteIcon { Icon = FontAwesome.Regular.QuestionCircle };
+                var icon = rulesets.GetRuleset(RulesetId)?.CreateInstance().CreateIconSafe() ?? new SpriteIcon { Icon = FontAwesome.Regular.QuestionCircle };
                 Add(icon.With(i =>
                 {
                     i.Size = new Vector2(14);

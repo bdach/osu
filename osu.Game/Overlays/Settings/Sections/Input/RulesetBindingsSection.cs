@@ -10,7 +10,7 @@ namespace osu.Game.Overlays.Settings.Sections.Input
 {
     public partial class RulesetBindingsSection : SettingsSection
     {
-        public override Drawable CreateIcon() => ruleset.CreateInstance().CreateIcon();
+        public override Drawable CreateIcon() => ruleset.CreateInstance().CreateIconSafe();
 
         public override LocalisableString Header => ruleset.Name;
 

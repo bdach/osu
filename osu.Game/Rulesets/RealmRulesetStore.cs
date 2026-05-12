@@ -147,7 +147,7 @@ namespace osu.Game.Rulesets
             var instance = rulesetInfo.CreateInstance();
 
             instance.CreateAllMods();
-            instance.CreateIcon();
+            instance.CreateIconSafe();
             instance.CreateResourceStore();
 
             var beatmap = new Beatmap();

@@ -60,7 +60,7 @@ namespace osu.Game.Overlays
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
                         Size = new Vector2(20f),
-                        Icon = value.CreateInstance().CreateIcon(),
+                        Icon = value.CreateInstance().CreateIconSafe(),
                     },
                 },
                 new HoverSounds(HoverSampleSet.TabSelect)

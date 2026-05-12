@@ -335,7 +335,7 @@ namespace osu.Game.Screens.Menu
                         {
                             var icon = new ConstrainedIconContainer
                             {
-                                Icon = ruleset.CreateInstance().CreateIcon(),
+                                Icon = ruleset.CreateInstance().CreateIconSafe(),
                                 Size = new Vector2(30),
                             };
 

@@ -231,7 +231,7 @@ namespace osu.Game.Screens.Select
             updateButton.BeatmapSet = beatmapSet;
             statusPill.Status = beatmap.Status;
 
-            difficultyIcon.Icon = beatmap.Ruleset.CreateInstance().CreateIcon();
+            difficultyIcon.Icon = beatmap.Ruleset.CreateInstance().CreateIconSafe();
             difficultyIcon.Show();
 
             localRank.Beatmap = beatmap;

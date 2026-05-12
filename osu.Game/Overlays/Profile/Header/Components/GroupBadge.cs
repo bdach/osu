@@ -82,7 +82,7 @@ namespace osu.Game.Overlays.Profile.Header.Components
             if (group.Playmodes?.Length > 0)
             {
                 innerContainer.AddRange(group.Playmodes.Select(p =>
-                        (rulesets.GetRuleset(p)?.CreateInstance().CreateIcon() ?? new SpriteIcon { Icon = FontAwesome.Regular.QuestionCircle }).With(icon =>
+                        (rulesets.GetRuleset(p)?.CreateInstance().CreateIconSafe() ?? new SpriteIcon { Icon = FontAwesome.Regular.QuestionCircle }).With(icon =>
                         {
                             icon.Size = new Vector2(TextSize - 1);
                         })).ToList()

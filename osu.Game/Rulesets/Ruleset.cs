@@ -9,6 +9,7 @@ using osu.Framework.Extensions;
 using osu.Framework.Extensions.EnumExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shaders;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Bindings;
 using osu.Framework.IO.Stores;
@@ -277,6 +278,10 @@ namespace osu.Game.Rulesets
         public virtual IBeatmapVerifier? CreateBeatmapVerifier() => null;
 
         public virtual Drawable CreateIcon() => new SpriteIcon { Icon = FontAwesome.Solid.QuestionCircle };
+
+#pragma warning disable RS0030
+        public Drawable CreateIconSafe() => CreateIcon().AsSandboxed(typeof(FontStore), typeof(ShaderManager));
+#pragma warning restore RS0030
 
         public virtual IResourceStore<byte[]> CreateResourceStore() => new NamespacedResourceStore<byte[]>(new DllResourceStore(GetType().Assembly), @"Resources");
 

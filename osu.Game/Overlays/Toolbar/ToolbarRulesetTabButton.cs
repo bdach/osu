@@ -31,7 +31,7 @@ namespace osu.Game.Overlays.Toolbar
 
             ruleset.TooltipMain = rInstance.Description;
             ruleset.TooltipSub = ToolbarStrings.PlaySomeRuleset(rInstance.Description);
-            ruleset.SetIcon(rInstance.CreateIcon());
+            ruleset.SetIcon(rInstance.CreateIconSafe());
         }
 
         protected override void OnActivated() => ruleset.Active = true;

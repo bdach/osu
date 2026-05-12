@@ -252,7 +252,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
                 if (rulesetInstance == null)
                     return Empty();
 
-                Drawable icon = rulesetInstance.CreateIcon().With(d => d.RelativeSizeAxes = Axes.Both);
+                Drawable icon = rulesetInstance.CreateIconSafe().With(d => d.RelativeSizeAxes = Axes.Both);
 
                 if (pool.Variant == 0)
                     return icon;

@@ -141,7 +141,7 @@ namespace osu.Game.Screens.Select
                 foreach (var rulesetGrouping in beatmapsByRuleset)
                 {
                     int rulesetId = rulesetGrouping.Key;
-                    var rulesetIcon = rulesets.GetRuleset(rulesetId)?.CreateInstance().CreateIcon() ?? new SpriteIcon { Icon = FontAwesome.Regular.QuestionCircle };
+                    var rulesetIcon = rulesets.GetRuleset(rulesetId)?.CreateInstance().CreateIconSafe() ?? new SpriteIcon { Icon = FontAwesome.Regular.QuestionCircle };
                     flow.Add(rulesetIcon.With(i =>
                     {
                         i.Size = new Vector2(14);

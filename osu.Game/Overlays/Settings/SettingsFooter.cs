@@ -65,7 +65,7 @@ namespace osu.Game.Overlays.Settings
                     {
                         Anchor = Anchor.TopCentre,
                         Origin = Anchor.TopCentre,
-                        Icon = ruleset.CreateInstance().CreateIcon(),
+                        Icon = ruleset.CreateInstance().CreateIconSafe(),
                         Colour = Color4.Gray,
                         Size = new Vector2(20),
                     };
