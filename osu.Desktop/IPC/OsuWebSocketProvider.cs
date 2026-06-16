@@ -29,7 +29,7 @@ using BeatmapMetadata = osu.Desktop.IPC.Messages.BeatmapMetadata;
 
 namespace osu.Desktop.IPC
 {
-    public partial class OsuWebSocketProvider : Component
+    public partial class OsuWebSocketProvider : Component, IWebSocketProvider
     {
         private WebSocketServer? server;
         private readonly Bindable<UserActivity?> userActivity = new Bindable<UserActivity?>();
@@ -64,53 +64,53 @@ namespace osu.Desktop.IPC
         {
             base.LoadComplete();
 
-            userActivity.BindValueChanged(val =>
-            {
-                if (val.NewValue == null)
-                    return;
+            //userActivity.BindValueChanged(val =>
+            //{
+            //    if (val.NewValue == null)
+            //        return;
 
-                if (server?.IsRunning != true)
-                    return;
+            //    if (server?.IsRunning != true)
+            //        return;
 
-                var msg = new UserActivityMessage
-                {
-                    Status = val.NewValue.GetType().Name,
-                };
+            //    var msg = new UserActivityMessage
+            //    {
+            //        Status = val.NewValue.GetType().Name,
+            //    };
 
-                broadcast(msg).FireAndForget();
-            }, true);
+            //    broadcast(msg).FireAndForget();
+            //}, true);
 
-            workingBeatmap.BindValueChanged(val =>
-            {
-                if (val.NewValue.BeatmapInfo.OnlineID == val.OldValue.BeatmapInfo.OnlineID)
-                    return;
+            //workingBeatmap.BindValueChanged(val =>
+            //{
+            //    if (val.NewValue.BeatmapInfo.OnlineID == val.OldValue.BeatmapInfo.OnlineID)
+            //        return;
 
-                updatePlayerState().FireAndForget();
-            });
+            //    updatePlayerState().FireAndForget();
+            //});
 
-            rulesetInfo.BindValueChanged(_ => updatePlayerState().FireAndForget());
+            //rulesetInfo.BindValueChanged(_ => updatePlayerState().FireAndForget());
 
-            mods.BindValueChanged(val =>
-            {
-                if (val.OldValue.SequenceEqual(val.NewValue, ReferenceEqualityComparer.Instance))
-                    return;
+            //mods.BindValueChanged(val =>
+            //{
+            //    if (val.OldValue.SequenceEqual(val.NewValue, ReferenceEqualityComparer.Instance))
+            //        return;
 
-                updatePlayerState().FireAndForget();
+            //    updatePlayerState().FireAndForget();
 
-                modSettingChangeTracker?.Dispose();
+            //    modSettingChangeTracker?.Dispose();
 
-                modSettingChangeTracker = new ModSettingChangeTracker(mods.Value);
-                modSettingChangeTracker.SettingChanged += _ =>
-                {
-                    lock (modSettingsLock)
-                    {
-                        debouncedModSettingsChange?.Cancel();
-                        debouncedModSettingsChange = Scheduler.AddDelayed(() => updatePlayerState().FireAndForget(), 100);
-                    }
-                };
-            });
+            //    modSettingChangeTracker = new ModSettingChangeTracker(mods.Value);
+            //    modSettingChangeTracker.SettingChanged += _ =>
+            //    {
+            //        lock (modSettingsLock)
+            //        {
+            //            debouncedModSettingsChange?.Cancel();
+            //            debouncedModSettingsChange = Scheduler.AddDelayed(() => updatePlayerState().FireAndForget(), 100);
+            //        }
+            //    };
+            //});
 
-            updatePlayerState().FireAndForget();
+            //updatePlayerState().FireAndForget();
         }
 
         private async Task updatePlayerState()
@@ -193,5 +193,30 @@ namespace osu.Desktop.IPC
             debouncedModSettingsChange?.Cancel();
             debouncedModSettingsChange = null;
         }
+
+        private readonly List<WebSocketDataSource> dataSources = [];
+
+        public void Register(WebSocketDataSource dataSource)
+        {
+            dataSources.Add(dataSource);
+            dataSource.MessageReceived += onDataSourceMessageReceived;
+        }
+
+        public void Unregister(WebSocketDataSource dataSource)
+        {
+            dataSource.MessageReceived -= onDataSourceMessageReceived;
+            dataSources.Remove(dataSource);
+        }
+
+        private void onDataSourceMessageReceived(object msg) =>
+            Task.Run(async () =>
+                {
+                    if (server == null)
+                        return;
+
+                    string messageString = JsonSerializer.Serialize(msg, msg.GetType());
+                    await server.BroadcastAsync(messageString).ConfigureAwait(false);
+                })
+                .FireAndForget();
     }
 }

@@ -153,7 +153,11 @@ namespace osu.Desktop
             archiveImportIPCChannel = new ArchiveImportIPCChannel(Host, this);
 
             if (EnableWebSocketServer)
-                Add(new OsuWebSocketProvider());
+            {
+                var provider = new OsuWebSocketProvider();
+                Add(provider);
+                Dependencies.CacheAs<IWebSocketProvider>(provider);
+            }
         }
 
         public override void SetHost(GameHost host)

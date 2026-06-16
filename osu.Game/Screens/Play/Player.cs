@@ -25,6 +25,7 @@ using osu.Game.Database;
 using osu.Game.Extensions;
 using osu.Game.Graphics.Containers;
 using osu.Game.IO.Archives;
+using osu.Game.IPC;
 using osu.Game.Online.API;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
@@ -200,6 +201,9 @@ namespace osu.Game.Screens.Play
         protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent)
             => dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
 
+        [CanBeNull]
+        private PlayerWebSocketDataSource webSocketDataSource;
+
         protected override void LoadComplete()
         {
             base.LoadComplete();
@@ -224,7 +228,7 @@ namespace osu.Game.Screens.Play
         }
 
         [BackgroundDependencyLoader(true)]
-        private void load(OsuConfigManager config, OsuGameBase game, CancellationToken cancellationToken)
+        private void load(OsuConfigManager config, OsuGameBase game, CancellationToken cancellationToken, [CanBeNull] IWebSocketProvider webSocketProvider)
         {
             var gameplayMods = Mods.Value.Select(m => m.DeepClone()).ToArray();
 
@@ -431,6 +435,9 @@ namespace osu.Game.Screens.Play
 
             IsBreakTime.BindTo(breakTracker.IsBreakTime);
             IsBreakTime.BindValueChanged(onBreakTimeChanged, true);
+
+            if (webSocketProvider != null)
+                webSocketDataSource = new PlayerWebSocketDataSource(webSocketProvider, GameplayState);
         }
 
         protected virtual GameplayClockContainer CreateGameplayClockContainer(WorkingBeatmap beatmap, double gameplayStart) => new MasterGameplayClockContainer(beatmap, gameplayStart);
@@ -1317,5 +1324,11 @@ namespace osu.Game.Screens.Play
         IBindable<bool> ISamplePlaybackDisabler.SamplePlaybackDisabled => samplePlaybackDisabled;
 
         public IBindable<LocalUserPlayingState> PlayingState => playingState;
+
+        protected override void Dispose(bool isDisposing)
+        {
+            webSocketDataSource?.Dispose();
+            base.Dispose(isDisposing);
+        }
     }
 }
