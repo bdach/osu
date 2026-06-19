@@ -21,7 +21,6 @@ using osu.Game.Rulesets.Osu.UI;
 using osu.Game.Screens.Edit.Components.TernaryButtons;
 using osu.Game.Screens.Edit.Compose.Components;
 using osu.Game.Screens.Edit.Compose.Components.Timeline;
-using osu.Game.Screens.Edit.Timing;
 using osu.Game.Tests.Beatmaps;
 using osuTK;
 using osuTK.Input;
@@ -1248,7 +1247,7 @@ namespace osu.Game.Tests.Visual.Editing
         private void samplePopoverHasNoFocus() => AddUntilStep("sample popover textbox not focused", () =>
         {
             var popover = this.ChildrenOfType<SamplePointPiece.SampleEditPopover>().SingleOrDefault();
-            var slider = popover?.ChildrenOfType<IndeterminateSliderWithTextBoxInput<int>>().Single();
+            var slider = popover?.ChildrenOfType<SamplePointPiece.VolumeControl>().Single();
             var textbox = slider?.ChildrenOfType<OsuTextBox>().Single();
 
             return textbox?.HasFocus == false;
@@ -1257,23 +1256,23 @@ namespace osu.Game.Tests.Visual.Editing
         private void samplePopoverHasSingleVolume(int volume) => AddUntilStep($"sample popover has volume {volume}", () =>
         {
             var popover = this.ChildrenOfType<SamplePointPiece.SampleEditPopover>().SingleOrDefault();
-            var slider = popover?.ChildrenOfType<IndeterminateSliderWithTextBoxInput<int>>().Single();
+            var slider = popover?.ChildrenOfType<SamplePointPiece.VolumeControl>().Single();
 
-            return slider?.Current.Value == volume;
+            return slider?.Current.Value == volume && !slider.IsMultipleValues;
         });
 
         private void samplePopoverHasIndeterminateVolume() => AddUntilStep("sample popover has indeterminate volume", () =>
         {
             var popover = this.ChildrenOfType<SamplePointPiece.SampleEditPopover>().SingleOrDefault();
-            var slider = popover?.ChildrenOfType<IndeterminateSliderWithTextBoxInput<int>>().Single();
+            var slider = popover?.ChildrenOfType<SamplePointPiece.VolumeControl>().Single();
 
-            return slider != null && slider.Current.Value == null;
+            return slider != null && slider.IsMultipleValues;
         });
 
         private void samplePopoverHasSingleBank(string bank) => AddUntilStep($"sample popover has bank {bank}", () =>
         {
             var popover = this.ChildrenOfType<SamplePointPiece.SampleEditPopover>().SingleOrDefault();
-            var dropdown = popover?.ChildrenOfType<LabelledDropdown<string>>().First();
+            var dropdown = popover?.ChildrenOfType<FormDropdown<string>>().First();
 
             return dropdown?.Current.Value == bank;
         });
@@ -1281,7 +1280,7 @@ namespace osu.Game.Tests.Visual.Editing
         private void samplePopoverHasIndeterminateBank() => AddUntilStep("sample popover has indeterminate bank", () =>
         {
             var popover = this.ChildrenOfType<SamplePointPiece.SampleEditPopover>().SingleOrDefault();
-            var dropdown = popover?.ChildrenOfType<LabelledDropdown<string>>().First();
+            var dropdown = popover?.ChildrenOfType<FormDropdown<string>>().First();
 
             return dropdown?.Current.Value == "(multiple)";
         });
@@ -1289,7 +1288,7 @@ namespace osu.Game.Tests.Visual.Editing
         private void samplePopoverHasSingleAdditionBank(string bank) => AddUntilStep($"sample popover has bank {bank}", () =>
         {
             var popover = this.ChildrenOfType<SamplePointPiece.SampleEditPopover>().SingleOrDefault();
-            var dropdown = popover?.ChildrenOfType<LabelledDropdown<string>>().ElementAt(1);
+            var dropdown = popover?.ChildrenOfType<FormDropdown<string>>().ElementAt(1);
 
             return dropdown?.Current.Value == bank;
         });
@@ -1303,7 +1302,7 @@ namespace osu.Game.Tests.Visual.Editing
         private void setVolumeViaPopover(int volume) => AddStep($"set volume {volume} via popover", () =>
         {
             var popover = this.ChildrenOfType<SamplePointPiece.SampleEditPopover>().Single();
-            var slider = popover.ChildrenOfType<IndeterminateSliderWithTextBoxInput<int>>().Single();
+            var slider = popover.ChildrenOfType<SamplePointPiece.VolumeControl>().Single();
             slider.Current.Value = volume;
         });
 
@@ -1323,14 +1322,14 @@ namespace osu.Game.Tests.Visual.Editing
         private void setBankViaPopover(string bank) => AddStep($"set bank {bank} via popover", () =>
         {
             var popover = this.ChildrenOfType<SamplePointPiece.SampleEditPopover>().Single();
-            var textBox = popover.ChildrenOfType<LabelledDropdown<string>>().First();
+            var textBox = popover.ChildrenOfType<FormDropdown<string>>().First();
             textBox.Current.Value = bank;
         });
 
         private void setAdditionBankViaPopover(string bank) => AddStep($"set addition bank {bank} via popover", () =>
         {
             var popover = this.ChildrenOfType<SamplePointPiece.SampleEditPopover>().Single();
-            var textBox = popover.ChildrenOfType<LabelledDropdown<string>>().ToArray()[1];
+            var textBox = popover.ChildrenOfType<FormDropdown<string>>().ToArray()[1];
             textBox.Current.Value = bank;
         });
 
