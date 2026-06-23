@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
@@ -8,14 +9,17 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Graphics.UserInterfaceV2;
 using osu.Game.Rulesets.Objects;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Screens.Edit.Components.TernaryButtons;
 using osuTK;
+using osuTK.Input;
 
 namespace osu.Game.Screens.Edit.Timing
 {
@@ -37,6 +41,7 @@ namespace osu.Game.Screens.Edit.Timing
 
         private FormDiscreteAdjustmentControl<double> control = null!;
         private FillFlowContainer presetsFlow = null!;
+        private RoundedButton addPresetButton = null!;
 
         private readonly BindableList<double> presets = new BindableList<double>();
 
@@ -68,9 +73,18 @@ namespace osu.Game.Screens.Edit.Timing
                         AutoSizeAxes = Axes.Y,
                         Direction = FillDirection.Full,
                         Spacing = new Vector2(5),
+                        Child = addPresetButton = new RoundedButton
+                        {
+                            Width = 50,
+                            Height = 25,
+                            Text = "+",
+                            Action = () => presets.Add(current.Value),
+                        }
                     }
                 }
             };
+
+            presetsFlow.SetLayoutPosition(addPresetButton, float.MaxValue);
 
             beatmap.TransactionEnded += updateState;
             beatmap.BeatmapReprocessed += updateState;
@@ -104,6 +118,8 @@ namespace osu.Game.Screens.Edit.Timing
                     preset.Current.Value = TernaryState.False;
             }
 
+            addPresetButton.Enabled.Value = velocities.Count == 1 && !presets.Contains(velocities.Single());
+
             applyingStateFromBeatmap = false;
         }
 
@@ -111,11 +127,12 @@ namespace osu.Game.Screens.Edit.Timing
         {
             presetsFlow.RemoveAll(d => d is SliderVelocityPresetTernaryButton, true);
 
-            foreach (double preset in presets)
+            foreach (double preset in presets.OrderBy(v => v))
             {
                 var presetButton = new SliderVelocityPresetTernaryButton(preset)
                 {
                     Description = default,
+                    OnDelete = v => presets.Remove(v),
                 };
                 presetButton.Current.BindValueChanged(val =>
                 {
@@ -174,6 +191,7 @@ namespace osu.Game.Screens.Edit.Timing
         private partial class SliderVelocityPresetTernaryButton : DrawableTernaryButton
         {
             public double Velocity { get; }
+            public Action<double>? OnDelete { get; init; }
 
             public SliderVelocityPresetTernaryButton(double velocity)
             {
@@ -199,6 +217,17 @@ namespace osu.Game.Screens.Edit.Timing
                 Icon.Position = Vector2.Zero;
                 Icon.RelativeSizeAxes = Axes.Both;
                 Icon.Size = new Vector2(1);
+            }
+
+            protected override bool OnMouseDown(MouseDownEvent e)
+            {
+                if ((e.ShiftPressed && e.Button == MouseButton.Right) || e.Button == MouseButton.Middle)
+                {
+                    OnDelete?.Invoke(Velocity);
+                    return true;
+                }
+
+                return base.OnMouseDown(e);
             }
         }
     }
