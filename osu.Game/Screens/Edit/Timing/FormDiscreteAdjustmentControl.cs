@@ -43,8 +43,8 @@ namespace osu.Game.Screens.Edit.Timing
             {
                 tabbableContentContainer = value;
 
-                if (textBox.IsNotNull())
-                    textBox.TabbableContentContainer = tabbableContentContainer;
+                if (TextBox.IsNotNull())
+                    TextBox.TabbableContentContainer = tabbableContentContainer;
             }
         }
 
@@ -87,14 +87,8 @@ namespace osu.Game.Screens.Edit.Timing
             }
         }
 
-        /// <summary>
-        /// The string formatting function to use for the slider's tooltip text.
-        /// If not provided, <see cref="LabelFormat"/> is used.
-        /// </summary>
-        public Func<T, LocalisableString> TooltipFormat { get; init; }
-
         private FormControlBackground background = null!;
-        private FormTextBox.InnerTextBox textBox = null!;
+        internal FormTextBox.InnerTextBox TextBox = null!;
         private OsuSpriteText valueLabel = null!;
         private FormFieldCaption captionText = null!;
         private IFocusManager focusManager = null!;
@@ -104,16 +98,13 @@ namespace osu.Game.Screens.Edit.Timing
 
         private readonly Bindable<Language> currentLanguage = new Bindable<Language>();
 
-        public bool TakeFocus() => GetContainingFocusManager()?.ChangeFocus(textBox) == true;
-
         public FormDiscreteAdjustmentControl(T baseIncrement)
         {
             labelFormat ??= DefaultLabelFormat;
-            TooltipFormat ??= v => LabelFormat(v);
 
             adjustmentControl = new DiscreteAdjustmentControl<T>(baseIncrement);
 
-            current.ValueChanged += e =>
+            current.ValueChanged += _ =>
             {
                 ValueChanged?.Invoke();
             };
@@ -164,7 +155,7 @@ namespace osu.Game.Screens.Edit.Timing
                                     AutoSizeAxes = Axes.Y,
                                     Children = new Drawable[]
                                     {
-                                        textBox = new FormNumberBox.InnerNumberBox(allowDecimals: true)
+                                        TextBox = new FormNumberBox.InnerNumberBox(allowDecimals: true)
                                         {
                                             RelativeSizeAxes = Axes.X,
                                             // the textbox is hidden when the control is unfocused,
@@ -208,8 +199,8 @@ namespace osu.Game.Screens.Edit.Timing
 
             focusManager = GetContainingFocusManager()!;
 
-            textBox.Focused.BindValueChanged(_ => updateState());
-            textBox.OnCommit += textCommitted;
+            TextBox.Focused.BindValueChanged(_ => updateState());
+            TextBox.OnCommit += textCommitted;
 
             currentLanguage.BindValueChanged(_ => Schedule(updateValueDisplay));
             current.BindValueChanged(_ =>
@@ -253,23 +244,23 @@ namespace osu.Game.Screens.Edit.Timing
         protected override bool OnClick(ClickEvent e)
         {
             if (!Current.Disabled)
-                focusManager.ChangeFocus(textBox);
+                focusManager.ChangeFocus(TextBox);
             return true;
         }
 
         private void updateState()
         {
-            textBox.ReadOnly = Current.Disabled;
-            textBox.Alpha = textBox.Focused.Value ? 1 : 0;
-            valueLabel.Alpha = textBox.Focused.Value ? 0 : 1;
+            TextBox.ReadOnly = Current.Disabled;
+            TextBox.Alpha = TextBox.Focused.Value ? 1 : 0;
+            valueLabel.Alpha = TextBox.Focused.Value ? 0 : 1;
 
             captionText.Colour = Current.Disabled ? colourProvider.Background1 : colourProvider.Content2;
-            textBox.Colour = Current.Disabled ? colourProvider.Background1 : colourProvider.Content1;
+            TextBox.Colour = Current.Disabled ? colourProvider.Background1 : colourProvider.Content1;
             valueLabel.Colour = Current.Disabled ? colourProvider.Background1 : colourProvider.Content1;
 
             if (Current.Disabled)
                 background.VisualStyle = VisualStyle.Disabled;
-            else if (textBox.Focused.Value)
+            else if (TextBox.Focused.Value)
                 background.VisualStyle = VisualStyle.Focused;
             else if (IsHovered || adjustmentControl.IsHovered)
                 background.VisualStyle = VisualStyle.Hovered;
@@ -279,7 +270,7 @@ namespace osu.Game.Screens.Edit.Timing
 
         private void updateValueDisplay()
         {
-            textBox.Text = Current.Value.ToString();
+            TextBox.Text = Current.Value.ToString();
             valueLabel.Text = LabelFormat(Current.Value);
         }
 

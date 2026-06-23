@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
+using osu.Game.Extensions;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
@@ -153,7 +154,7 @@ namespace osu.Game.Screens.Edit.Timing
                         Anchor = direction | Anchor.y1,
                         Origin = direction | Anchor.y1,
                         Font = OsuFont.Default.With(size: 10, weight: FontWeight.Bold),
-                        Text = $"{(amount * T.CreateTruncating(Multiplier)):+#;-#;0}",
+                        Text = $"{(Multiplier > 0 ? "+" : "")}{(amount * T.CreateTruncating(Multiplier)).ToStandardFormattedString(maxDecimalDigits: 2)}",
                         Padding = new MarginPadding(2),
                         Alpha = 0,
                     }
