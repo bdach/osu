@@ -291,6 +291,8 @@ namespace osu.Game.Screens.Edit
             set => PlayableBeatmap.Bookmarks = value;
         }
 
+        public readonly BindableList<double> SliderVelocityPresets = [0.75, 1, 1.5];
+
         public int BeatmapVersion { get; set; }
 
         public IBeatmap Clone() => (EditorBeatmap)MemberwiseClone();
