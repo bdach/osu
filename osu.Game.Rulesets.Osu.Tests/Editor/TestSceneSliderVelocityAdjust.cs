@@ -136,7 +136,7 @@ namespace osu.Game.Rulesets.Osu.Tests.Editor
         [Test]
         public void TestVelocityToolbox()
         {
-            OsuSliderVelocityToolboxGroup.ExpandableSliderVelocityControl velocitySlider = null!;
+            OsuSliderVelocityToolboxGroup.ExpandableSliderVelocityAdjustmentControl velocitySlider = null!;
             ExpandableButton useLastSliderButton = null!;
 
             AddStep("enter editor", () => Game.ScreenStack.Push(new EditorLoader()));
@@ -144,7 +144,7 @@ namespace osu.Game.Rulesets.Osu.Tests.Editor
             AddStep("retrieve controls", () =>
             {
                 var toolbox = this.ChildrenOfType<OsuSliderVelocityToolboxGroup>().Single();
-                velocitySlider = toolbox.ChildrenOfType<OsuSliderVelocityToolboxGroup.ExpandableSliderVelocityControl>().Single();
+                velocitySlider = toolbox.ChildrenOfType<OsuSliderVelocityToolboxGroup.ExpandableSliderVelocityAdjustmentControl>().Single();
                 useLastSliderButton = toolbox.ChildrenOfType<ExpandableButton>().Single();
             });
 
