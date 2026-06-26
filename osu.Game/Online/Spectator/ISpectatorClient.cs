@@ -49,5 +49,7 @@ namespace osu.Game.Online.Spectator
         /// </summary>
         /// <param name="userId">The ID of the user who ended watching.</param>
         Task UserEndedWatching(int userId);
+
+        Task<CompleteReplayResponse> CompleteReplay(CompleteReplayRequest request);
     }
 }

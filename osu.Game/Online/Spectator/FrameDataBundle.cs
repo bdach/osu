@@ -21,6 +21,9 @@ namespace osu.Game.Online.Spectator
         [Key(1)]
         public IList<LegacyReplayFrame> Frames { get; set; }
 
+        [Key(2)]
+        public long? SequenceNumber { get; set; }
+
         public FrameDataBundle(ScoreInfo score, ScoreProcessor scoreProcessor, IList<LegacyReplayFrame> frames)
         {
             Frames = frames;
@@ -28,10 +31,11 @@ namespace osu.Game.Online.Spectator
         }
 
         [JsonConstructor]
-        public FrameDataBundle(FrameHeader header, IList<LegacyReplayFrame> frames)
+        public FrameDataBundle(FrameHeader header, IList<LegacyReplayFrame> frames, long? sequenceNumber)
         {
             Header = header;
             Frames = frames;
+            SequenceNumber = sequenceNumber;
         }
     }
 }
