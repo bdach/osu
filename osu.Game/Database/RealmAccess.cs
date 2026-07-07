@@ -101,9 +101,9 @@ namespace osu.Game.Database
         /// 49   2025-06-10    Reset the LegacyOnlineID to -1 for all scores that have it set to 0 (which is semantically the same) for consistency of handling with OnlineID.
         /// 50   2025-07-11    Add UserTags to BeatmapMetadata.
         /// 51   2025-07-22    Add ScoreInfo.Pauses.
-        /// 52   2026-07-07    TODO
+        /// 52   2026-07-07    Remove BeatmapMetadata.Author, replaced by BeatmapSet.Host and Beatmap.Authors.
         /// </summary>
-        private const int schema_version = 51;
+        private const int schema_version = 52;
 
         /// <summary>
         /// Lock object which is held during <see cref="BlockAllOperations"/> sections, blocking realm retrieval during blocking periods.
@@ -1305,6 +1305,52 @@ namespace osu.Game.Database
                 case 49:
                     foreach (var score in migration.NewRealm.All<ScoreInfo>().Where(s => s.LegacyOnlineID == 0))
                         score.LegacyOnlineID = -1;
+
+                    break;
+
+                case 52:
+                    string beatmapInfoClassName = getMappedOrOriginalName(typeof(BeatmapInfo));
+                    string beatmapSetInfoClassName = getMappedOrOriginalName(typeof(BeatmapSetInfo));
+
+                    var oldBeatmaps = migration.OldRealm.DynamicApi.All(beatmapInfoClassName).ToArray();
+                    var newBeatmaps = migration.NewRealm.All<BeatmapInfo>().ToArray();
+
+                    for (int i = 0; i < newBeatmaps.Length; ++i)
+                    {
+                        dynamic oldBeatmap = oldBeatmaps[i];
+                        dynamic oldAuthor = oldBeatmap.Metadata.Author;
+
+                        var newBeatmap = newBeatmaps[i];
+
+                        newBeatmap.Authors.Clear();
+                        dynamic newAuthor = migration.NewRealm.DynamicApi.AddEmbeddedObjectToList(newBeatmap.Authors);
+
+                        newAuthor.OnlineID = (int)oldAuthor.OnlineID;
+                        newAuthor.Username = oldAuthor.Username;
+                        newAuthor.CountryString = oldAuthor.CountryCode;
+                    }
+
+                    var oldBeatmapSets = migration.OldRealm.DynamicApi.All(beatmapSetInfoClassName).ToArray();
+                    var newBeatmapSets = migration.NewRealm.All<BeatmapSetInfo>().ToArray();
+
+                    for (int i = 0; i < newBeatmapSets.Length; ++i)
+                    {
+                        dynamic oldBeatmapSet = oldBeatmapSets[i];
+                        var newBeatmapSet = newBeatmapSets[i];
+
+                        if (oldBeatmapSet.Beatmaps.Count > 0)
+                        {
+                            dynamic oldAuthor = oldBeatmapSet.Beatmaps[0].Metadata.Author;
+                            newBeatmapSet.Host = new RealmUser
+                            {
+                                OnlineID = (int)oldAuthor.OnlineID,
+                                Username = oldAuthor.Username,
+                                CountryString = oldAuthor.CountryCode,
+                            };
+                        }
+                        else
+                            newBeatmapSet.Host = new RealmUser();
+                    }
 
                     break;
             }
