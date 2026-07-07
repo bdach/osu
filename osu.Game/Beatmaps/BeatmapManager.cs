@@ -109,13 +109,10 @@ namespace osu.Game.Beatmaps
         /// </summary>
         public WorkingBeatmap CreateNew(RulesetInfo ruleset, APIUser user)
         {
-            var metadata = new BeatmapMetadata
+            var author = new RealmUser
             {
-                Author = new RealmUser
-                {
-                    OnlineID = user.OnlineID,
-                    Username = user.Username,
-                }
+                OnlineID = user.OnlineID,
+                Username = user.Username,
             };
 
             var beatmapSet = new BeatmapSetInfo
@@ -123,8 +120,9 @@ namespace osu.Game.Beatmaps
                 DateAdded = DateTimeOffset.UtcNow,
                 Beatmaps =
                 {
-                    new BeatmapInfo(ruleset, new BeatmapDifficulty(), metadata)
-                }
+                    new BeatmapInfo(ruleset, new BeatmapDifficulty(), [author], new BeatmapMetadata())
+                },
+                Host = author,
             };
 
             foreach (BeatmapInfo b in beatmapSet.Beatmaps)
@@ -152,7 +150,7 @@ namespace osu.Game.Beatmaps
         /// <param name="rulesetInfo">The ruleset with which the new difficulty should be created.</param>
         public virtual WorkingBeatmap CreateNewDifficulty(BeatmapSetInfo targetBeatmapSet, WorkingBeatmap referenceWorkingBeatmap, RulesetInfo rulesetInfo)
         {
-            var newBeatmapInfo = new BeatmapInfo(rulesetInfo, new BeatmapDifficulty(), referenceWorkingBeatmap.Metadata.DeepClone())
+            var newBeatmapInfo = new BeatmapInfo(rulesetInfo, new BeatmapDifficulty(), referenceWorkingBeatmap.BeatmapInfo.Authors.Select(a => a.DeepClone()), new BeatmapMetadata())
             {
                 DifficultyName = NamingUtils.GetNextBestName(targetBeatmapSet.Beatmaps.Select(b => b.DifficultyName), "New Difficulty")
             };
@@ -572,7 +570,7 @@ namespace osu.Game.Beatmaps
             static string createBeatmapFilenameFromMetadata(BeatmapInfo beatmapInfo)
             {
                 var metadata = beatmapInfo.Metadata;
-                return $"{metadata.Artist} - {metadata.Title} ({metadata.Author.Username}) [{beatmapInfo.DifficultyName}].osu".GetValidFilename();
+                return $"{metadata.Artist} - {metadata.Title} ({beatmapInfo.BeatmapSet!.Host.Username}) [{beatmapInfo.DifficultyName}].osu".GetValidFilename();
             }
         }
 

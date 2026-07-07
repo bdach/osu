@@ -11,6 +11,7 @@ using AutoMapper.Internal;
 using osu.Framework.Logging;
 using osu.Game.Beatmaps;
 using osu.Game.Collections;
+using osu.Game.Extensions;
 using osu.Game.Input.Bindings;
 using osu.Game.Models;
 using osu.Game.Rulesets;
@@ -27,12 +28,12 @@ namespace osu.Game.Database
             c.ShouldMapField = _ => false;
             c.ShouldMapProperty = pi => pi.SetMethod?.IsPublic == true;
 
-            c.CreateMap<BeatmapMetadata, BeatmapMetadata>()
-             .ForMember(s => s.Author, cc => cc.Ignore())
-             .AfterMap((s, d) =>
-             {
-                 copyChangesToRealm(s.Author, d.Author);
-             });
+            c.CreateMap<BeatmapMetadata, BeatmapMetadata>();
+             //.ForMember(s => s.Author, cc => cc.Ignore())
+             //.AfterMap((s, d) =>
+             //{
+             //    copyChangesToRealm(s.Author, d.Author);
+             //});
             c.CreateMap<BeatmapDifficulty, BeatmapDifficulty>();
             c.CreateMap<RealmUser, RealmUser>();
             c.CreateMap<RealmFile, RealmFile>();
@@ -43,15 +44,19 @@ namespace osu.Game.Database
              .ForMember(s => s.UserSettings, cc => cc.Ignore())
              .ForMember(s => s.Difficulty, cc => cc.Ignore())
              .ForMember(s => s.BeatmapSet, cc => cc.Ignore())
+             .ForMember(s => s.Authors, cc => cc.Ignore())
              .AfterMap((s, d) =>
              {
                  d.Ruleset = d.Realm!.Find<RulesetInfo>(s.Ruleset.ShortName)!;
                  copyChangesToRealm(s.Difficulty, d.Difficulty);
                  copyChangesToRealm(s.Metadata, d.Metadata);
+                 d.Authors.Clear();
+                 d.Authors.AddRange(s.Authors);
              });
             c.CreateMap<BeatmapSetInfo, BeatmapSetInfo>()
-             .ConstructUsing(_ => new BeatmapSetInfo(null))
+             .ConstructUsing(_ => new BeatmapSetInfo(null, null))
              .ForMember(s => s.Beatmaps, cc => cc.Ignore())
+             .ForMember(s => s.Host, cc => cc.Ignore())
              .AfterMap((s, d) =>
              {
                  foreach (var beatmap in s.Beatmaps)
@@ -87,6 +92,8 @@ namespace osu.Game.Database
                          copyChangesToRealm(beatmap, newBeatmap);
                      }
                  }
+
+                 copyChangesToRealm(s.Host, d.Host);
              });
 
             c.Internal().ForAllMaps((_, expression) =>
@@ -104,7 +111,7 @@ namespace osu.Game.Database
             applyCommonConfiguration(c);
 
             c.CreateMap<BeatmapSetInfo, BeatmapSetInfo>()
-             .ConstructUsing(_ => new BeatmapSetInfo(null))
+             .ConstructUsing(_ => new BeatmapSetInfo(null, null))
              .MaxDepth(2)
              .AfterMap((_, d) =>
              {
@@ -137,7 +144,7 @@ namespace osu.Game.Database
             applyCommonConfiguration(c);
 
             c.CreateMap<BeatmapSetInfo, BeatmapSetInfo>()
-             .ConstructUsing(_ => new BeatmapSetInfo(null))
+             .ConstructUsing(_ => new BeatmapSetInfo(null, null))
              .MaxDepth(2)
              .ForMember(b => b.Files, cc => cc.Ignore())
              .AfterMap((_, d) =>

@@ -67,7 +67,7 @@ namespace osu.Game.Screens.Select
                     break;
 
                 case SortMode.Author:
-                    comparison = OrdinalSortByCaseStringComparer.DEFAULT.Compare(a.BeatmapSet!.Metadata.Author.Username, b.BeatmapSet!.Metadata.Author.Username);
+                    comparison = OrdinalSortByCaseStringComparer.DEFAULT.Compare(a.BeatmapSet!.Host.Username, b.BeatmapSet!.Host.Username);
                     break;
 
                 case SortMode.Source:

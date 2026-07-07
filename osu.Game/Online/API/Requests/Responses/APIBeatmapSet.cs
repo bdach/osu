@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Extensions;
-using osu.Game.Models;
+using osu.Game.Users;
 
 namespace osu.Game.Online.API.Requests.Responses
 {
@@ -166,16 +166,13 @@ namespace osu.Game.Online.API.Requests.Responses
             TitleUnicode = TitleUnicode,
             Artist = Artist,
             ArtistUnicode = ArtistUnicode,
-            Author = new RealmUser
-            {
-                OnlineID = Author.OnlineID,
-                Username = Author.Username
-            },
             Source = Source,
             Tags = Tags,
         };
 
         #region Implementation of IBeatmapSetInfo
+
+        IUser IBeatmapSetInfo.Host => Author;
 
         IEnumerable<IBeatmapInfo> IBeatmapSetInfo.Beatmaps => Beatmaps;
 

@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using osu.Framework.Lists;
 using osu.Game.Beatmaps.Formats;
 using osu.Game.IO.Serialization.Converters;
+using osu.Game.Models;
 
 namespace osu.Game.Beatmaps
 {
@@ -47,11 +48,11 @@ namespace osu.Game.Beatmaps
         {
             beatmapInfo = new BeatmapInfo
             {
+                Authors = { new RealmUser { Username = @"Unknown Creator" } },
                 Metadata = new BeatmapMetadata
                 {
                     Artist = @"Unknown",
                     Title = @"Unknown",
-                    Author = { Username = @"Unknown Creator" },
                 },
                 DifficultyName = @"Normal",
                 Difficulty = Difficulty,

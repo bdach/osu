@@ -35,7 +35,7 @@ namespace osu.Game.Rulesets.Edit.Checks
                 ("title", m => m.Title),
                 ("unicode title", m => m.TitleUnicode),
                 ("source", m => m.Source),
-                ("creator", m => m.Author.Username)
+                //("creator", m => m.Author.Username)
             };
 
             foreach (var beatmap in context.OtherDifficulties)

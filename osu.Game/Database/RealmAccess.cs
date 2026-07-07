@@ -101,6 +101,7 @@ namespace osu.Game.Database
         /// 49   2025-06-10    Reset the LegacyOnlineID to -1 for all scores that have it set to 0 (which is semantically the same) for consistency of handling with OnlineID.
         /// 50   2025-07-11    Add UserTags to BeatmapMetadata.
         /// 51   2025-07-22    Add ScoreInfo.Pauses.
+        /// 52   2026-07-07    TODO
         /// </summary>
         private const int schema_version = 51;
 
@@ -886,14 +887,14 @@ namespace osu.Game.Database
                         return;
 
                     var oldMetadata = migration.OldRealm.DynamicApi.All(metadataClassName);
-                    var newMetadata = migration.NewRealm.All<BeatmapMetadata>();
+                    var newMetadata = migration.NewRealm.DynamicApi.All(metadataClassName);
 
                     int metadataCount = newMetadata.Count();
 
                     for (int i = 0; i < metadataCount; i++)
                     {
                         dynamic oldItem = oldMetadata.ElementAt(i);
-                        var newItem = newMetadata.ElementAt(i);
+                        dynamic newItem = newMetadata.ElementAt(i);
 
                         string username = oldItem.Author;
                         newItem.Author = new RealmUser

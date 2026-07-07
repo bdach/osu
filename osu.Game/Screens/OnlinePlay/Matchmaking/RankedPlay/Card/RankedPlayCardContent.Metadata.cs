@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
@@ -56,7 +57,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 
                         d.NewParagraph();
                         d.AddText("mapped by ", static s => s.Font = OsuFont.GetFont(size: 9, weight: FontWeight.SemiBold));
-                        d.AddText(beatmap.Metadata.Author.Username, s =>
+                        d.AddText(string.Join(", ", beatmap.BeatmapOwners.Select(o => o.Username)), s =>
                         {
                             s.Font = OsuFont.GetFont(size: 9, weight: FontWeight.SemiBold);
                             s.Colour = colours.OnBackground;

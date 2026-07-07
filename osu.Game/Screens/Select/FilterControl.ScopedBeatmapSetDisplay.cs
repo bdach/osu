@@ -113,7 +113,7 @@ namespace osu.Game.Screens.Select
                     text.Clear();
                     text.AddText(SongSelectStrings.TemporarilyShowingAllBeatmapsIn);
                     text.AddText(@" ");
-                    text.AddText(ScopedBeatmapSet.Value.Metadata.GetDisplayTitleRomanisable(), t => t.Font = OsuFont.Style.Body.With(weight: FontWeight.Bold));
+                    text.AddText(ScopedBeatmapSet.Value.GetDisplayTitleRomanisable(), t => t.Font = OsuFont.Style.Body.With(weight: FontWeight.Bold));
                 }
                 else
                 {

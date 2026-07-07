@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -223,7 +224,7 @@ namespace osu.Game.Screens.Play
                                 new Drawable[]
                                 {
                                     new MetadataLineLabel(CommonStrings.Mapper),
-                                    new MetadataLineInfo(metadata.Author.Username)
+                                    new MetadataLineInfo(string.Join(", ", beatmap.BeatmapInfo.Authors.Select(a => a.Username)))
                                 }
                             }
                         },

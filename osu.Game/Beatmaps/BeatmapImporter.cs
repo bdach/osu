@@ -423,11 +423,6 @@ namespace osu.Game.Beatmaps
                         TitleUnicode = decoded.Metadata.TitleUnicode,
                         Artist = decoded.Metadata.Artist,
                         ArtistUnicode = decoded.Metadata.ArtistUnicode,
-                        Author =
-                        {
-                            OnlineID = decoded.Metadata.Author.OnlineID,
-                            Username = decoded.Metadata.Author.Username
-                        },
                         Source = decoded.Metadata.Source,
                         Tags = decoded.Metadata.Tags,
                         PreviewTime = decoded.Metadata.PreviewTime,
@@ -435,7 +430,7 @@ namespace osu.Game.Beatmaps
                         BackgroundFile = decoded.Metadata.BackgroundFile,
                     };
 
-                    var beatmap = new BeatmapInfo(ruleset, difficulty, metadata)
+                    var beatmap = new BeatmapInfo(ruleset, difficulty, decoded.BeatmapInfo.Authors, metadata)
                     {
                         Hash = hash,
                         DifficultyName = decodedInfo.DifficultyName,

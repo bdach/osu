@@ -12,6 +12,7 @@ using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Configuration;
@@ -50,10 +51,6 @@ namespace osu.Game.Screens.Select
 
             private StarRatingDisplay starRatingDisplay = null!;
             private FillFlowContainer nameLine = null!;
-            private OsuSpriteText difficultyText = null!;
-            private OsuSpriteText mappedByText = null!;
-            private OsuHoverContainer mapperLink = null!;
-            private OsuSpriteText mapperText = null!;
 
             private GridContainer ratingAndNameContainer = null!;
             private DifficultyStatisticsDisplay countStatisticsDisplay = null!;
@@ -117,33 +114,6 @@ namespace osu.Game.Screens.Select
                                             AutoSizeAxes = Axes.Y,
                                             Direction = FillDirection.Horizontal,
                                             Margin = new MarginPadding { Bottom = 2f },
-                                            Children = new Drawable[]
-                                            {
-                                                difficultyText = new TruncatingSpriteText
-                                                {
-                                                    Anchor = Anchor.BottomLeft,
-                                                    Origin = Anchor.BottomLeft,
-                                                    Font = OsuFont.Style.Body.With(weight: FontWeight.SemiBold),
-                                                },
-                                                mappedByText = new OsuSpriteText
-                                                {
-                                                    Anchor = Anchor.BottomLeft,
-                                                    Origin = Anchor.BottomLeft,
-                                                    Text = " mapped by ",
-                                                    Font = OsuFont.Style.Body,
-                                                },
-                                                mapperLink = new MapperLinkContainer
-                                                {
-                                                    AutoSizeAxes = Axes.Both,
-                                                    Anchor = Anchor.BottomLeft,
-                                                    Origin = Anchor.BottomLeft,
-                                                    Child = mapperText = new TruncatingSpriteText
-                                                    {
-                                                        Shadow = true,
-                                                        Font = OsuFont.Style.Body.With(weight: FontWeight.SemiBold),
-                                                    },
-                                                },
-                                            },
                                         },
                                     }
                                 },
@@ -246,9 +216,52 @@ namespace osu.Game.Screens.Select
                 else
                 {
                     ratingAndNameContainer.FadeIn(300, Easing.OutQuint);
-                    difficultyText.Text = beatmap.Value.BeatmapInfo.DifficultyName;
-                    mapperLink.Action = () => linkHandler?.HandleLink(new LinkDetails(LinkAction.OpenUserProfile, beatmap.Value.Metadata.Author));
-                    mapperText.Text = beatmap.Value.Metadata.Author.Username;
+                    nameLine.Clear();
+
+                    nameLine.Add(new TruncatingSpriteText
+                    {
+                        Anchor = Anchor.BottomLeft,
+                        Origin = Anchor.BottomLeft,
+                        Font = OsuFont.Style.Body.With(weight: FontWeight.SemiBold),
+                        Text = beatmap.Value.BeatmapInfo.DifficultyName,
+                    });
+                    nameLine.Add(new OsuSpriteText
+                    {
+                        Anchor = Anchor.BottomLeft,
+                        Origin = Anchor.BottomLeft,
+                        Text = " mapped by ",
+                        Font = OsuFont.Style.Body,
+                    });
+
+                    for (int i = 0; i < beatmap.Value.BeatmapInfo.Authors.Count; ++i)
+                    {
+                        var author = beatmap.Value.BeatmapInfo.Authors[i];
+
+                        if (i > 0)
+                        {
+                            nameLine.Add(new OsuSpriteText
+                            {
+                                Anchor = Anchor.BottomLeft,
+                                Origin = Anchor.BottomLeft,
+                                Text = @", ",
+                                Font = OsuFont.Style.Body,
+                            });
+                        }
+
+                        nameLine.Add(new MapperLinkContainer
+                        {
+                            AutoSizeAxes = Axes.Both,
+                            Anchor = Anchor.BottomLeft,
+                            Origin = Anchor.BottomLeft,
+                            Child = new TruncatingSpriteText
+                            {
+                                Shadow = true,
+                                Font = OsuFont.Style.Body.With(weight: FontWeight.SemiBold),
+                                Text = author.Username,
+                            },
+                            Action = () => linkHandler?.HandleLink(new LinkDetails(LinkAction.OpenUserProfile, author)),
+                        });
+                    }
                 }
 
                 starRatingDisplay.Current = (Bindable<StarDifficulty>)difficultyCache.GetBindableDifficulty(beatmap.Value.BeatmapInfo, cancellationSource.Token, SongSelect.DIFFICULTY_CALCULATION_DEBOUNCE);
@@ -303,13 +316,13 @@ namespace osu.Game.Screens.Select
             {
                 base.Update();
 
-                difficultyText.MaxWidth = Math.Max(nameLine.DrawWidth - mappedByText.DrawWidth - mapperText.DrawWidth - 20, 0);
+                //difficultyText.MaxWidth = Math.Max(nameLine.DrawWidth - mappedByText.DrawWidth - mapperText.DrawWidth - 20, 0); TODO
 
                 // Use difficulty colour until it gets too dark to be visible against dark backgrounds.
                 Color4 col = starRatingDisplay.DisplayedStars.Value >= OsuColour.STAR_DIFFICULTY_DEFINED_COLOUR_CUTOFF ? starRatingDisplay.DisplayedDifficultyTextColour : starRatingDisplay.DisplayedDifficultyColour;
 
-                difficultyText.Colour = col;
-                mappedByText.Colour = col;
+                foreach (var text in nameLine.Children.OfType<SpriteText>())
+                    text.Colour = col;
                 countStatisticsDisplay.AccentColour = col;
                 difficultyStatisticsDisplay.AccentColour = col;
             }

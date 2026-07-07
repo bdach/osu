@@ -250,7 +250,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                                     Origin = Anchor.TopCentre,
                                                     Shear = -OsuGame.SHEAR,
                                                     MaxWidth = horizontal_info_size,
-                                                    Text = beatmap.BeatmapSet!.Metadata.GetDisplayTitleRomanisable(false),
+                                                    Text = beatmap.BeatmapSet!.GetDisplayTitleRomanisable(false),
                                                     Padding = new MarginPadding { Horizontal = 5f },
                                                     Font = OsuFont.GetFont(size: 26),
                                                 },
@@ -265,7 +265,7 @@ namespace osu.Game.Screens.OnlinePlay.DailyChallenge
                                                 },
                                                 new TruncatingSpriteText
                                                 {
-                                                    Text = BeatmappacksStrings.ShowCreatedBy(beatmap.Metadata.Author.Username),
+                                                    Text = BeatmappacksStrings.ShowCreatedBy(string.Join(", ", beatmap.Authors.Select(a => a.Username))),
                                                     Font = OsuFont.GetFont(size: 16, italics: true),
                                                     MaxWidth = horizontal_info_size,
                                                     Shear = -OsuGame.SHEAR,

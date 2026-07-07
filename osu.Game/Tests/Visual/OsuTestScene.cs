@@ -290,8 +290,8 @@ namespace osu.Game.Tests.Visual
                 ArtistUnicode = original.Metadata.ArtistUnicode,
                 Author = new APIUser
                 {
-                    Username = original.Metadata.Author.Username,
-                    Id = original.Metadata.Author.OnlineID
+                    Username = original.BeatmapSet.Host.Username,
+                    Id = original.BeatmapSet.Host.OnlineID
                 },
                 Source = original.Metadata.Source,
                 Tags = original.Metadata.Tags,
@@ -331,7 +331,7 @@ namespace osu.Game.Tests.Visual
                         OnlineBeatmapSetID = original.BeatmapSet.OnlineID,
                         Status = ((BeatmapInfo)original).Status,
                         Checksum = original.MD5Hash,
-                        AuthorID = original.Metadata.Author.OnlineID,
+                        AuthorID = original.Authors.First().OnlineID,
                         RulesetID = original.Ruleset.OnlineID,
                         StarRating = original.StarRating,
                         DifficultyName = original.DifficultyName,

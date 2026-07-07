@@ -14,7 +14,7 @@ namespace osu.Game.Screens.Select
         public BeatmapDeleteDialog(BeatmapSetInfo beatmapSet)
         {
             this.beatmapSet = beatmapSet;
-            BodyText = beatmapSet.Metadata.GetDisplayTitleRomanisable(false);
+            BodyText = beatmapSet.GetDisplayTitleRomanisable(false);
         }
 
         [BackgroundDependencyLoader]

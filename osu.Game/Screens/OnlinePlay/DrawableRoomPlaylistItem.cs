@@ -345,10 +345,19 @@ namespace osu.Game.Screens.OnlinePlay
             {
                 authorText.Clear();
 
-                if (!string.IsNullOrEmpty(beatmap?.Metadata.Author.Username))
+                if (beatmap != null)
                 {
                     authorText.AddText("mapped by ");
-                    authorText.AddUserLink(beatmap.Metadata.Author);
+
+                    bool first = true;
+
+                    foreach (var author in beatmap.Authors)
+                    {
+                        if (!first)
+                            authorText.AddText(@", ");
+                        authorText.AddUserLink(author);
+                        first = false;
+                    }
                 }
             }
 

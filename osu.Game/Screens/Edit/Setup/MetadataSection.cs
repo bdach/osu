@@ -180,7 +180,7 @@ namespace osu.Game.Screens.Edit.Setup
             RomanisedArtistTextBox.Current.Value = !string.IsNullOrEmpty(metadata.Artist) ? metadata.Artist : MetadataUtils.StripNonRomanisedCharacters(metadata.ArtistUnicode);
             TitleTextBox.Current.Value = !string.IsNullOrEmpty(metadata.TitleUnicode) ? metadata.TitleUnicode : metadata.Title;
             RomanisedTitleTextBox.Current.Value = !string.IsNullOrEmpty(metadata.Title) ? metadata.Title : MetadataUtils.StripNonRomanisedCharacters(metadata.TitleUnicode);
-            creatorTextBox.Current.Value = metadata.Author.Username;
+            // creatorTextBox.Current.Value = metadata.Author.Username; TODO
             difficultyTextBox.Current.Value = Beatmap.BeatmapInfo.DifficultyName;
             sourceTextBox.Current.Value = metadata.Source;
             tagsTextBox.Current.Value = metadata.Tags;
@@ -199,7 +199,7 @@ namespace osu.Game.Screens.Edit.Setup
             Beatmap.Metadata.Artist = RomanisedArtistTextBox.Current.Value;
             Beatmap.Metadata.TitleUnicode = TitleTextBox.Current.Value;
             Beatmap.Metadata.Title = RomanisedTitleTextBox.Current.Value;
-            Beatmap.Metadata.Author.Username = creatorTextBox.Current.Value;
+            // Beatmap.Metadata.Author.Username = creatorTextBox.Current.Value; TODO
             Beatmap.BeatmapInfo.DifficultyName = difficultyTextBox.Current.Value;
             Beatmap.Metadata.Source = sourceTextBox.Current.Value;
             Beatmap.Metadata.Tags = tagsTextBox.Current.Value;

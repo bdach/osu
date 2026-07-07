@@ -18,6 +18,7 @@ using osu.Game.Graphics.Containers;
 using osu.Game.Localisation;
 using osu.Game.Online;
 using osu.Game.Online.API;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Online.Chat;
 using osu.Game.Resources.Localisation.Web;
 using osuTK;
@@ -348,7 +349,8 @@ namespace osu.Game.Screens.Select
             var metadata = beatmap.Value.Metadata;
             var beatmapSetInfo = beatmap.Value.BeatmapSetInfo;
 
-            creator.Data = (metadata.Author.Username, () => linkHandler?.HandleLink(new LinkDetails(LinkAction.OpenUserProfile, metadata.Author)));
+            creator.Tags = (beatmap.Value.BeatmapInfo.Authors.Select(a => a.Username).ToArray(),
+                a => linkHandler?.HandleLink(new LinkDetails(LinkAction.OpenUserProfile, new APIUser { Username = a })));
 
             if (!string.IsNullOrEmpty(metadata.Source))
                 source.Data = (metadata.Source, () => songSelect?.Search(metadata.Source));

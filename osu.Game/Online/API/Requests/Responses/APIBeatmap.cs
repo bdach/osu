@@ -6,8 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using osu.Game.Beatmaps;
+using osu.Game.Database;
 using osu.Game.Extensions;
 using osu.Game.Rulesets;
+using osu.Game.Users;
 
 namespace osu.Game.Online.API.Requests.Responses
 {
@@ -160,6 +162,7 @@ namespace osu.Game.Online.API.Requests.Responses
             OverallDifficulty = OverallDifficulty
         };
 
+        IEnumerable<IUser> IBeatmapInfo.Authors => BeatmapOwners;
         IBeatmapSetInfo? IBeatmapInfo.BeatmapSet => BeatmapSet;
 
         public string MD5Hash => Checksum;
@@ -218,13 +221,17 @@ namespace osu.Game.Online.API.Requests.Responses
             public override int GetHashCode() => OnlineID;
         }
 
-        public class BeatmapOwner
+        public class BeatmapOwner : IUser
         {
             [JsonProperty(@"id")]
             public int Id { get; set; }
 
             [JsonProperty(@"username")]
             public string Username { get; set; } = string.Empty;
+
+            int IHasOnlineID<int>.OnlineID => Id;
+            CountryCode IUser.CountryCode => CountryCode.Unknown;
+            bool IUser.IsBot => false;
         }
     }
 }

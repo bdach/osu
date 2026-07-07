@@ -1,6 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.ObjectExtensions;
@@ -101,7 +102,7 @@ namespace osu.Game.Skinning
             new SkinInfo
             {
                 Name = beatmapInfo.ToString(),
-                Creator = beatmapInfo.Metadata.Author.Username
+                Creator = beatmapInfo.Authors.First().Username
             };
     }
 }

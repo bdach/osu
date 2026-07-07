@@ -5,9 +5,7 @@ using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using osu.Game.Models;
 using osu.Game.Screens.Select;
-using osu.Game.Users;
 using osu.Game.Utils;
 using Realms;
 
@@ -38,8 +36,6 @@ namespace osu.Game.Beatmaps
         [JsonProperty("artist_unicode")]
         public string ArtistUnicode { get; set; } = string.Empty;
 
-        public RealmUser Author { get; set; } = null!;
-
         public string Source { get; set; } = string.Empty;
 
         [JsonProperty(@"tags")]
@@ -61,21 +57,12 @@ namespace osu.Game.Beatmaps
         public string AudioFile { get; set; } = string.Empty;
         public string BackgroundFile { get; set; } = string.Empty;
 
-        public BeatmapMetadata(RealmUser? user = null)
-        {
-            Author = user ?? new RealmUser();
-        }
-
         [UsedImplicitly] // Realm
-        private BeatmapMetadata()
+        public BeatmapMetadata()
         {
         }
 
-        IUser IBeatmapMetadataInfo.Author => Author;
-
-        public override string ToString() => this.GetDisplayTitle();
-
-        public BeatmapMetadata DeepClone() => new BeatmapMetadata(Author.DeepClone())
+        public BeatmapMetadata DeepClone() => new BeatmapMetadata
         {
             Title = Title,
             TitleUnicode = TitleUnicode,

@@ -217,7 +217,7 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay
                 var metadata = beatmap.Metadata;
                 var beatmapSet = beatmap.BeatmapSet!;
 
-                creator.Data = (metadata.Author.Username, null);
+                creator.Tags = (beatmap.BeatmapOwners.Select(a => a.Username).ToArray(), _ => { });
 
                 if (!string.IsNullOrEmpty(metadata.Source))
                     source.Data = (metadata.Source, null);

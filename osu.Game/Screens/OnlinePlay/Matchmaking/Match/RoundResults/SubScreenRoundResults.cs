@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
+using osu.Game.Extensions;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Models;
@@ -103,24 +104,29 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Match.RoundResults
                     return;
 
                 // Reference: PlaylistItemResultsScreen
-                setScores(apiScores.Select(s => s.CreateScoreInfo(scoreManager, rulesets, new BeatmapInfo
+                setScores(apiScores.Select(s =>
                 {
-                    Difficulty = new BeatmapDifficulty(apiBeatmap.Difficulty),
-                    Metadata =
+                    var beatmapInfo = new BeatmapInfo
                     {
-                        Artist = apiBeatmap.Metadata.Artist,
-                        Title = apiBeatmap.Metadata.Title,
-                        Author = new RealmUser
+                        Difficulty = new BeatmapDifficulty(apiBeatmap.Difficulty),
+                        Metadata =
                         {
-                            Username = apiBeatmap.Metadata.Author.Username,
-                            OnlineID = apiBeatmap.Metadata.Author.OnlineID,
-                        }
-                    },
-                    DifficultyName = apiBeatmap.DifficultyName,
-                    StarRating = apiBeatmap.StarRating,
-                    Length = apiBeatmap.Length,
-                    BPM = apiBeatmap.BPM
-                })).ToArray());
+                            Artist = apiBeatmap.Metadata.Artist,
+                            Title = apiBeatmap.Metadata.Title,
+                        },
+                        DifficultyName = apiBeatmap.DifficultyName,
+                        StarRating = apiBeatmap.StarRating,
+                        Length = apiBeatmap.Length,
+                        BPM = apiBeatmap.BPM
+                    };
+                    beatmapInfo.Authors.AddRange(apiBeatmap.BeatmapOwners.Select(owner => new RealmUser
+                    {
+                        OnlineID = owner.Id,
+                        Username = owner.Username,
+                    }));
+
+                    return s.CreateScoreInfo(scoreManager, rulesets, beatmapInfo);
+                }).ToArray());
             }
             catch (Exception e)
             {

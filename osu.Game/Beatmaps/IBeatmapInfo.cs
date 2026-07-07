@@ -2,8 +2,10 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Game.Database;
 using osu.Game.Rulesets;
+using osu.Game.Users;
 
 namespace osu.Game.Beatmaps
 {
@@ -16,6 +18,8 @@ namespace osu.Game.Beatmaps
         /// The user-specified name given to this beatmap.
         /// </summary>
         string DifficultyName { get; }
+
+        IEnumerable<IUser> Authors { get; }
 
         /// <summary>
         /// The metadata representing this beatmap. May be shared between multiple beatmaps.

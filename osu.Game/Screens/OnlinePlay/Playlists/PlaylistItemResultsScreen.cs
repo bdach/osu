@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Logging;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
+using osu.Game.Extensions;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Models;
 using osu.Game.Online.API;
@@ -248,17 +249,17 @@ namespace osu.Game.Screens.OnlinePlay.Playlists
                     {
                         Artist = beatmap.Metadata.Artist,
                         Title = beatmap.Metadata.Title,
-                        Author = new RealmUser
-                        {
-                            Username = beatmap.Metadata.Author.Username,
-                            OnlineID = beatmap.Metadata.Author.OnlineID,
-                        }
                     },
                     DifficultyName = beatmap.DifficultyName,
                     StarRating = beatmap.StarRating,
                     Length = beatmap.Length,
                     BPM = beatmap.BPM
                 };
+                beatmapsById[beatmap.OnlineID].Authors.AddRange(beatmap.BeatmapOwners.Select(owner => new RealmUser
+                {
+                    OnlineID = owner.Id,
+                    Username = owner.Username,
+                }));
             }
 
             // Validate that we have all beatmaps we need.

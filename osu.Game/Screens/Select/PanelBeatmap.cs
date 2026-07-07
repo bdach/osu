@@ -208,7 +208,7 @@ namespace osu.Game.Screens.Select
 
             localRank.Beatmap = beatmap;
             difficultyText.Text = beatmap.DifficultyName;
-            authorText.Text = BeatmapsetsStrings.ShowDetailsMappedBy(beatmap.Metadata.Author.Username);
+            authorText.Text = BeatmapsetsStrings.ShowDetailsMappedBy(string.Join(", ", beatmap.Authors.Select(a => a.Username)));
 
             computeStarRating();
             updateKeyCount();

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
@@ -198,7 +199,7 @@ namespace osu.Game.Skinning.Components
                     return beatmap.Value.BeatmapInfo.DifficultyName;
 
                 case BeatmapAttribute.Creator:
-                    return beatmap.Value.BeatmapInfo.Metadata.Author.Username;
+                    return string.Join(", ", beatmap.Value.BeatmapInfo.Authors.Select(a => a.Username));
 
                 case BeatmapAttribute.Source:
                     return beatmap.Value.BeatmapInfo.Metadata.Source;

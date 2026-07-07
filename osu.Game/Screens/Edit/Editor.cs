@@ -192,7 +192,7 @@ namespace osu.Game.Screens.Edit
 
         private UserActivity getCurrentUserActivity()
         {
-            if (Beatmap.Value.Metadata.Author.OnlineID == api.LocalUser.Value.OnlineID)
+            if (Beatmap.Value.BeatmapInfo.Authors.Any(a => a.OnlineID == api.LocalUser.Value.OnlineID))
                 return new UserActivity.EditingBeatmap(Beatmap.Value.BeatmapInfo);
 
             return new UserActivity.ModdingBeatmap(Beatmap.Value.BeatmapInfo);

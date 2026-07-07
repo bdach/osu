@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using osu.Game.Database;
+using osu.Game.Users;
 
 namespace osu.Game.Beatmaps
 {
@@ -16,6 +17,8 @@ namespace osu.Game.Beatmaps
         /// The date when this beatmap was imported.
         /// </summary>
         DateTimeOffset DateAdded { get; }
+
+        IUser Host { get; }
 
         /// <summary>
         /// The best-effort metadata representing this set. In the case metadata differs between contained beatmaps, one is arbitrarily chosen.

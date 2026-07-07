@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using osu.Game.Database;
 using osu.Game.Extensions;
 using osu.Game.Models;
+using osu.Game.Users;
 using Realms;
 
 namespace osu.Game.Beatmaps
@@ -36,6 +37,8 @@ namespace osu.Game.Beatmaps
         /// The date this beatmap set was ranked.
         /// </summary>
         public DateTimeOffset? DateRanked { get; set; }
+
+        public RealmUser Host { get; set; } = null!;
 
         [JsonIgnore]
         public IBeatmapMetadataInfo Metadata => Beatmaps.FirstOrDefault()?.Metadata ?? new BeatmapMetadata();
@@ -69,10 +72,11 @@ namespace osu.Game.Beatmaps
 
         public double MaxBPM => Beatmaps.Count == 0 ? 0 : Beatmaps.Max(b => b.BPM);
 
-        public BeatmapSetInfo(IEnumerable<BeatmapInfo>? beatmaps = null)
+        public BeatmapSetInfo(RealmUser? host = null, IEnumerable<BeatmapInfo>? beatmaps = null)
             : this()
         {
             ID = Guid.NewGuid();
+            Host = host ?? new RealmUser();
             if (beatmaps != null)
                 Beatmaps.AddRange(beatmaps);
         }
@@ -99,6 +103,8 @@ namespace osu.Game.Beatmaps
         public override string ToString() => Metadata.GetDisplayString();
 
         public bool Equals(IBeatmapSetInfo? other) => other is BeatmapSetInfo b && Equals(b);
+
+        IUser IBeatmapSetInfo.Host => Host;
 
         IEnumerable<IBeatmapInfo> IBeatmapSetInfo.Beatmaps => Beatmaps;
 

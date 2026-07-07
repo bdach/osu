@@ -177,7 +177,7 @@ namespace osu.Game.Screens.Select
                     return getGroupsBy(b => defineGroupAlphabetically(b.BeatmapSet!.Metadata.Artist), items);
 
                 case GroupMode.Author:
-                    return getGroupsBy(b => defineGroupAlphabetically(b.BeatmapSet!.Metadata.Author.Username), items);
+                    return getGroupsBy(b => defineGroupAlphabetically(b.BeatmapSet!.Host.Username), items);
 
                 case GroupMode.Title:
                     return getGroupsBy(b => defineGroupAlphabetically(b.BeatmapSet!.Metadata.Title), items);
@@ -457,10 +457,11 @@ namespace osu.Game.Screens.Select
 
         private IEnumerable<GroupDefinition> defineGroupByOwnMaps(BeatmapInfo beatmap, int? localUserId, string? localUserUsername)
         {
-            var author = beatmap.BeatmapSet!.Metadata.Author;
-
-            if (author.OnlineID == localUserId || (author.OnlineID <= 1 && author.Username == localUserUsername))
-                return new GroupDefinition(0, BeatmapCarouselFilterGroupingStrings.MyMaps).Yield();
+            foreach (var author in beatmap.Authors)
+            {
+                if (author.OnlineID == localUserId || (author.OnlineID <= 1 && author.Username == localUserUsername))
+                    return new GroupDefinition(0, BeatmapCarouselFilterGroupingStrings.MyMaps).Yield();
+            }
 
             // discard beatmaps not owned by the user.
             return [];

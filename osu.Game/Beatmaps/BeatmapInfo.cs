@@ -2,17 +2,20 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using osu.Game.Collections;
 using osu.Game.Database;
+using osu.Game.Extensions;
 using osu.Game.Models;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays.BeatmapSet.Scores;
 using osu.Game.Rulesets;
 using osu.Game.Scoring;
+using osu.Game.Users;
 using Realms;
 
 namespace osu.Game.Beatmaps
@@ -33,6 +36,8 @@ namespace osu.Game.Beatmaps
 
         public string DifficultyName { get; set; } = string.Empty;
 
+        public IList<RealmUser> Authors { get; } = null!;
+
         public RulesetInfo Ruleset { get; set; } = null!;
 
         public BeatmapDifficulty Difficulty { get; set; } = null!;
@@ -45,7 +50,7 @@ namespace osu.Game.Beatmaps
 
         public BeatmapUserSettings UserSettings { get; set; } = null!;
 
-        public BeatmapInfo(RulesetInfo? ruleset = null, BeatmapDifficulty? difficulty = null, BeatmapMetadata? metadata = null)
+        public BeatmapInfo(RulesetInfo? ruleset = null, BeatmapDifficulty? difficulty = null, IEnumerable<RealmUser>? authors = null, BeatmapMetadata? metadata = null)
         {
             ID = Guid.NewGuid();
             Ruleset = ruleset ?? new RulesetInfo
@@ -54,6 +59,7 @@ namespace osu.Game.Beatmaps
                 ShortName = @"osu",
                 Name = @"null placeholder ruleset"
             };
+            Authors.AddRange(authors ?? [new RealmUser()]);
             Difficulty = difficulty ?? new BeatmapDifficulty();
             Metadata = metadata ?? new BeatmapMetadata();
             UserSettings = new BeatmapUserSettings();
@@ -217,6 +223,7 @@ namespace osu.Game.Beatmaps
                 score.BeatmapInfo = this;
         }
 
+        IEnumerable<IUser> IBeatmapInfo.Authors => Authors;
         IBeatmapMetadataInfo IBeatmapInfo.Metadata => Metadata;
         IBeatmapSetInfo? IBeatmapInfo.BeatmapSet => BeatmapSet;
         IRulesetInfo IBeatmapInfo.Ruleset => Ruleset;

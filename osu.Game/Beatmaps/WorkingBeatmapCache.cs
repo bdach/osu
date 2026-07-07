@@ -303,7 +303,7 @@ namespace osu.Game.Beatmaps
 
                         Stream storyboardFileStream = null;
 
-                        string mainStoryboardFilename = getMainStoryboardFilename(BeatmapSetInfo.Metadata);
+                        string mainStoryboardFilename = getMainStoryboardFilename(BeatmapSetInfo);
 
                         if (BeatmapSetInfo?.Files.FirstOrDefault(f => f.Filename.Equals(mainStoryboardFilename, StringComparison.OrdinalIgnoreCase))?.Filename is string
                             storyboardFilename)
@@ -351,12 +351,12 @@ namespace osu.Game.Beatmaps
 
             public override Stream GetStream(string storagePath) => resources.Files.GetStream(storagePath);
 
-            private string getMainStoryboardFilename(IBeatmapMetadataInfo metadata)
+            private string getMainStoryboardFilename(IBeatmapSetInfo setInfo)
             {
                 // Matches stable implementation, because it's probably simpler than trying to do anything else.
                 // This may need to be reconsidered after we begin storing storyboards in the new editor.
-                string baseFilename = (metadata.Artist.Length > 0 ? metadata.Artist + @" - " + metadata.Title : Path.GetFileNameWithoutExtension(metadata.AudioFile))
-                                      + (metadata.Author.Username.Length > 0 ? @" (" + metadata.Author.Username + @")" : string.Empty)
+                string baseFilename = (setInfo.Metadata.Artist.Length > 0 ? setInfo.Metadata.Artist + @" - " + setInfo.Metadata.Title : Path.GetFileNameWithoutExtension(setInfo.Metadata.AudioFile))
+                                      + (setInfo.Host.Username.Length > 0 ? @" (" + setInfo.Host.Username + @")" : string.Empty)
                                       + @".osb";
                 return baseFilename.GetValidFilename();
             }

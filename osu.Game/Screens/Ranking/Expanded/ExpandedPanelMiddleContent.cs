@@ -62,7 +62,7 @@ namespace osu.Game.Screens.Ranking.Expanded
         {
             var beatmap = score.BeatmapInfo!;
             var metadata = beatmap.BeatmapSet?.Metadata ?? beatmap.Metadata;
-            string creator = metadata.Author.Username;
+            string creator = string.Join(", ", beatmap.Authors.Select(a => a.Username));
 
             StarDifficulty starDifficulty = new StarDifficulty(beatmap.StarRating, 0);
 

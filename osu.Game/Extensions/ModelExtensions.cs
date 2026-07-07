@@ -41,15 +41,11 @@ namespace osu.Game.Extensions
             switch (model)
             {
                 case IBeatmapSetInfo beatmapSetInfo:
-                    result = beatmapSetInfo.Metadata.GetDisplayTitle();
+                    result = beatmapSetInfo.GetDisplayTitle();
                     break;
 
                 case IBeatmapInfo beatmapInfo:
                     result = beatmapInfo.GetDisplayTitle();
-                    break;
-
-                case IBeatmapMetadataInfo metadataInfo:
-                    result = metadataInfo.GetDisplayTitle();
                     break;
 
                 case IScoreInfo scoreInfo:

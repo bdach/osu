@@ -1,12 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Localisation;
 using osu.Game.Online.API;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Screens.Select;
+using osu.Game.Users;
 
 namespace osu.Game.Beatmaps
 {
@@ -26,14 +28,18 @@ namespace osu.Game.Beatmaps
         /// <summary>
         /// A user-presentable display title representing this beatmap.
         /// </summary>
-        public static string GetDisplayTitle(this IBeatmapInfo beatmapInfo) => $"{beatmapInfo.Metadata.GetDisplayTitle()} {getVersionString(beatmapInfo)}".Trim();
+        public static string GetDisplayTitle(this IBeatmapInfo beatmapInfo)
+        {
+            // TODO: below may badly backfire.
+            return $"{beatmapInfo.BeatmapSet?.GetDisplayTitle()} {getVersionString(beatmapInfo)}".Trim();
+        }
 
         /// <summary>
         /// A user-presentable display title representing this beatmap, with localisation handling for potentially romanisable fields.
         /// </summary>
         public static RomanisableString GetDisplayTitleRomanisable(this IBeatmapInfo beatmapInfo, bool includeDifficultyName = true, bool includeCreator = true)
         {
-            var metadata = beatmapInfo.Metadata.GetDisplayTitleRomanisable(includeCreator);
+            var metadata = beatmapInfo.BeatmapSet!.GetDisplayTitleRomanisable(includeCreator);
 
             if (includeDifficultyName)
             {
@@ -51,6 +57,9 @@ namespace osu.Game.Beatmaps
                 if (filter.Matches(beatmapInfo.DifficultyName))
                     continue;
 
+                if (match(beatmapInfo.Authors, filter))
+                    continue;
+
                 if (BeatmapMetadataInfoExtensions.Match(beatmapInfo.Metadata, filter))
                     continue;
 
@@ -60,6 +69,17 @@ namespace osu.Game.Beatmaps
 
             // got through all filters without failing any - pass the whole match.
             return true;
+        }
+
+        private static bool match(IEnumerable<IUser> users, FilterCriteria.OptionalTextFilter filter)
+        {
+            foreach (var user in users)
+            {
+                if (filter.Matches(user.Username))
+                    return true;
+            }
+
+            return false;
         }
 
         private static string getVersionString(IBeatmapInfo beatmapInfo) => string.IsNullOrEmpty(beatmapInfo.DifficultyName) ? string.Empty : $"[{beatmapInfo.DifficultyName}]";
