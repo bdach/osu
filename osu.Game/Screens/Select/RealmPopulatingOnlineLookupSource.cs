@@ -10,9 +10,11 @@ using osu.Framework.Graphics;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Extensions;
+using osu.Game.Models;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
+using osu.Game.Users;
 using Realms;
 
 namespace osu.Game.Screens.Select
@@ -86,6 +88,17 @@ namespace osu.Game.Screens.Select
                 if (dbBeatmapSet.Status != onlineBeatmapSet.Status && dbBeatmapSet.Status != BeatmapOnlineStatus.LocallyModified)
                     dbBeatmapSet.Status = onlineBeatmapSet.Status;
 
+                var userComparer = EqualityComparer<IUser>.Default;
+
+                if (!userComparer.Equals(dbBeatmapSet.Host, onlineBeatmapSet.Author))
+                {
+                    dbBeatmapSet.Host = new RealmUser
+                    {
+                        OnlineID = onlineBeatmapSet.Author.OnlineID,
+                        Username = onlineBeatmapSet.Author.Username,
+                    };
+                }
+
                 foreach (var dbBeatmap in dbBeatmapSet.Beatmaps)
                 {
                     if (onlineBeatmaps.TryGetValue(dbBeatmap.OnlineID, out var onlineBeatmap))
@@ -109,6 +122,16 @@ namespace osu.Game.Screens.Select
                         {
                             dbBeatmap.Metadata.UserTags.Clear();
                             dbBeatmap.Metadata.UserTags.AddRange(userTags);
+                        }
+
+                        if (!dbBeatmap.Authors.SequenceEqual(onlineBeatmap.BeatmapOwners, userComparer))
+                        {
+                            dbBeatmap.Authors.Clear();
+                            dbBeatmap.Authors.AddRange(onlineBeatmap.BeatmapOwners.Select(o => new RealmUser
+                            {
+                                OnlineID = o.Id,
+                                Username = o.Username,
+                            }));
                         }
                     }
                 }
