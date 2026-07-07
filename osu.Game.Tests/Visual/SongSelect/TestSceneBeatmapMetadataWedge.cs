@@ -114,7 +114,8 @@ namespace osu.Game.Tests.Visual.SongSelect
             {
                 var (working, online) = createTestBeatmap();
 
-                working.BeatmapInfo.Metadata.Author = new RealmUser { Username = "Verrrrryyyy llooonngggggg author" };
+                working.BeatmapInfo.Authors.Clear();
+                working.BeatmapInfo.Authors.Add(new RealmUser { Username = "Verrrrryyyy llooonngggggg author" });
                 working.BeatmapInfo.Metadata.Source = "Verrrrryyyy llooonngggggg source";
                 working.BeatmapInfo.Metadata.Tags = string.Join(' ', Enumerable.Repeat(working.BeatmapInfo.Metadata.Tags, 3));
                 online.Result!.Genre = new BeatmapSetOnlineGenre { Id = 12, Name = "Verrrrryyyy llooonngggggg genre" };

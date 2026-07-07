@@ -159,7 +159,8 @@ namespace osu.Game.Tests.Visual.Ranking
         {
             var beatmap = new TestBeatmap(rulesetStore.GetRuleset(0)!).BeatmapInfo;
 
-            beatmap.Metadata.Author = author;
+            beatmap.Authors.Clear();
+            beatmap.Authors.Add(author);
             beatmap.Metadata.Title = "Verrrrrrrrrrrrrrrrrrry looooooooooooooooooooooooong beatmap title";
             beatmap.Metadata.Artist = "Verrrrrrrrrrrrrrrrrrry looooooooooooooooooooooooong beatmap artist";
             beatmap.DifficultyName = "Verrrrrrrrrrrrrrrrrrry looooooooooooooooooooooooong difficulty name";

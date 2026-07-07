@@ -20,6 +20,7 @@ using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.ControlPoints;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Graphics.UserInterface;
+using osu.Game.Models;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
@@ -332,9 +333,9 @@ namespace osu.Game.Tests.Visual.SongSelect
             {
                 BeatmapInfo = new BeatmapInfo
                 {
+                    Authors = { new RealmUser { Username = $"{ruleset.ShortName}Author" } },
                     Metadata = new BeatmapMetadata
                     {
-                        Author = { Username = $"{ruleset.ShortName}Author" },
                         Artist = $"{ruleset.ShortName}Artist",
                         Source = $"{ruleset.ShortName}Source",
                         Title = $"{ruleset.ShortName}Title"
@@ -354,9 +355,9 @@ namespace osu.Game.Tests.Visual.SongSelect
         {
             private static readonly BeatmapInfo beatmap_info = new BeatmapInfo
             {
+                Authors = { new RealmUser { Username = "osuAuthor" } },
                 Metadata = new BeatmapMetadata
                 {
-                    Author = { Username = "osuAuthor" },
                     Artist = "osuArtist",
                     Source = "osuSource",
                     Title = "osuTitle"

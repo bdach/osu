@@ -137,10 +137,10 @@ namespace osu.Game.Tests.Visual.Multiplayer
                         ? new TestBeatmap(new OsuRuleset().RulesetInfo).BeatmapInfo
                         : new BeatmapInfo
                         {
+                            Authors = { new RealmUser { Username = "Creator name here" } },
                             Metadata = new BeatmapMetadata
                             {
                                 Artist = "Artist",
-                                Author = new RealmUser { Username = "Creator name here" },
                                 Title = "Long title used to check background colour",
                             },
                             BeatmapSet = new BeatmapSetInfo()

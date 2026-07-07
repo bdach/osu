@@ -52,6 +52,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                 {
                     BPM = 100,
                     DifficultyName = "_Difficulty",
+                    Authors = { new RealmUser { Username = "_Creator" } },
                     Status = BeatmapOnlineStatus.Loved,
                     Metadata =
                     {
@@ -59,7 +60,6 @@ namespace osu.Game.Tests.Visual.UserInterface
                         TitleUnicode = "_Title",
                         Artist = "_Artist",
                         ArtistUnicode = "_Artist",
-                        Author = new RealmUser { Username = "_Creator" },
                         Source = "_Source",
                     },
                     Difficulty =

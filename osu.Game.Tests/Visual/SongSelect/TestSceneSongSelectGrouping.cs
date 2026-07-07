@@ -117,12 +117,21 @@ namespace osu.Game.Tests.Visual.SongSelect
 
         #region My Maps grouping
 
+        private void setAuthor(BeatmapSetInfo set, RealmUser realmUser)
+        {
+            foreach (var beatmap in set.Beatmaps)
+            {
+                beatmap.Authors.Clear();
+                beatmap.Authors.Add(realmUser);
+            }
+        }
+
         [Test]
         public void TestMyMapsGrouping()
         {
-            ImportBeatmapForRuleset(s => ((RealmUser)s.Metadata.Author).Username = "user1", 3, 0);
-            ImportBeatmapForRuleset(s => ((RealmUser)s.Metadata.Author).Username = "user2", 3, 0);
-            ImportBeatmapForRuleset(s => ((RealmUser)s.Metadata.Author).Username = "user3", 3, 0);
+            ImportBeatmapForRuleset(s => setAuthor(s, new RealmUser { Username = "user1" }), 3, 0);
+            ImportBeatmapForRuleset(s => setAuthor(s, new RealmUser { Username = "user2" }), 3, 0);
+            ImportBeatmapForRuleset(s => setAuthor(s, new RealmUser { Username = "user3" }), 3, 0);
 
             BeatmapSetInfo[] beatmapSets = null!;
 
@@ -145,13 +154,9 @@ namespace osu.Game.Tests.Visual.SongSelect
         [Test]
         public void TestMyMapsGroupingRenamedUsername()
         {
-            ImportBeatmapForRuleset(s =>
-            {
-                ((RealmUser)s.Metadata.Author).Username = "user1_old";
-                ((RealmUser)s.Metadata.Author).OnlineID = DummyAPIAccess.DUMMY_USER_ID;
-            }, 3, 0);
-            ImportBeatmapForRuleset(s => ((RealmUser)s.Metadata.Author).Username = "user2", 3, 0);
-            ImportBeatmapForRuleset(s => ((RealmUser)s.Metadata.Author).Username = "user3", 3, 0);
+            ImportBeatmapForRuleset(s => setAuthor(s, new RealmUser { Username = "user1_old", OnlineID = DummyAPIAccess.DUMMY_USER_ID }), 3, 0);
+            ImportBeatmapForRuleset(s => setAuthor(s, new RealmUser { Username = "user2" }), 3, 0);
+            ImportBeatmapForRuleset(s => setAuthor(s, new RealmUser { Username = "user3" }), 3, 0);
 
             BeatmapSetInfo[] beatmapSets = null!;
 
@@ -174,9 +179,9 @@ namespace osu.Game.Tests.Visual.SongSelect
         [Test]
         public void TestMyMapsGroupingUpdatesOnUserChange()
         {
-            ImportBeatmapForRuleset(s => ((RealmUser)s.Metadata.Author).Username = "user1", 3, 0);
-            ImportBeatmapForRuleset(s => ((RealmUser)s.Metadata.Author).Username = "user2", 3, 0);
-            ImportBeatmapForRuleset(s => ((RealmUser)s.Metadata.Author).Username = new GuestUser().Username, 3, 0);
+            ImportBeatmapForRuleset(s => setAuthor(s, new RealmUser { Username = "user1" }), 3, 0);
+            ImportBeatmapForRuleset(s => setAuthor(s, new RealmUser { Username = "user2" }), 3, 0);
+            ImportBeatmapForRuleset(s => setAuthor(s, new RealmUser { Username = new GuestUser().Username }), 3, 0);
 
             BeatmapSetInfo[] beatmapSets = null!;
 

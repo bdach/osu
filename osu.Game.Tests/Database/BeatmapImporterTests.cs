@@ -100,7 +100,8 @@ namespace osu.Game.Tests.Database
                     var newUser = new RealmUser { Username = "peppy", OnlineID = 2 };
 
                     detachedBeatmapSet.Beatmaps.First().Metadata.Artist = "New Artist";
-                    detachedBeatmapSet.Beatmaps.First().Metadata.Author = newUser;
+                    detachedBeatmapSet.Beatmaps.First().Authors.Clear();
+                    detachedBeatmapSet.Beatmaps.First().Authors.Add(newUser);
 
                     ClassicAssert.AreNotEqual(detachedBeatmapSet.Status, BeatmapOnlineStatus.Ranked);
                     detachedBeatmapSet.Status = BeatmapOnlineStatus.Ranked;
@@ -112,7 +113,7 @@ namespace osu.Game.Tests.Database
                         // Check above changes explicitly.
                         ClassicAssert.AreEqual(BeatmapOnlineStatus.Ranked, s.Status);
                         ClassicAssert.AreEqual("New Artist", s.Beatmaps.First().Metadata.Artist);
-                        ClassicAssert.AreEqual(newUser, s.Beatmaps.First().Metadata.Author);
+                        ClassicAssert.AreEqual(newUser, s.Beatmaps.First().Authors.First());
                         ClassicAssert.NotZero(s.Files.Count);
 
                         // Check nothing was lost in the copy operation.
@@ -926,10 +927,11 @@ namespace osu.Game.Tests.Database
                 var metadata = new BeatmapMetadata
                 {
                     Artist = "SomeArtist",
-                    Author =
-                    {
-                        Username = "SomeAuthor"
-                    }
+                };
+
+                var author = new RealmUser
+                {
+                    Username = "SomeAuthor"
                 };
 
                 var ruleset = realm.Realm.All<RulesetInfo>().First();
@@ -939,11 +941,11 @@ namespace osu.Game.Tests.Database
                     OnlineID = 1,
                     Beatmaps =
                     {
-                        new BeatmapInfo(ruleset, new BeatmapDifficulty(), metadata)
+                        new BeatmapInfo(ruleset, new BeatmapDifficulty(), [author], metadata)
                         {
                             OnlineID = 2,
                         },
-                        new BeatmapInfo(ruleset, new BeatmapDifficulty(), metadata)
+                        new BeatmapInfo(ruleset, new BeatmapDifficulty(), [author], metadata)
                         {
                             OnlineID = 2,
                             Status = BeatmapOnlineStatus.Loved,

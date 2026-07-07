@@ -16,6 +16,7 @@ using osu.Framework.Logging;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osu.Game.Beatmaps;
+using osu.Game.Models;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Mods;
@@ -100,12 +101,12 @@ namespace osu.Game.Tests.Resources
 
             int setId = GetNextTestID();
 
+            var author = new RealmUser { Username = "Some Guy " + RNG.Next(0, 9) };
             var metadata = new BeatmapMetadata
             {
                 // Create random metadata, then we can check if sorting works based on these
                 Artist = "Some Artist " + RNG.Next(0, 9),
                 Title = $"Some Song (set id {setId:000000}) {Guid.NewGuid()}",
-                Author = { Username = "Some Guy " + RNG.Next(0, 9) },
             };
 
             Logger.Log($"🛠️ Generating beatmap set \"{metadata}\" for test consumption.");
@@ -115,6 +116,7 @@ namespace osu.Game.Tests.Resources
                 OnlineID = setId,
                 Hash = new MemoryStream(Encoding.UTF8.GetBytes(Guid.NewGuid().ToString())).ComputeMD5Hash(),
                 DateAdded = DateTimeOffset.UtcNow,
+                Host = author,
             };
 
             foreach (var b in getBeatmaps(difficultyCount ?? RNG.Next(1, 20)))
@@ -146,6 +148,7 @@ namespace osu.Game.Tests.Resources
                     yield return new BeatmapInfo
                     {
                         OnlineID = beatmapId,
+                        Authors = { author },
                         DifficultyName = $"{version} {beatmapId} (length {TimeSpan.FromMilliseconds(length):m\\:ss}, bpm {bpm:0.#})",
                         StarRating = diff,
                         Length = length,

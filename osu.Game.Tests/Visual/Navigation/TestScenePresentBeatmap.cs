@@ -137,12 +137,12 @@ namespace osu.Game.Tests.Visual.Navigation
                 var metadata = new BeatmapMetadata
                 {
                     Artist = "SomeArtist",
-                    Author = { Username = "SomeAuthor" },
                     Title = $"import {i}"
                 };
 
                 imported = Game.BeatmapManager.Import(new BeatmapSetInfo
                 {
+                    Host = { Username = "SomeAuthor" },
                     Hash = Guid.NewGuid().ToString(),
                     OnlineID = i * 1024,
                     Beatmaps =

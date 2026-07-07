@@ -91,7 +91,7 @@ namespace osu.Game.Tests.Visual.SongSelect
 
         private Action<BeatmapSetInfo> applyAuthor(char first)
         {
-            return s => s.Beatmaps[0].Metadata.Author.Username = $"{first}-author";
+            return s => s.Beatmaps[0].BeatmapSet!.Host.Username = $"{first}-author";
         }
 
         private Action<BeatmapSetInfo> applyTitle(char first)

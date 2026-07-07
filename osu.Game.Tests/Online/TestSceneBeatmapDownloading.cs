@@ -31,12 +31,12 @@ namespace osu.Game.Tests.Online
                     {
                         Artist = "test author",
                         Title = "test title",
-                        Author = new RealmUser
-                        {
-                            Username = "mapper"
-                        }
                     }
                 }
+            },
+            Host = new RealmUser
+            {
+                Username = "mapper"
             }
         };
 

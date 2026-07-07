@@ -34,7 +34,10 @@ namespace osu.Game.Tests.Beatmaps
                 {
                     Artist = "artist",
                     Title = "title",
-                    Author = new RealmUser { Username = "creator" }
+                },
+                BeatmapSet = new BeatmapSetInfo
+                {
+                    Host = new RealmUser { Username = "creator" }
                 }
             };
 
@@ -50,7 +53,10 @@ namespace osu.Game.Tests.Beatmaps
                 {
                     Artist = "artist",
                     Title = "title",
-                    Author = new RealmUser { Username = "creator" }
+                },
+                BeatmapSet = new BeatmapSetInfo
+                {
+                    Host = new RealmUser { Username = "creator" }
                 },
                 DifficultyName = "difficulty"
             };

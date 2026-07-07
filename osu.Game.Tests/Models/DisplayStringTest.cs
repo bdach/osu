@@ -29,7 +29,7 @@ namespace osu.Game.Tests.Models
 
             mock.Setup(m => m.Metadata.Artist).Returns("artist");
             mock.Setup(m => m.Metadata.Title).Returns("title");
-            mock.Setup(m => m.Metadata.Author.Username).Returns("author");
+            mock.Setup(m => m.Host.Username).Returns("author");
 
             Assert.That(mock.Object.GetDisplayString(), Is.EqualTo("artist - title (author)"));
         }
@@ -41,7 +41,7 @@ namespace osu.Game.Tests.Models
 
             mock.Setup(m => m.Metadata.Artist).Returns("artist");
             mock.Setup(m => m.Metadata.Title).Returns("title");
-            mock.Setup(m => m.Metadata.Author.Username).Returns(string.Empty);
+            mock.Setup(m => m.Host.Username).Returns(string.Empty);
 
             Assert.That(mock.Object.GetDisplayString(), Is.EqualTo("artist - title"));
         }
@@ -63,22 +63,10 @@ namespace osu.Game.Tests.Models
 
             mock.Setup(m => m.Metadata.Artist).Returns("artist");
             mock.Setup(m => m.Metadata.Title).Returns("title");
-            mock.Setup(m => m.Metadata.Author.Username).Returns("author");
+            mock.Setup(m => m.BeatmapSet!.Host.Username).Returns("author");
             mock.Setup(m => m.DifficultyName).Returns("difficulty");
 
             Assert.That(mock.Object.GetDisplayString(), Is.EqualTo("artist - title (author) [difficulty]"));
-        }
-
-        [Test]
-        public void TestMetadata()
-        {
-            var mock = new Mock<IBeatmapMetadataInfo>();
-
-            mock.Setup(m => m.Artist).Returns("artist");
-            mock.Setup(m => m.Title).Returns("title");
-            mock.Setup(m => m.Author.Username).Returns("author");
-
-            Assert.That(mock.Object.GetDisplayString(), Is.EqualTo("artist - title (author)"));
         }
 
         [Test]
@@ -89,7 +77,7 @@ namespace osu.Game.Tests.Models
             mock.Setup(m => m.User).Returns(new APIUser { Username = "user" }); // TODO: temporary.
             mock.Setup(m => m.Beatmap!.Metadata.Artist).Returns("artist");
             mock.Setup(m => m.Beatmap!.Metadata.Title).Returns("title");
-            mock.Setup(m => m.Beatmap!.Metadata.Author.Username).Returns("author");
+            mock.Setup(m => m.Beatmap!.BeatmapSet!.Host.Username).Returns("author");
             mock.Setup(m => m.Beatmap!.DifficultyName).Returns("difficulty");
 
             Assert.That(mock.Object.GetDisplayString(), Is.EqualTo("user playing artist - title (author) [difficulty]"));

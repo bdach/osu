@@ -39,7 +39,7 @@ namespace osu.Game.Tests.Visual.Editing
                 EditorBeatmap.BeatmapInfo.Metadata.Artist = "artist";
                 EditorBeatmap.BeatmapInfo.Metadata.Title = "title";
             });
-            AddStep("Set author", () => EditorBeatmap.BeatmapInfo.Metadata.Author.Username = "author");
+            AddStep("Set author", () => EditorBeatmap.BeatmapInfo.Authors.First().Username = "author");
             AddStep("Set difficulty name", () => EditorBeatmap.BeatmapInfo.DifficultyName = "difficulty");
 
             SaveEditor();
@@ -47,14 +47,14 @@ namespace osu.Game.Tests.Visual.Editing
             AddAssert("Hash updated", () => !string.IsNullOrEmpty(EditorBeatmap.BeatmapInfo.BeatmapSet?.Hash));
 
             AddAssert("Beatmap has correct metadata", () => EditorBeatmap.BeatmapInfo.Metadata.Artist == "artist" && EditorBeatmap.BeatmapInfo.Metadata.Title == "title");
-            AddAssert("Beatmap has correct author", () => EditorBeatmap.BeatmapInfo.Metadata.Author.Username == "author");
+            AddAssert("Beatmap has correct author", () => EditorBeatmap.BeatmapInfo.Authors.First().Username == "author");
             AddAssert("Beatmap has correct difficulty name", () => EditorBeatmap.BeatmapInfo.DifficultyName == "difficulty");
             AddAssert("Beatmap has correct .osu file path", () => EditorBeatmap.BeatmapInfo.Path == "artist - title (author) [difficulty].osu");
 
             ReloadEditorToSameBeatmap();
 
             AddAssert("Beatmap still has correct metadata", () => EditorBeatmap.BeatmapInfo.Metadata.Artist == "artist" && EditorBeatmap.BeatmapInfo.Metadata.Title == "title");
-            AddAssert("Beatmap still has correct author", () => EditorBeatmap.BeatmapInfo.Metadata.Author.Username == "author");
+            AddAssert("Beatmap still has correct author", () => EditorBeatmap.BeatmapInfo.Authors.First().Username == "author");
             AddAssert("Beatmap still has correct difficulty name", () => EditorBeatmap.BeatmapInfo.DifficultyName == "difficulty");
             AddAssert("Beatmap still has correct .osu file path", () => EditorBeatmap.BeatmapInfo.Path == "artist - title (author) [difficulty].osu");
         }

@@ -2,10 +2,12 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Game.Beatmaps;
 using osu.Game.Extensions;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Rulesets;
+using osu.Game.Users;
 using static osu.Game.Online.API.Requests.Responses.APIBeatmap;
 
 namespace osu.Game.Tournament.Models
@@ -26,6 +28,8 @@ namespace osu.Game.Tournament.Models
 
         public int TotalObjectCount { get; set; }
 
+        public IEnumerable<IUser> Authors { get; } = [];
+
         public IBeatmapMetadataInfo Metadata { get; set; } = new BeatmapMetadata();
 
         public IBeatmapDifficultyInfo Difficulty { get; set; } = new BeatmapDifficulty();
@@ -45,6 +49,7 @@ namespace osu.Game.Tournament.Models
             BPM = beatmap.BPM;
             Length = beatmap.Length;
             StarRating = beatmap.StarRating;
+            Authors = beatmap.BeatmapOwners;
             Metadata = beatmap.Metadata;
             Difficulty = beatmap.Difficulty;
             Covers = beatmap.BeatmapSet?.Covers ?? new BeatmapSetOnlineCovers();

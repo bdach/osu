@@ -8,6 +8,7 @@ using NUnit.Framework;
 using NUnit.Framework.Legacy;
 using osu.Framework.Bindables;
 using osu.Game.Beatmaps;
+using osu.Game.Models;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Filter;
 using osu.Game.Rulesets.Mods;
@@ -21,6 +22,7 @@ namespace osu.Game.Tests.NonVisual.Filtering
     {
         private BeatmapInfo getExampleBeatmap() => new BeatmapInfo
         {
+            Authors = { new RealmUser { Username = "The Author" } },
             Ruleset = new RulesetInfo
             {
                 ShortName = "osu",
@@ -39,7 +41,6 @@ namespace osu.Game.Tests.NonVisual.Filtering
                 ArtistUnicode = "check unicode too",
                 Title = "Title goes here",
                 TitleUnicode = "TitleUnicode goes here",
-                Author = { Username = "The Author" },
                 Source = "unit tests",
                 Tags = "look for tags too",
                 UserTags =

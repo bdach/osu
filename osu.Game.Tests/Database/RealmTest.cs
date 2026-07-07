@@ -83,10 +83,10 @@ namespace osu.Game.Tests.Database
             {
                 Beatmaps =
                 {
-                    new BeatmapInfo(ruleset, new BeatmapDifficulty(), metadata) { DifficultyName = "Easy", },
-                    new BeatmapInfo(ruleset, new BeatmapDifficulty(), metadata) { DifficultyName = "Normal", },
-                    new BeatmapInfo(ruleset, new BeatmapDifficulty(), metadata) { DifficultyName = "Hard", },
-                    new BeatmapInfo(ruleset, new BeatmapDifficulty(), metadata) { DifficultyName = "Insane", }
+                    new BeatmapInfo(ruleset, new BeatmapDifficulty(), null, metadata) { DifficultyName = "Easy", },
+                    new BeatmapInfo(ruleset, new BeatmapDifficulty(), null, metadata) { DifficultyName = "Normal", },
+                    new BeatmapInfo(ruleset, new BeatmapDifficulty(), null, metadata) { DifficultyName = "Hard", },
+                    new BeatmapInfo(ruleset, new BeatmapDifficulty(), null, metadata) { DifficultyName = "Insane", }
                 },
                 Files =
                 {

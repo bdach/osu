@@ -107,11 +107,11 @@ namespace osu.Game.Tournament.Components
         {
             beatmap ??= new BeatmapInfo
             {
+                Authors = { new RealmUser { Username = "unknown" } },
                 Metadata = new BeatmapMetadata
                 {
                     Artist = "unknown",
                     Title = "no beatmap selected",
-                    Author = new RealmUser { Username = "unknown" },
                 },
                 DifficultyName = "unknown",
                 BeatmapSet = new BeatmapSetInfo(),

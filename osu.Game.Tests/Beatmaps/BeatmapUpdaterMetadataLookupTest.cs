@@ -5,6 +5,7 @@ using Moq;
 using NUnit.Framework;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Game.Beatmaps;
+using osu.Game.Models;
 
 namespace osu.Game.Tests.Beatmaps
 {
@@ -41,7 +42,7 @@ namespace osu.Game.Tests.Beatmaps
             apiMetadataSourceMock.Setup(src => src.Available).Returns(true);
 
             var beatmap = new BeatmapInfo { OnlineID = 123456 };
-            var beatmapSet = new BeatmapSetInfo(beatmap.Yield());
+            var beatmapSet = new BeatmapSetInfo(new RealmUser(), beatmap.Yield());
             beatmap.BeatmapSet = beatmapSet;
 
             metadataLookup.Update(beatmapSet, preferOnlineFetch: false);
@@ -71,7 +72,7 @@ namespace osu.Game.Tests.Beatmaps
                                  .Returns(true);
 
             var beatmap = new BeatmapInfo { OnlineID = 123456 };
-            var beatmapSet = new BeatmapSetInfo(beatmap.Yield());
+            var beatmapSet = new BeatmapSetInfo(new RealmUser(), beatmap.Yield());
             beatmap.BeatmapSet = beatmapSet;
 
             metadataLookup.Update(beatmapSet, preferOnlineFetch: false);
@@ -106,7 +107,7 @@ namespace osu.Game.Tests.Beatmaps
                                  .Returns(true);
 
             var beatmap = new BeatmapInfo { OnlineID = 123456 };
-            var beatmapSet = new BeatmapSetInfo(beatmap.Yield());
+            var beatmapSet = new BeatmapSetInfo(new RealmUser(), beatmap.Yield());
             beatmap.BeatmapSet = beatmapSet;
 
             metadataLookup.Update(beatmapSet, preferOnlineFetch: true);
@@ -133,7 +134,7 @@ namespace osu.Game.Tests.Beatmaps
             apiMetadataSourceMock.Setup(src => src.Available).Returns(false);
 
             var beatmap = new BeatmapInfo { OnlineID = 123456 };
-            var beatmapSet = new BeatmapSetInfo(beatmap.Yield());
+            var beatmapSet = new BeatmapSetInfo(new RealmUser(), beatmap.Yield());
             beatmap.BeatmapSet = beatmapSet;
 
             metadataLookup.Update(beatmapSet, preferOnlineFetch: true);
@@ -158,7 +159,7 @@ namespace osu.Game.Tests.Beatmaps
                                  .Returns(true);
 
             var beatmap = new BeatmapInfo { OnlineID = 123456 };
-            var beatmapSet = new BeatmapSetInfo(beatmap.Yield());
+            var beatmapSet = new BeatmapSetInfo(new RealmUser(), beatmap.Yield());
             beatmap.BeatmapSet = beatmapSet;
 
             metadataLookup.Update(beatmapSet, preferOnlineFetch: false);
@@ -187,7 +188,7 @@ namespace osu.Game.Tests.Beatmaps
             apiMetadataSourceMock.Setup(src => src.Available).Returns(false);
 
             var beatmap = new BeatmapInfo { OnlineID = 123456 };
-            var beatmapSet = new BeatmapSetInfo(beatmap.Yield());
+            var beatmapSet = new BeatmapSetInfo(new RealmUser(), beatmap.Yield());
             beatmap.BeatmapSet = beatmapSet;
 
             metadataLookup.Update(beatmapSet, preferOnlineFetch);
@@ -217,7 +218,7 @@ namespace osu.Game.Tests.Beatmaps
                                  .Returns(false);
 
             var beatmap = new BeatmapInfo { OnlineID = 123456 };
-            var beatmapSet = new BeatmapSetInfo(beatmap.Yield());
+            var beatmapSet = new BeatmapSetInfo(new RealmUser(), beatmap.Yield());
             beatmap.BeatmapSet = beatmapSet;
 
             metadataLookup.Update(beatmapSet, preferOnlineFetch);
@@ -236,7 +237,7 @@ namespace osu.Game.Tests.Beatmaps
                       .Returns(true);
 
             var beatmap = new BeatmapInfo { OnlineID = 123456 };
-            var beatmapSet = new BeatmapSetInfo(beatmap.Yield());
+            var beatmapSet = new BeatmapSetInfo(new RealmUser(), beatmap.Yield());
             beatmap.BeatmapSet = beatmapSet;
 
             metadataLookup.Update(beatmapSet, preferOnlineFetch);
@@ -264,7 +265,7 @@ namespace osu.Game.Tests.Beatmaps
             {
                 MD5Hash = @"deadbeef"
             };
-            var beatmapSet = new BeatmapSetInfo(beatmap.Yield());
+            var beatmapSet = new BeatmapSetInfo(new RealmUser(), beatmap.Yield());
             beatmap.BeatmapSet = beatmapSet;
 
             metadataLookup.Update(beatmapSet, preferOnlineFetch);
@@ -293,7 +294,7 @@ namespace osu.Game.Tests.Beatmaps
                 OnlineID = 654321,
                 MD5Hash = @"cafebabe",
             };
-            var beatmapSet = new BeatmapSetInfo(beatmap.Yield());
+            var beatmapSet = new BeatmapSetInfo(new RealmUser(), beatmap.Yield());
             beatmap.BeatmapSet = beatmapSet;
 
             metadataLookup.Update(beatmapSet, preferOnlineFetch);
@@ -337,7 +338,7 @@ namespace osu.Game.Tests.Beatmaps
                 OnlineID = 666666,
                 MD5Hash = @"deadbeef"
             };
-            var beatmapSet = new BeatmapSetInfo(new[]
+            var beatmapSet = new BeatmapSetInfo(new RealmUser(), new[]
             {
                 firstBeatmap,
                 secondBeatmap

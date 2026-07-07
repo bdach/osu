@@ -39,18 +39,18 @@ namespace osu.Game.Tests.Visual.SongSelect
                     set.Beatmaps.ForEach(b => b.Metadata.Artist = zzz_lowercase);
 
                 if (i == 12)
-                    set.Beatmaps.ForEach(b => b.Metadata.Author.Username = zzz_uppercase);
+                    set.Host.Username = zzz_uppercase;
 
                 if (i == 16)
-                    set.Beatmaps.ForEach(b => b.Metadata.Author.Username = zzz_lowercase);
+                    set.Host.Username = zzz_lowercase;
 
                 beatmapSets.Add(set);
             }
 
             var results = await runSorting(SortMode.Author, beatmapSets);
 
-            Assert.That(results.Last().Metadata.Author.Username, Is.EqualTo(zzz_uppercase));
-            Assert.That(results.SkipLast(diff_count).Last().Metadata.Author.Username, Is.EqualTo(zzz_lowercase));
+            Assert.That(results.Last().BeatmapSet!.Host.Username, Is.EqualTo(zzz_uppercase));
+            Assert.That(results.SkipLast(diff_count).Last().BeatmapSet!.Host.Username, Is.EqualTo(zzz_lowercase));
 
             results = await runSorting(SortMode.Artist, beatmapSets);
 

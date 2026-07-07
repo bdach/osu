@@ -61,6 +61,7 @@ namespace osu.Game.Tests.Visual.Playlists
                 OnlineID = TestResources.GetNextTestID(),
                 Hash = new MemoryStream(Encoding.UTF8.GetBytes(Guid.NewGuid().ToString())).ComputeMD5Hash(),
                 DateAdded = DateTimeOffset.UtcNow,
+                Host = { Username = "Some Guy" },
                 Beatmaps =
                 {
                     new BeatmapInfo
@@ -75,7 +76,6 @@ namespace osu.Game.Tests.Visual.Playlists
                         {
                             Artist = "Some Artist",
                             Title = "Some Song",
-                            Author = { Username = "Some Guy" },
                         },
                     },
                     new BeatmapInfo
@@ -90,7 +90,6 @@ namespace osu.Game.Tests.Visual.Playlists
                         {
                             Artist = "Some Artist",
                             Title = "Some Song",
-                            Author = { Username = "Some Guy" },
                         },
                     },
                     new BeatmapInfo
@@ -105,7 +104,6 @@ namespace osu.Game.Tests.Visual.Playlists
                         {
                             Artist = "Some Artist",
                             Title = "Some Song",
-                            Author = { Username = "Some Guy" },
                         },
                     },
                     new BeatmapInfo
@@ -120,7 +118,6 @@ namespace osu.Game.Tests.Visual.Playlists
                         {
                             Artist = "Some Artist",
                             Title = "Some Song",
-                            Author = { Username = "Some Guy" },
                         },
                     }
                 }

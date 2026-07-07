@@ -22,7 +22,7 @@ namespace osu.Game.Tests.Database
         {
             RunTestWithRealm((realm, _) =>
             {
-                Live<BeatmapInfo> beatmap = realm.Run(r => r.Write(_ => r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), new BeatmapMetadata()))).ToLive(realm));
+                Live<BeatmapInfo> beatmap = realm.Run(r => r.Write(_ => r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), null, new BeatmapMetadata()))).ToLive(realm));
 
                 Live<BeatmapInfo> beatmap2 = realm.Run(r => r.All<BeatmapInfo>().First().ToLive(realm));
 
@@ -37,7 +37,7 @@ namespace osu.Game.Tests.Database
             {
                 RunTestWithRealm((realm, storage) =>
                 {
-                    var beatmap = new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), new BeatmapMetadata());
+                    var beatmap = new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), null, new BeatmapMetadata());
 
                     Live<BeatmapInfo>? liveBeatmap = null;
 
@@ -67,7 +67,7 @@ namespace osu.Game.Tests.Database
                 {
                     realm.Write(r =>
                     {
-                        r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), new BeatmapMetadata()));
+                        r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), null, new BeatmapMetadata()));
                         throw new InvalidOperationException();
                     });
                 });
@@ -87,7 +87,7 @@ namespace osu.Game.Tests.Database
                     {
                         realm.Write(_ =>
                         {
-                            r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), new BeatmapMetadata()));
+                            r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), null, new BeatmapMetadata()));
                             throw new InvalidOperationException();
                         });
                     });
@@ -102,7 +102,7 @@ namespace osu.Game.Tests.Database
         {
             RunTestWithRealm((realm, _) =>
             {
-                var beatmap = new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), new BeatmapMetadata());
+                var beatmap = new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), null, new BeatmapMetadata());
 
                 var liveBeatmap = beatmap.ToLive(realm);
 
@@ -121,7 +121,7 @@ namespace osu.Game.Tests.Database
         {
             RunTestWithRealm((realm, _) =>
             {
-                var beatmap = new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), new BeatmapMetadata());
+                var beatmap = new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), null, new BeatmapMetadata());
 
                 var liveBeatmap = beatmap.ToLive(realm);
 
@@ -134,7 +134,7 @@ namespace osu.Game.Tests.Database
         [Test]
         public void TestAccessNonManaged()
         {
-            var beatmap = new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), new BeatmapMetadata());
+            var beatmap = new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), null, new BeatmapMetadata());
             var liveBeatmap = beatmap.ToLiveUnmanaged();
 
             ClassicAssert.False(beatmap.Hidden);
@@ -153,7 +153,7 @@ namespace osu.Game.Tests.Database
         {
             RunTestWithRealm((realm, _) =>
             {
-                var beatmap = new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), new BeatmapMetadata());
+                var beatmap = new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), null, new BeatmapMetadata());
 
                 realm.Run(r => r.Write(_ => r.Add(beatmap)));
 
@@ -177,7 +177,7 @@ namespace osu.Game.Tests.Database
                 {
                     realm.Run(threadContext =>
                     {
-                        var beatmap = threadContext.Write(r => r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), new BeatmapMetadata())));
+                        var beatmap = threadContext.Write(r => r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), null, new BeatmapMetadata())));
 
                         liveBeatmap = beatmap.ToLive(realm);
                     });
@@ -206,7 +206,7 @@ namespace osu.Game.Tests.Database
                 {
                     realm.Run(threadContext =>
                     {
-                        var beatmap = threadContext.Write(r => r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), new BeatmapMetadata())));
+                        var beatmap = threadContext.Write(r => r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), null, new BeatmapMetadata())));
 
                         liveBeatmap = beatmap.ToLive(realm);
                     });
@@ -227,7 +227,7 @@ namespace osu.Game.Tests.Database
         {
             RunTestWithRealm((realm, _) =>
             {
-                var beatmap = new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), new BeatmapMetadata());
+                var beatmap = new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), null, new BeatmapMetadata());
                 var liveBeatmap = beatmap.ToLive(realm);
 
                 Assert.DoesNotThrow(() =>
@@ -248,7 +248,7 @@ namespace osu.Game.Tests.Database
                 {
                     realm.Run(threadContext =>
                     {
-                        var beatmap = threadContext.Write(r => r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), new BeatmapMetadata())));
+                        var beatmap = threadContext.Write(r => r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), null, new BeatmapMetadata())));
 
                         liveBeatmap = beatmap.ToLive(realm);
                     });
@@ -286,7 +286,7 @@ namespace osu.Game.Tests.Database
                 {
                     realm.Run(threadContext =>
                     {
-                        var beatmap = threadContext.Write(r => r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), new BeatmapMetadata())));
+                        var beatmap = threadContext.Write(r => r.Add(new BeatmapInfo(CreateRuleset(), new BeatmapDifficulty(), null, new BeatmapMetadata())));
 
                         liveBeatmap = beatmap.ToLive(realm);
                     });
@@ -321,11 +321,11 @@ namespace osu.Game.Tests.Database
                         realm.Run(innerRealm =>
                         {
                             var ruleset = CreateRuleset();
-                            var beatmap = innerRealm.Write(r => r.Add(new BeatmapInfo(ruleset, new BeatmapDifficulty(), new BeatmapMetadata())));
+                            var beatmap = innerRealm.Write(r => r.Add(new BeatmapInfo(ruleset, new BeatmapDifficulty(), null, new BeatmapMetadata())));
 
                             // add a second beatmap to ensure that a full refresh occurs below.
                             // not just a refresh from the resolved Live.
-                            innerRealm.Write(r => r.Add(new BeatmapInfo(ruleset, new BeatmapDifficulty(), new BeatmapMetadata())));
+                            innerRealm.Write(r => r.Add(new BeatmapInfo(ruleset, new BeatmapDifficulty(), null, new BeatmapMetadata())));
 
                             liveBeatmap = beatmap.ToLive(realm);
                         });

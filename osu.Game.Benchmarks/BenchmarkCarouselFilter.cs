@@ -3,6 +3,7 @@
 
 using BenchmarkDotNet.Attributes;
 using osu.Game.Beatmaps;
+using osu.Game.Models;
 using osu.Game.Rulesets;
 using osu.Game.Screens.Select;
 using osu.Game.Tests.NonVisual.Filtering;
@@ -13,6 +14,7 @@ namespace osu.Game.Benchmarks
     {
         private BeatmapInfo getExampleBeatmap() => new BeatmapInfo
         {
+            Authors = { new RealmUser { Username = "The Author" } },
             Ruleset = new RulesetInfo
             {
                 ShortName = "osu",
@@ -31,7 +33,6 @@ namespace osu.Game.Benchmarks
                 ArtistUnicode = "check unicode too",
                 Title = "Title goes here",
                 TitleUnicode = "Title goes here",
-                Author = { Username = "The Author" },
                 Source = "unit tests",
                 Tags = "look for tags too",
             },

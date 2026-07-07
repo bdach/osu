@@ -36,6 +36,7 @@ namespace osu.Game.Tests.Visual.Navigation
                 {
                     Hash = Guid.NewGuid().ToString(),
                     OnlineID = 1,
+                    Host = { Username = "SomeAuthor" },
                     Beatmaps =
                     {
                         new BeatmapInfo
@@ -44,7 +45,6 @@ namespace osu.Game.Tests.Visual.Navigation
                             Metadata = new BeatmapMetadata
                             {
                                 Artist = "SomeArtist",
-                                Author = { Username = "SomeAuthor" },
                                 Title = "import"
                             },
                             Difficulty = new BeatmapDifficulty(),
@@ -56,7 +56,6 @@ namespace osu.Game.Tests.Visual.Navigation
                             Metadata = new BeatmapMetadata
                             {
                                 Artist = "SomeArtist",
-                                Author = { Username = "SomeAuthor" },
                                 Title = "import"
                             },
                             Difficulty = new BeatmapDifficulty(),
