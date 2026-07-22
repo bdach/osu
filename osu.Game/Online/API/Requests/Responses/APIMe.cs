@@ -9,14 +9,23 @@ namespace osu.Game.Online.API.Requests.Responses
 {
     public class APIMe : APIUser
     {
+        /// <remarks>
+        /// Only present when the request is <see cref="GetMeRequest"/>.
+        /// </remarks>
         [JsonProperty("session_verification_method")]
         public SessionVerificationMethod? SessionVerificationMethod { get; set; }
 
         /// <summary>
         /// Comes from osu-web envvar `SCORE_PROCESSING_NOTICE_URL`
         /// </summary>
+        /// <remarks>
+        /// Only present when the request is <see cref="GetMeRequest"/>.
+        /// </remarks>
         [JsonProperty("score_processing_notice_url")]
         public string ScoreProcessingNoticeUrl { get; set; } = string.Empty;
+
+        [JsonProperty("user_preferences")]
+        public APIUserProfileCustomization UserProfileCustomization { get; set; } = new APIUserProfileCustomization();
     }
 
     public enum SessionVerificationMethod
