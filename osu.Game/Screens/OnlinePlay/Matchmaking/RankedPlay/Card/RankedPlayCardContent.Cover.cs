@@ -8,7 +8,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Beatmaps.Drawables;
 using osu.Game.Online.API.Requests.Responses;
-using osuTK;
 
 namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
 {
@@ -41,7 +40,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.RankedPlay.Card
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                     FillMode = FillMode.Fill,
-                    EdgeSmoothness = new Vector2(2),
                 };
 
                 LoadComponentAsync(cover, _ =>

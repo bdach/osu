@@ -4,21 +4,21 @@
 using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
 using osu.Game.Configuration;
 using osu.Game.Online.API;
+using osuTK;
 
 namespace osu.Game.Beatmaps.Drawables
 {
     [LongRunningLoad]
-    public partial class OnlineBeatmapSetCover : Sprite
+    public partial class OnlineBeatmapSetCover : CompositeDrawable
     {
         private readonly IBeatmapSetOnlineInfo set;
         private readonly BeatmapSetCoverType type;
-
-        private Texture? coverTexture;
-        private Texture? placeholderTexture;
 
         private Bindable<bool>? showAnimeCovers;
 
@@ -50,18 +50,32 @@ namespace osu.Game.Beatmaps.Drawables
                     break;
             }
 
-            if (resource != null)
-                coverTexture = textures.Get(resource);
+            AddInternal(new Sprite
+            {
+                RelativeSizeAxes = Axes.Both,
+                Anchor = Anchor.Centre,
+                Origin = Anchor.Centre,
+                FillMode = FillMode.Fill,
+                Texture = textures.Get(resource),
+                EdgeSmoothness = new Vector2(2),
+            });
 
             if (set.HasAnimeCover)
             {
-                placeholderTexture = getPlaceholderTexture(textures, api);
+                Sprite placeholder;
+                AddInternal(placeholder = new Sprite
+                {
+                    RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    FillMode = FillMode.Fill,
+                    Texture = getPlaceholderTexture(textures, api),
+                    EdgeSmoothness = new Vector2(2),
+                });
 
                 showAnimeCovers = configManager.GetBindable<bool>(OsuSetting.ShowAnimeCovers);
-                showAnimeCovers.BindValueChanged(val => Texture = val.NewValue ? coverTexture : placeholderTexture, true);
+                showAnimeCovers.BindValueChanged(val => placeholder.Alpha = val.NewValue ? 0 : 1, true);
             }
-            else
-                Texture = coverTexture;
         }
 
         // https://github.com/ppy/osu-web/blob/e44938dc71fcfb4818d1b3ca03011e932ab8e9a4/resources/css/layout.less#L24-L29
