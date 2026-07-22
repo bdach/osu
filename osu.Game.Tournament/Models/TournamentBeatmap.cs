@@ -99,6 +99,8 @@ namespace osu.Game.Tournament.Models
 
         bool IBeatmapSetOnlineInfo.HasExplicitContent => throw new NotImplementedException();
 
+        bool IBeatmapSetOnlineInfo.HasAnimeCover => throw new NotImplementedException();
+
         bool IBeatmapSetOnlineInfo.HasVideo => throw new NotImplementedException();
 
         bool IBeatmapSetOnlineInfo.HasStoryboard => throw new NotImplementedException();

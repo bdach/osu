@@ -1,12 +1,12 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Game.Configuration;
 
 namespace osu.Game.Beatmaps.Drawables
 {
@@ -15,6 +15,10 @@ namespace osu.Game.Beatmaps.Drawables
     {
         private readonly IBeatmapSetOnlineInfo set;
         private readonly BeatmapSetCoverType type;
+
+        private Texture? coverTexture;
+
+        private Bindable<bool>? showAnimeCovers;
 
         public OnlineBeatmapSetCover(IBeatmapSetOnlineInfo set, BeatmapSetCoverType type = BeatmapSetCoverType.Cover)
         {
@@ -25,9 +29,9 @@ namespace osu.Game.Beatmaps.Drawables
         }
 
         [BackgroundDependencyLoader]
-        private void load(LargeTextureStore textures)
+        private void load(LargeTextureStore textures, OsuConfigManager? configManager)
         {
-            string resource = null;
+            string? resource = null;
 
             switch (type)
             {
@@ -45,7 +49,15 @@ namespace osu.Game.Beatmaps.Drawables
             }
 
             if (resource != null)
-                Texture = textures.Get(resource);
+                coverTexture = textures.Get(resource);
+
+            if (set.HasAnimeCover && configManager != null)
+            {
+                showAnimeCovers = configManager.GetBindable<bool>(OsuSetting.ShowAnimeCovers);
+                showAnimeCovers.BindValueChanged(val => Texture = val.NewValue ? coverTexture : null, true);
+            }
+            else
+                Texture = coverTexture;
         }
     }
 

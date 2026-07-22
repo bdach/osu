@@ -35,6 +35,8 @@ namespace osu.Game.Beatmaps
         /// </summary>
         bool HasExplicitContent { get; }
 
+        bool HasAnimeCover { get; }
+
         /// <summary>
         /// Whether or not this beatmap set has a background video.
         /// </summary>
