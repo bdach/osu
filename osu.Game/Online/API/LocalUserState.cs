@@ -4,6 +4,7 @@
 using System.Linq;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Framework.Logging;
 using osu.Game.Configuration;
 using osu.Game.Online.API.Requests;
 using osu.Game.Online.API.Requests.Responses;
@@ -27,6 +28,7 @@ namespace osu.Game.Online.API
 
         private readonly Bindable<UserStatus> configStatus = new Bindable<UserStatus>();
         private readonly Bindable<bool> configSupporter = new Bindable<bool>();
+        private readonly Bindable<bool> configShowAnimeCovers = new Bindable<bool>();
 
         public LocalUserState(IAPIProvider api, OsuConfigManager config)
         {
@@ -34,6 +36,7 @@ namespace osu.Game.Online.API
 
             config.BindWith(OsuSetting.UserOnlineStatus, configStatus);
             config.BindWith(OsuSetting.WasSupporter, configSupporter);
+            config.BindWith(OsuSetting.ShowAnimeCovers, configShowAnimeCovers);
         }
 
         #region Logging in / out
@@ -69,6 +72,7 @@ namespace osu.Game.Online.API
             UpdateFriends();
             UpdateBlocks();
             UpdateFavouriteBeatmapSets();
+            UpdateSettings(me);
         }
 
         public void ClearLocalUser()
@@ -150,6 +154,18 @@ namespace osu.Game.Online.API
             };
 
             api.Queue(favouritesReq);
+        }
+
+        public void UpdateSettings(APIMe me)
+        {
+            configShowAnimeCovers.Value = me.UserProfileCustomization.ShowAnimeCovers;
+            configShowAnimeCovers.BindValueChanged(val => syncSetting(new UpdateUserOptionsRequest { UserProfileCustomization = { ShowAnimeCovers = val.NewValue } }));
+        }
+
+        private void syncSetting(UpdateUserOptionsRequest req)
+        {
+            req.Failure += ex => Logger.Log($@"Failed to sync setting: {ex}", LoggingTarget.Network);
+            api.Queue(req);
         }
     }
 }

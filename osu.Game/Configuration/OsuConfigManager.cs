@@ -94,6 +94,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.PreferNoVideo, false);
 
             SetDefault(OsuSetting.ShowOnlineExplicitContent, false);
+            SetDefault(OsuSetting.ShowAnimeCovers, true);
 
             SetDefault(OsuSetting.NotifyOnUsernameMentioned, true);
             SetDefault(OsuSetting.NotifyOnPrivateMessage, true);
@@ -421,6 +422,7 @@ namespace osu.Game.Configuration
         DiscordRichPresence,
 
         ShowOnlineExplicitContent,
+        ShowAnimeCovers,
         LastProcessedMetadataId,
         SafeAreaConsiderations,
         ComboColourNormalisationAmount,
