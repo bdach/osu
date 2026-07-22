@@ -2,13 +2,14 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using osu.Game.Database;
 
 namespace osu.Game.Beatmaps
 {
     /// <summary>
     /// Beatmap set info retrieved for previewing locally without having the set downloaded.
     /// </summary>
-    public interface IBeatmapSetOnlineInfo
+    public interface IBeatmapSetOnlineInfo : IHasOnlineID<int>
     {
         /// <summary>
         /// The date this beatmap set was submitted to the online listing.
