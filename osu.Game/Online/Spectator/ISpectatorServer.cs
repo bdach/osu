@@ -58,7 +58,7 @@ namespace osu.Game.Online.Spectator
         /// </summary>
         /// <param name="scoreToken">The score submission token.</param>
         /// <param name="finalState">The final state of gameplay.</param>
-        Task EndPlaySessionV2(long? scoreToken, SpectatedUserState finalState);
+        Task<EndPlaySessionV2Response> EndPlaySessionV2(long? scoreToken, SpectatedUserState finalState, long? lastSequenceNumber);
 
         #endregion
 
