@@ -93,14 +93,14 @@ namespace osu.Game.Online.Spectator
             return connection.SendAsync(nameof(ISpectatorServer.SendFrameDataV2), scoreToken, bundle);
         }
 
-        protected override Task EndPlayingInternal(long? scoreToken, SpectatedUserState finalState)
+        protected override async Task<EndPlaySessionV2Response?> EndPlayingInternal(long? scoreToken, SpectatedUserState finalState)
         {
             if (!IsConnected.Value)
-                return Task.CompletedTask;
+                return null;
 
             Debug.Assert(connection != null);
 
-            return connection.InvokeAsync(nameof(ISpectatorServer.EndPlaySessionV2), scoreToken, finalState);
+            return await connection.InvokeAsync<EndPlaySessionV2Response>(nameof(ISpectatorServer.EndPlaySessionV2), scoreToken, finalState).ConfigureAwait(false);
         }
 
         protected override Task WatchUserInternal(int userId)

@@ -84,7 +84,7 @@ namespace osu.Game.Online.Spectator
             }
         }
 
-        public IEnumerable<FrameDataBundle> IntersectWith(ICollection<FrameDataBundle> frameBundlesSent)
+        public IEnumerable<FrameDataBundle> GetMissingFrameBundles(ICollection<FrameDataBundle> frameBundlesSent)
         {
             if (MissingFrameBundles.Count == 0)
             {

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using osu.Framework.Allocation;
@@ -89,12 +90,16 @@ namespace osu.Game.Online.Spectator
         private Score? currentScore;
         private long? currentScoreToken;
         private ScoreProcessor? currentScoreProcessor;
+        private long currentFrameBundleSequenceNumber;
 
-        private readonly Queue<FrameDataBundle> pendingFrameBundles = new Queue<FrameDataBundle>();
+        private readonly Queue<FrameDataBundle> pendingFrameBundlesForCurrentScore = new Queue<FrameDataBundle>();
+        private List<FrameDataBundle> allFrameBundlesForCurrentScore = new List<FrameDataBundle>();
+        private readonly Queue<(long scoreToken, FrameDataBundle bundle)> frameBundlesToResend = new Queue<(long scoreToken, FrameDataBundle bundle)>();
 
         private readonly List<LegacyReplayFrame> pendingFrames = new List<LegacyReplayFrame>();
 
         private double lastPurgeTime;
+        private double lastResendTime;
 
         private Task? lastSend;
 
@@ -279,6 +284,7 @@ namespace osu.Game.Online.Spectator
                 if (pendingFrames.Count > 0)
                     purgePendingFrames();
 
+                var allFrames = Interlocked.Exchange(ref allFrameBundlesForCurrentScore, new List<FrameDataBundle>());
                 clearScoreState();
 
                 SpectatedUserState finalState;
@@ -290,7 +296,14 @@ namespace osu.Game.Online.Spectator
                 else
                     finalState = SpectatedUserState.Quit;
 
-                EndPlayingInternal(scoreToken, finalState).FireAndForget();
+                EndPlayingInternal(scoreToken, finalState).FireAndForget(result =>
+                {
+                    if (scoreToken != null && result != null && result.MissingFrameBundles.Count > 0)
+                    {
+                        foreach (var missingBundle in result.GetMissingFrameBundles(allFrames))
+                            frameBundlesToResend.Enqueue((scoreToken.Value, missingBundle));
+                    }
+                });
             });
         }
 
@@ -302,6 +315,7 @@ namespace osu.Game.Online.Spectator
             currentScore = score;
             currentScoreToken = scoreToken;
             currentScoreProcessor = state.ScoreProcessor;
+            currentFrameBundleSequenceNumber = 0;
         }
 
         private void clearScoreState()
@@ -312,6 +326,7 @@ namespace osu.Game.Online.Spectator
             currentScore = null;
             currentScoreProcessor = null;
             currentScoreToken = null;
+            currentFrameBundleSequenceNumber = 0;
         }
 
         public virtual void WatchUser(int userId)
@@ -353,7 +368,7 @@ namespace osu.Game.Online.Spectator
 
         protected abstract Task SendFramesInternal(long? scoreToken, FrameDataBundle bundle);
 
-        protected abstract Task EndPlayingInternal(long? scoreToken, SpectatedUserState finalState);
+        protected abstract Task<EndPlaySessionV2Response?> EndPlayingInternal(long? scoreToken, SpectatedUserState finalState);
 
         protected abstract Task WatchUserInternal(int userId);
 
@@ -365,6 +380,13 @@ namespace osu.Game.Online.Spectator
 
             if (pendingFrames.Count > 0 && Time.Current - lastPurgeTime > TIME_BETWEEN_SENDS)
                 purgePendingFrames();
+
+            if (frameBundlesToResend.Count > 0 && Time.Current - lastResendTime > TIME_BETWEEN_SENDS)
+            {
+                var toResend = frameBundlesToResend.Dequeue();
+                SendFramesInternal(toResend.scoreToken, toResend.bundle).FireAndForget();
+                lastResendTime = Time.Current;
+            }
         }
 
         private void purgePendingFrames()
@@ -386,12 +408,16 @@ namespace osu.Game.Online.Spectator
             Debug.Assert(currentScoreProcessor != null);
 
             var frames = pendingFrames.ToArray();
-            var bundle = new FrameDataBundle(currentScore.ScoreInfo, currentScoreProcessor, frames);
+            var bundle = new FrameDataBundle(currentScore.ScoreInfo, currentScoreProcessor, frames)
+            {
+                SequenceNumber = Interlocked.Increment(ref currentFrameBundleSequenceNumber)
+            };
 
             pendingFrames.Clear();
             lastPurgeTime = Time.Current;
 
-            pendingFrameBundles.Enqueue(bundle);
+            pendingFrameBundlesForCurrentScore.Enqueue(bundle);
+            allFrameBundlesForCurrentScore.Add(bundle);
 
             sendNextBundleIfRequired();
         }
@@ -403,7 +429,7 @@ namespace osu.Game.Online.Spectator
             if (lastSend?.IsCompleted == false)
                 return;
 
-            if (!pendingFrameBundles.TryPeek(out var bundle))
+            if (!pendingFrameBundlesForCurrentScore.TryPeek(out var bundle))
                 return;
 
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
@@ -419,7 +445,7 @@ namespace osu.Game.Online.Spectator
                 {
                     // If the last bundle send wasn't successful, try again without dequeuing.
                     if (wasSuccessful)
-                        pendingFrameBundles.Dequeue();
+                        pendingFrameBundlesForCurrentScore.Dequeue();
 
                     tcs.SetResult(wasSuccessful);
                     sendNextBundleIfRequired();

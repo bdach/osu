@@ -68,7 +68,7 @@ namespace osu.Game.Tests.Online
                 new EndPlaySessionV2Response.SequenceNumberRange(17, 20),
             ]);
 
-            long?[] missingSequenceNumbers = response.IntersectWith(frameBundles).Select(b => b.SequenceNumber).ToArray();
+            long?[] missingSequenceNumbers = response.GetMissingFrameBundles(frameBundles).Select(b => b.SequenceNumber).ToArray();
             Assert.That(missingSequenceNumbers, Is.EqualTo(
                 [
                     1,

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions;
 using osu.Framework.Extensions.ExceptionExtensions;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Logging;
@@ -42,6 +43,36 @@ namespace osu.Game.Online.Multiplayer
                 else
                 {
                     onSuccess?.Invoke();
+                }
+            });
+
+        public static void FireAndForget<TResult>(this Task<TResult> task, Action<TResult>? onSuccess = null, Action<Exception>? onError = null) =>
+            task.ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    Debug.Assert(t.Exception != null);
+                    Exception exception = t.Exception.AsSingular();
+
+                    onError?.Invoke(exception);
+
+                    // OnlineStatusNotifier is already letting users know about interruptions to connections.
+                    // Silence these because it gets very spammy otherwise.
+                    if (SentryLogger.IsLocalUserConnectivityException(exception))
+                        return;
+
+                    if (exception.GetHubExceptionMessage() is string message)
+                    {
+                        // Hub exceptions generally contain something we can show the user directly.
+                        Logger.Log(message, level: LogLevel.Important);
+                        return;
+                    }
+
+                    Logger.Error(exception, $"Unobserved exception occurred via {nameof(FireAndForget)} call: {exception.Message}");
+                }
+                else
+                {
+                    onSuccess?.Invoke(t.GetResultSafely());
                 }
             });
 
