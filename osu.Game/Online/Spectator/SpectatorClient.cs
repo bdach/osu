@@ -90,7 +90,7 @@ namespace osu.Game.Online.Spectator
         private Score? currentScore;
         private long? currentScoreToken;
         private ScoreProcessor? currentScoreProcessor;
-        private long currentFrameBundleSequenceNumber;
+        private long? currentFrameBundleSequenceNumber;
 
         private readonly Queue<FrameDataBundle> pendingFrameBundlesForCurrentScore = new Queue<FrameDataBundle>();
         private List<FrameDataBundle> allFrameBundlesForCurrentScore = new List<FrameDataBundle>();
@@ -296,7 +296,7 @@ namespace osu.Game.Online.Spectator
                 else
                     finalState = SpectatedUserState.Quit;
 
-                EndPlayingInternal(scoreToken, finalState).FireAndForget(result =>
+                EndPlayingInternal(scoreToken, finalState, currentFrameBundleSequenceNumber).FireAndForget(result =>
                 {
                     if (scoreToken != null && result != null && result.MissingFrameBundles.Count > 0)
                     {
@@ -315,7 +315,6 @@ namespace osu.Game.Online.Spectator
             currentScore = score;
             currentScoreToken = scoreToken;
             currentScoreProcessor = state.ScoreProcessor;
-            currentFrameBundleSequenceNumber = 0;
         }
 
         private void clearScoreState()
@@ -326,7 +325,7 @@ namespace osu.Game.Online.Spectator
             currentScore = null;
             currentScoreProcessor = null;
             currentScoreToken = null;
-            currentFrameBundleSequenceNumber = 0;
+            currentFrameBundleSequenceNumber = null;
         }
 
         public virtual void WatchUser(int userId)
@@ -368,7 +367,7 @@ namespace osu.Game.Online.Spectator
 
         protected abstract Task SendFramesInternal(long? scoreToken, FrameDataBundle bundle);
 
-        protected abstract Task<EndPlaySessionV2Response?> EndPlayingInternal(long? scoreToken, SpectatedUserState finalState);
+        protected abstract Task<EndPlaySessionV2Response?> EndPlayingInternal(long? scoreToken, SpectatedUserState finalState, long? lastFrameBundleSequenceNumber);
 
         protected abstract Task WatchUserInternal(int userId);
 
@@ -408,9 +407,10 @@ namespace osu.Game.Online.Spectator
             Debug.Assert(currentScoreProcessor != null);
 
             var frames = pendingFrames.ToArray();
+            currentFrameBundleSequenceNumber = (currentFrameBundleSequenceNumber ?? 0) + 1;
             var bundle = new FrameDataBundle(currentScore.ScoreInfo, currentScoreProcessor, frames)
             {
-                SequenceNumber = Interlocked.Increment(ref currentFrameBundleSequenceNumber)
+                SequenceNumber = currentFrameBundleSequenceNumber
             };
 
             pendingFrames.Clear();

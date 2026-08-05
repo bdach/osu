@@ -180,12 +180,16 @@ namespace osu.Game.Tests.Visual.Spectator
             return ((ISpectatorClient)this).UserSentFrames(api.LocalUser.Value.Id, bundle);
         }
 
-        protected override Task EndPlayingInternal(long? scoreToken, SpectatedUserState finalState) => ((ISpectatorClient)this).UserFinishedPlaying(api.LocalUser.Value.Id, new SpectatorState
+        protected override async Task<EndPlaySessionV2Response?> EndPlayingInternal(long? scoreToken, SpectatedUserState finalState, long? lastSequenceNumber)
         {
-            BeatmapID = userBeatmapDictionary.GetValueOrDefault(api.LocalUser.Value.Id),
-            Mods = userModsDictionary.GetValueOrDefault(api.LocalUser.Value.Id) ?? [],
-            State = finalState,
-        });
+            await ((ISpectatorClient)this).UserFinishedPlaying(api.LocalUser.Value.Id, new SpectatorState
+            {
+                BeatmapID = userBeatmapDictionary.GetValueOrDefault(api.LocalUser.Value.Id),
+                Mods = userModsDictionary.GetValueOrDefault(api.LocalUser.Value.Id) ?? [],
+                State = finalState,
+            }).ConfigureAwait(false);
+            return new EndPlaySessionV2Response(scoreToken, []);
+        }
 
         protected override Task WatchUserInternal(int userId)
         {
