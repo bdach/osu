@@ -96,7 +96,7 @@ namespace osu.Game.Rulesets.Edit
         private readonly Bindable<bool> composerFocusMode = new Bindable<bool>();
 
         [CanBeNull]
-        private RadioButton lastTool;
+        private EditorRadioButton lastTool;
 
         protected DrawableRuleset<TObject> DrawableRuleset { get; private set; }
 
@@ -267,9 +267,8 @@ namespace osu.Game.Rulesets.Edit
                 }
             };
 
-            toolboxCollection.Items = (CompositionTools.Prepend(new SelectTool()))
-                                      .Select(t => new HitObjectCompositionToolButton(t, () => toolSelected(t)))
-                                      .ToList();
+            foreach (var compositionTool in CompositionTools.Prepend(new SelectTool()))
+                toolboxCollection.AddButton(new HitObjectCompositionToolButton(compositionTool, toolSelected));
 
             togglesCollection.AddRange(CreateTernaryButtons().ToArray());
 

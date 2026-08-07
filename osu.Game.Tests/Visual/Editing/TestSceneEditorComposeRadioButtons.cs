@@ -24,15 +24,15 @@ namespace osu.Game.Tests.Visual.Editing
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
                 Width = 150,
-                Items = new[]
-                {
-                    new RadioButton("Item 1", () => { }),
-                    new RadioButton("Item 2", () => { }),
-                    new RadioButton("Item 3", () => { }, () => new SpriteIcon { Icon = FontAwesome.Regular.Angry }),
-                    new RadioButton("Item 4", () => { }),
-                    new RadioButton("Item 5", () => { })
-                }
             });
+
+            for (int i = 0; i < 5; ++i)
+            {
+                collection.AddButton(new EditorRadioButton(
+                    $"Item {i + 1}",
+                    () => { },
+                    i == 3 ? () => new SpriteIcon { Icon = FontAwesome.Regular.Angry } : null));
+            }
 
             for (int i = 0; i < collection.Items.Count; i++)
             {
