@@ -11,7 +11,7 @@ using osu.Game.Rulesets.Osu.Objects;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {
-    public class SliderCompositionTool : CompositionTool
+    public class SliderCompositionTool : CompositionTool<OsuAction>
     {
         public SliderCompositionTool()
             : base(nameof(Slider))
@@ -23,6 +23,7 @@ namespace osu.Game.Rulesets.Osu.Edit
                 Right click to finish.
                 Click and drag for drawing mode.
                 """;
+            Action = OsuAction.EditorSliderTool;
         }
 
         public override Drawable CreateIcon() => new SpriteIcon { Icon = OsuIcon.EditorSlider };

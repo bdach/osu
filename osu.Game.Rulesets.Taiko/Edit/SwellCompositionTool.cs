@@ -11,11 +11,12 @@ using osu.Game.Rulesets.Taiko.Objects;
 
 namespace osu.Game.Rulesets.Taiko.Edit
 {
-    public class SwellCompositionTool : CompositionTool
+    public class SwellCompositionTool : CompositionTool<TaikoAction>
     {
         public SwellCompositionTool()
             : base(nameof(Swell))
         {
+            Action = TaikoAction.EditorSwellTool;
         }
 
         public override Drawable CreateIcon() => new SpriteIcon { Icon = OsuIcon.EditorSwell };

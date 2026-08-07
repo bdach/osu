@@ -10,11 +10,12 @@ using osu.Game.Rulesets.Edit.Tools;
 
 namespace osu.Game.Rulesets.Catch.Edit
 {
-    public class BananaShowerCompositionTool : CompositionTool
+    public class BananaShowerCompositionTool : CompositionTool<CatchAction>
     {
         public BananaShowerCompositionTool()
             : base("Banana shower")
         {
+            Action = CatchAction.EditorBananaTool;
         }
 
         public override Drawable CreateIcon() => new SpriteIcon { Icon = OsuIcon.EditorBananaShower };

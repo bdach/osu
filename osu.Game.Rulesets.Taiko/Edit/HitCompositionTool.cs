@@ -11,11 +11,12 @@ using osu.Game.Rulesets.Taiko.Objects;
 
 namespace osu.Game.Rulesets.Taiko.Edit
 {
-    public class HitCompositionTool : CompositionTool
+    public class HitCompositionTool : CompositionTool<TaikoAction>
     {
         public HitCompositionTool()
             : base(nameof(Hit))
         {
+            Action = TaikoAction.EditorHitTool;
         }
 
         public override Drawable CreateIcon() => new SpriteIcon { Icon = OsuIcon.EditorHit };

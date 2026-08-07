@@ -10,7 +10,7 @@ using osu.Game.Rulesets.Osu.Edit.Blueprints;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {
-    public partial class GridFromPointsTool : CompositionTool
+    public partial class GridFromPointsTool : CompositionTool<OsuAction>
     {
         public GridFromPointsTool()
             : base("Grid")
@@ -21,6 +21,7 @@ namespace osu.Game.Rulesets.Osu.Edit
                           Right click to reset to default.
                           Click and drag to set the origin, spacing and rotation.
                           """;
+            Action = OsuAction.EditorGridTool;
         }
 
         public override Drawable CreateIcon() => new SpriteIcon { Icon = OsuIcon.EditorGrid };

@@ -11,11 +11,12 @@ using osu.Game.Rulesets.Osu.Objects;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {
-    public class SpinnerCompositionTool : CompositionTool
+    public class SpinnerCompositionTool : CompositionTool<OsuAction>
     {
         public SpinnerCompositionTool()
             : base(nameof(Spinner))
         {
+            Action = OsuAction.EditorSpinnerTool;
         }
 
         public override Drawable CreateIcon() => new SpriteIcon { Icon = OsuIcon.EditorSpinner };

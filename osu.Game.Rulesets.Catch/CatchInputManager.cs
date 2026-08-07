@@ -28,5 +28,9 @@ namespace osu.Game.Rulesets.Catch
 
         [LocalisableDescription(typeof(ActionStrings), nameof(ActionStrings.Dash))]
         Dash,
+
+        EditorFruitTool = 10000,
+        EditorJuiceStreamTool,
+        EditorBananaTool,
     }
 }

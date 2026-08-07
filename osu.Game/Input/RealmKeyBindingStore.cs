@@ -62,6 +62,25 @@ namespace osu.Game.Input
             return combinations;
         }
 
+        public IReadOnlyList<string> GetReadableKeyCombinationsFor(string ruleset, int variant, int action)
+        {
+            List<string> combinations = new List<string>();
+
+            realm.Run(context =>
+            {
+                foreach (var binding in context.All<RealmKeyBinding>().Where(b => b.RulesetName == ruleset && b.Variant == variant && b.ActionInt == action))
+                {
+                    string str = keyCombinationProvider.GetReadableString(binding.KeyCombination);
+
+                    // even if found, the readable string may be empty for an unbound action.
+                    if (str.Length > 0)
+                        combinations.Add(str);
+                }
+            });
+
+            return combinations;
+        }
+
         /// <summary>
         /// Register all defaults for this store.
         /// </summary>

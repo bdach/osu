@@ -11,11 +11,12 @@ using osu.Game.Rulesets.Mania.Objects;
 
 namespace osu.Game.Rulesets.Mania.Edit
 {
-    public class NoteCompositionTool : CompositionTool
+    public class NoteCompositionTool : CompositionTool<ManiaAction>
     {
         public NoteCompositionTool()
             : base(nameof(Note))
         {
+            Action = ManiaAction.EditorNoteTool;
         }
 
         public override Drawable CreateIcon() => new SpriteIcon { Icon = OsuIcon.EditorNote };

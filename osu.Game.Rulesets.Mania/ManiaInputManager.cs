@@ -79,6 +79,9 @@ namespace osu.Game.Rulesets.Mania
 
         [LocalisableDescription(typeof(ActionStringsHelper), nameof(ActionStringsHelper.Key20))]
         Key20,
+
+        EditorNoteTool = 10000,
+        EditorHoldNoteTool,
     }
 
     // Workaround for the inability to pass arguments to `LocalisableDescription`.

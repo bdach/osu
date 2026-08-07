@@ -10,11 +10,12 @@ using osu.Game.Rulesets.Taiko.Edit.Blueprints;
 
 namespace osu.Game.Rulesets.Taiko.Edit
 {
-    public class DrumRollCompositionTool : CompositionTool
+    public class DrumRollCompositionTool : CompositionTool<TaikoAction>
     {
         public DrumRollCompositionTool()
             : base("Drum roll")
         {
+            Action = TaikoAction.EditorDrumRollTool;
         }
 
         public override Drawable CreateIcon() => new SpriteIcon { Icon = OsuIcon.EditorDrumRoll };

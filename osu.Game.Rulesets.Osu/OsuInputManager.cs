@@ -114,5 +114,10 @@ namespace osu.Game.Rulesets.Osu
 
         [LocalisableDescription(typeof(ActionStrings), nameof(ActionStrings.Smoke))]
         Smoke,
+
+        EditorHitCircleTool = 10000,
+        EditorSliderTool,
+        EditorSpinnerTool,
+        EditorGridTool,
     }
 }

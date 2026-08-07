@@ -10,11 +10,12 @@ using osu.Game.Rulesets.Mania.Edit.Blueprints;
 
 namespace osu.Game.Rulesets.Mania.Edit
 {
-    public class HoldNoteCompositionTool : CompositionTool
+    public class HoldNoteCompositionTool : CompositionTool<ManiaAction>
     {
         public HoldNoteCompositionTool()
             : base("Hold")
         {
+            Action = ManiaAction.EditorHoldNoteTool;
         }
 
         public override Drawable CreateIcon() => new SpriteIcon { Icon = OsuIcon.EditorHoldNote };

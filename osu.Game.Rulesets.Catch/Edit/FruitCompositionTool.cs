@@ -11,11 +11,12 @@ using osu.Game.Rulesets.Edit.Tools;
 
 namespace osu.Game.Rulesets.Catch.Edit
 {
-    public class FruitCompositionTool : CompositionTool
+    public class FruitCompositionTool : CompositionTool<CatchAction>
     {
         public FruitCompositionTool()
             : base(nameof(Fruit))
         {
+            Action = CatchAction.EditorFruitTool;
         }
 
         public override Drawable CreateIcon() => new SpriteIcon { Icon = OsuIcon.EditorFruit };

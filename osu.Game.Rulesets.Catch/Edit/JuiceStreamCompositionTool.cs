@@ -10,11 +10,12 @@ using osu.Game.Rulesets.Edit.Tools;
 
 namespace osu.Game.Rulesets.Catch.Edit
 {
-    public class JuiceStreamCompositionTool : CompositionTool
+    public class JuiceStreamCompositionTool : CompositionTool<CatchAction>
     {
         public JuiceStreamCompositionTool()
             : base("Juice stream")
         {
+            Action = CatchAction.EditorJuiceStreamTool;
         }
 
         public override Drawable CreateIcon() => new SpriteIcon { Icon = OsuIcon.EditorJuiceStream };

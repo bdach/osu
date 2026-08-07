@@ -10,11 +10,12 @@ using osu.Game.Rulesets.Osu.Edit.Blueprints.HitCircles;
 
 namespace osu.Game.Rulesets.Osu.Edit
 {
-    public class HitCircleCompositionTool : CompositionTool
+    public class HitCircleCompositionTool : CompositionTool<OsuAction>
     {
         public HitCircleCompositionTool()
             : base("Hit circle")
         {
+            Action = OsuAction.EditorHitCircleTool;
         }
 
         public override Drawable CreateIcon() => new SpriteIcon { Icon = OsuIcon.EditorHitCircle };

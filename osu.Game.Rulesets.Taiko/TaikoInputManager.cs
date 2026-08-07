@@ -30,6 +30,10 @@ namespace osu.Game.Rulesets.Taiko
         RightCentre,
 
         [LocalisableDescription(typeof(ActionStrings), nameof(ActionStrings.RightRim))]
-        RightRim
+        RightRim,
+
+        EditorHitTool = 10000,
+        EditorDrumRollTool,
+        EditorSwellTool,
     }
 }
