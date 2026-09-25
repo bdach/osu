@@ -12,6 +12,7 @@ using osu.Game.Graphics.UserInterface;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Scoring;
+using osu.Game.Skinning;
 using osu.Game.Users;
 using osu.Game.Users.Drawables;
 using osu.Game.Utils;
@@ -19,7 +20,7 @@ using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Argon
 {
-    public partial class UserInfoWedge : CompositeDrawable
+    public partial class UserInfoWedge : CompositeDrawable, ISerialisableDrawable
     {
         private const float height = 60;
         private const float spacing = 12;
@@ -36,7 +37,7 @@ namespace osu.Game.Screens.RankingV2.Argon
         [BackgroundDependencyLoader]
         private void load(OverlayColourProvider colourProvider)
         {
-            RelativeSizeAxes = Axes.X;
+            Width = ArgonResultsScreenV2.LEFT_WEDGE_HEIGHT;
             Height = height;
             InternalChild = new Container
             {
@@ -158,5 +159,7 @@ namespace osu.Game.Screens.RankingV2.Argon
             usernameText.Text = score.Value.User.Username;
             achievedOnText.Text = $"Achieved on {score.Value.Date:g}";
         }
+
+        public bool UsesFixedAnchor { get; set; }
     }
 }

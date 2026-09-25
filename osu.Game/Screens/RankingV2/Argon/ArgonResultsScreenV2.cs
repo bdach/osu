@@ -38,6 +38,8 @@ namespace osu.Game.Screens.RankingV2.Argon
         [Resolved]
         private OsuColour colours { get; set; } = null!;
 
+        public const float LEFT_WEDGE_HEIGHT = 560;
+
         // TODO: multiplayer screens accept null score when showing a playlist item's scores - decide how to handle that
         public ArgonResultsScreenV2(IScoreInfo initialScore)
         {
@@ -73,8 +75,7 @@ namespace osu.Game.Screens.RankingV2.Argon
                         {
                             Anchor = Anchor.TopLeft,
                             Origin = Anchor.TopLeft,
-                            Width = 600 - BeatmapInfoWedge.SUB_WEDGE_HEIGHT,
-                            AutoSizeAxes = Axes.Y,
+                            AutoSizeAxes = Axes.Both,
                             Shear = OsuGame.SHEAR,
                             Direction = FillDirection.Vertical,
                             Spacing = new Vector2(12),
@@ -96,14 +97,12 @@ namespace osu.Game.Screens.RankingV2.Argon
                                 new TotalScoreWedge
                                 {
                                     Shear = -OsuGame.SHEAR,
-                                    Width = 1.3f,
-                                }
+                                },
                             ]
                         },
                         new StatisticsGrid
                         {
                             Margin = new MarginPadding { Left = 20, },
-                            Width = 530,
                         },
                     ],
                 },

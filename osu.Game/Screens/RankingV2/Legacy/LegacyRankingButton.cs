@@ -11,7 +11,7 @@ using osu.Game.Skinning;
 
 namespace osu.Game.Screens.RankingV2.Legacy
 {
-    public abstract partial class LegacyRankingButton : CompositeDrawable
+    public abstract partial class LegacyRankingButton : CompositeDrawable, ISerialisableDrawable
     {
         public Action? Action { get; set; }
 
@@ -63,6 +63,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
         {
             buttonSprite.FadeTo(IsHovered ? 1f : 0.7f, 200);
         }
+
+        public bool UsesFixedAnchor { get; set; }
     }
 
     public partial class LegacyRankingRetryButton : LegacyRankingButton

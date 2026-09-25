@@ -17,12 +17,13 @@ using osu.Game.Overlays;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play.HUD;
+using osu.Game.Skinning;
 using osu.Game.Utils;
 using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Argon
 {
-    public partial class StatisticsGrid : CompositeDrawable
+    public partial class StatisticsGrid : CompositeDrawable, ISerialisableDrawable
     {
         private StatisticsCell accuracyCell = null!;
         private StatisticsCell comboCell = null!;
@@ -41,6 +42,7 @@ namespace osu.Game.Screens.RankingV2.Argon
         private void load()
         {
             AutoSizeAxes = Axes.Y;
+            Width = 530;
 
             InternalChild = new FillFlowContainer
             {
@@ -96,7 +98,7 @@ namespace osu.Game.Screens.RankingV2.Argon
                         Margin = new MarginPadding { Top = 10 },
                         RowDimensions = [new Dimension(GridSizeMode.AutoSize)],
                     },
-                    new ModCell()
+                    new ModCell
                     {
                         Margin = new MarginPadding { Top = 10 },
                     }
@@ -365,5 +367,7 @@ namespace osu.Game.Screens.RankingV2.Argon
                 modDisplay.Current.Value = (score.Value as ScoreInfo)?.Mods ?? [];
             }
         }
+
+        public bool UsesFixedAnchor { get; set; }
     }
 }

@@ -12,7 +12,7 @@ using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Legacy
 {
-    public partial class LegacyRankingGrade : CompositeDrawable
+    public partial class LegacyRankingGrade : CompositeDrawable, ISerialisableDrawable
     {
         private Sprite gradeSprite = null!;
 
@@ -26,12 +26,6 @@ namespace osu.Game.Screens.RankingV2.Legacy
         private void load()
         {
             AutoSizeAxes = Axes.Both;
-
-            // TODO: move to skinnable container defaults
-            bool useNewLayout = skin.GetConfig<SkinConfiguration.LegacySetting, decimal>(SkinConfiguration.LegacySetting.Version)?.Value > 1M;
-            Anchor = Anchor.TopRight;
-            Origin = Anchor.Centre;
-            Position = new Vector2(-120, useNewLayout ? 200 : 170) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR;
 
             InternalChild = gradeSprite = new Sprite
             {
@@ -52,5 +46,7 @@ namespace osu.Game.Screens.RankingV2.Legacy
             gradeSprite.Size = Vector2.Zero;
             gradeSprite.Texture = skin.GetTexture($@"ranking-{score.Value.Rank.ToString()}");
         }
+
+        public bool UsesFixedAnchor { get; set; }
     }
 }

@@ -3,6 +3,7 @@
 
 using System;
 using osu.Framework.Allocation;
+using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
@@ -10,12 +11,14 @@ using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Scoring;
 using osu.Game.Skinning;
+using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Legacy
 {
     // TODO: action, disabled state, yadda yadda
-    public partial class LegacyButton : CompositeDrawable
+    public abstract partial class LegacyButton : CompositeDrawable, ISerialisableDrawable
     {
         private NineSliceSprite backgroundSprite = null!;
 
@@ -88,6 +91,25 @@ namespace osu.Game.Screens.RankingV2.Legacy
             }
 
             backgroundSprite.Colour = targetColour;
+        }
+
+        public bool UsesFixedAnchor { get; set; }
+    }
+
+    public partial class LegacyOnlineRankingButton : LegacyButton
+    {
+        public LegacyOnlineRankingButton()
+        {
+            AccentColour = Colour4.BlueViolet;
+            Text = "▼ Online Ranking ▼";
+            Size = new Vector2(200, 30) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR;
+        }
+
+        [BackgroundDependencyLoader]
+        private void load(IBindable<IScoreInfo> _)
+        {
+            // just a dummy BDL that requires `IBindable<IScoreInfo>`
+            // this is done so that this component doesn't show up on other skinnable screens
         }
     }
 }

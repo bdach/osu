@@ -34,9 +34,15 @@ namespace osu.Game.Screens.RankingV2.Legacy
         [BackgroundDependencyLoader]
         private void load()
         {
+            // note: for simplicity this is hardcoding the `useNewLayout` variant of positionings
             InternalChildren =
             [
-                new LegacyRankingBackgroundOverlay(),
+                new LegacyRankingBackgroundOverlay
+                {
+                    Anchor = Anchor.TopRight,
+                    Origin = Anchor.Centre,
+                    Position = new Vector2(-180, 200) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
+                },
                 new BoxElement
                 {
                     Width = 9999,
@@ -64,17 +70,26 @@ namespace osu.Game.Screens.RankingV2.Legacy
                 new SkinnableSprite
                 {
                     SpriteName = { Value = @"ranking-title" },
-                    // TODO: move to skinnable container defaults
                     Anchor = Anchor.TopRight,
                     Origin = Anchor.TopRight,
                     Position = new Vector2(-20, 0) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
                 },
-                new LegacyRankingPanel(),
-                new LegacyRankingGraph(),
-                new LegacyRankingGrade(),
+                new LegacyRankingPanel
+                {
+                    Position = new Vector2(0, 64) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
+                },
+                new LegacyRankingGraph
+                {
+                    Position = new Vector2(160, 380) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
+                },
+                new LegacyRankingGrade
+                {
+                    Anchor = Anchor.TopRight,
+                    Origin = Anchor.Centre,
+                    Position = new Vector2(-120, 200) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
+                },
                 new SkinnableModDisplay
                 {
-                    // TODO: move to skinnable container defaults
                     Anchor = Anchor.TopRight,
                     Origin = Anchor.CentreRight,
                     Position = new Vector2(-20, 260) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
@@ -82,22 +97,18 @@ namespace osu.Game.Screens.RankingV2.Legacy
                 },
                 new LegacyRankingRetryButton
                 {
-                    // TODO: move to skinnable container defaults
                     Anchor = Anchor.TopRight,
                     Origin = Anchor.CentreRight,
                     Position = new Vector2(0, 360) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
                 },
-                new LegacyRankingWatchReplayButton()
+                new LegacyRankingWatchReplayButton
                 {
-                    // TODO: move to skinnable container defaults
                     Anchor = Anchor.TopRight,
                     Origin = Anchor.CentreRight,
                     Position = new Vector2(0, 420) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
                 },
-                new LegacyButton
+                new LegacyOnlineRankingButton
                 {
-                    AccentColour = Colour4.BlueViolet,
-                    Text = "▼ Online Ranking ▼",
                     Anchor = Anchor.BottomCentre,
                     Origin = Anchor.TopLeft,
                     Size = new Vector2(200, 30) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
