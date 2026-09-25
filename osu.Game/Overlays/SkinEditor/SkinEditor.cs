@@ -449,7 +449,14 @@ namespace osu.Game.Overlays.SkinEditor
                 changeHandler = new SkinEditorChangeHandler(skinnableContainer);
                 changeHandler.CanUndo.BindValueChanged(v => undoMenuItem.Action.Disabled = !v.NewValue, true);
                 changeHandler.CanRedo.BindValueChanged(v => redoMenuItem.Action.Disabled = !v.NewValue, true);
+                changeHandler.OnStateChange += reloadToolboxes;
             }
+        }
+
+        private void reloadToolboxes()
+        {
+            foreach (var toolbox in componentsSidebar.OfType<SkinComponentToolbox>())
+                toolbox.ReloadComponents();
         }
 
         private void skinChanged()
@@ -474,6 +481,7 @@ namespace osu.Game.Overlays.SkinEditor
                 cp.Colour = colours.Yellow;
             });
 
+            changeHandler?.OnStateChange -= reloadToolboxes;
             changeHandler?.Dispose();
             changeHandler = null;
 
