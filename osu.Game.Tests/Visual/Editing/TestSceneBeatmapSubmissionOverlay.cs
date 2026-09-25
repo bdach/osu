@@ -8,6 +8,7 @@ using osu.Framework.Testing;
 using osu.Game.Overlays;
 using osu.Game.Screens;
 using osu.Game.Screens.Edit.Submission;
+using osu.Game.Screens.Footer;
 
 namespace osu.Game.Tests.Visual.Editing
 {
@@ -30,8 +31,6 @@ namespace osu.Game.Tests.Visual.Editing
 
         private partial class TestBeatmapSubmissionOverlayScreen : OsuScreen
         {
-            public override bool ShowFooter => true;
-
             public BeatmapSubmissionOverlay Overlay = null!;
 
             private IDisposable? overlayRegistration;
@@ -46,6 +45,7 @@ namespace osu.Game.Tests.Visual.Editing
             private void load()
             {
                 LoadComponent(Overlay = new BeatmapSubmissionOverlay());
+                GlobalFooterContent.Value = new ScreenFooterContent();
             }
 
             protected override void LoadComplete()

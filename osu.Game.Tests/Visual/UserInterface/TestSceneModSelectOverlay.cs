@@ -1114,8 +1114,6 @@ namespace osu.Game.Tests.Visual.UserInterface
         {
             public readonly Bindable<IReadOnlyList<Mod>> SelectedMods = new Bindable<IReadOnlyList<Mod>>();
 
-            public override bool ShowFooter => true;
-
             public ModSelectOverlay Overlay = null!;
 
             private IDisposable? firstOverlayRegistration;
@@ -1138,6 +1136,7 @@ namespace osu.Game.Tests.Visual.UserInterface
                     Ruleset = { BindTarget = Ruleset },
                     ShowPresets = true,
                 });
+                GlobalFooterContent.Value = new ScreenFooterContent();
             }
 
             protected override void LoadComplete()

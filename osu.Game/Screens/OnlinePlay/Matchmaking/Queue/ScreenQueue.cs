@@ -54,8 +54,6 @@ namespace osu.Game.Screens.OnlinePlay.Matchmaking.Queue
     /// </summary>
     public partial class ScreenQueue : OsuScreen
     {
-        public override bool ShowFooter => true;
-
         public override bool? ApplyModTrackAdjustments => false;
 
         private Container mainContent = null!;

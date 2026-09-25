@@ -37,6 +37,8 @@ namespace osu.Game.Screens.Footer
         /// </summary>
         private readonly IBindable<bool> backButtonVisibility = new BindableBool();
 
+        private readonly IBindable<ScreenFooterContent?> footerContent = new Bindable<ScreenFooterContent?>();
+
         private readonly ScreenStackTracker screenTracker;
 
         public ScreenStackFooter(ScreenStack screenStack, ScreenFooter.BackReceptor? backReceptor = null)
@@ -61,7 +63,8 @@ namespace osu.Game.Screens.Footer
             screenTracker = new ScreenStackTracker(screenStack);
             screenTracker.ScreenChanged += onScreenChanged;
 
-            backButtonVisibility.ValueChanged += onBackButtonVisibilityChanged;
+            backButtonVisibility.BindValueChanged(_ => Scheduler.AddOnce(updateVisibility));
+            footerContent.BindValueChanged(_ => Scheduler.AddOnce(updateVisibility));
         }
 
         private void onScreenChanged(IScreen lastScreen, IScreen newScreen)
@@ -70,56 +73,39 @@ namespace osu.Game.Screens.Footer
             bindScreen(newScreen);
         }
 
-        private void onBackButtonVisibilityChanged(ValueChangedEvent<bool> visible)
-        {
-            if (visible.NewValue)
-                BackButton.Show();
-            else
-                BackButton.Hide();
-        }
-
         private void unbindScreen(IScreen screen)
         {
             if (screen is not OsuScreen osuScreen)
                 return;
 
             backButtonVisibility.UnbindFrom(osuScreen.BackButtonVisibility);
+            footerContent.UnbindFrom(osuScreen.GlobalFooterContent);
         }
 
-        private void bindScreen(IScreen screen)
+        private void updateVisibility()
         {
-            if (screen is not OsuScreen osuScreen)
-            {
-                ((BindableBool)backButtonVisibility).Value = true;
-
-                Footer.SetButtons([]);
-                Footer.Hide();
+            if (screenTracker.CurrentScreen == null)
                 return;
-            }
 
-            if (osuScreen.ShowFooter)
+            if (footerContent.Value != null)
             {
-                // the legacy back button should never display while the new footer is in use, as it
-                // contains its own local back button.
-                ((BindableBool)backButtonVisibility).Value = false;
-
                 Footer.Show();
 
-                if (osuScreen.IsLoaded)
+                if (screenTracker.CurrentScreen.IsLoaded)
                     updateFooterButtons();
                 else
                 {
                     // ensure the current buttons are immediately disabled on screen change (so they can't be pressed).
                     Footer.SetButtons([]);
 
-                    osuScreen.OnLoadComplete += _ => updateFooterButtons();
+                    screenTracker.CurrentScreen.OnLoadComplete += _ => updateFooterButtons();
                 }
 
                 void updateFooterButtons()
                 {
-                    var buttons = osuScreen.CreateFooterButtons();
+                    var buttons = footerContent.Value.LeftButtons?.Invoke() ?? [];
 
-                    osuScreen.LoadComponentsAgainstScreenDependencies(buttons);
+                    screenTracker.CurrentScreen.LoadComponentsAgainstScreenDependencies(buttons);
 
                     Footer.SetButtons(buttons);
                     Footer.Show();
@@ -127,11 +113,27 @@ namespace osu.Game.Screens.Footer
             }
             else
             {
-                backButtonVisibility.BindTo(osuScreen.BackButtonVisibility);
-
                 Footer.SetButtons([]);
                 Footer.Hide();
             }
+
+            if (backButtonVisibility.Value && footerContent.Value == null)
+                BackButton.Show();
+            else
+                BackButton.Hide();
+        }
+
+        private void bindScreen(IScreen screen)
+        {
+            if (screen is not OsuScreen osuScreen)
+            {
+                ((BindableBool)backButtonVisibility).Value = true;
+                ((Bindable<ScreenFooterContent?>)footerContent).Value = null;
+                return;
+            }
+
+            backButtonVisibility.BindTo(osuScreen.BackButtonVisibility);
+            footerContent.BindTo(osuScreen.GlobalFooterContent);
         }
 
         protected override void Dispose(bool isDisposing)
@@ -161,6 +163,8 @@ namespace osu.Game.Screens.Footer
             /// The screen stack tracked by this entry.
             /// </summary>
             private readonly ScreenStack stack;
+
+            public OsuScreen? CurrentScreen => stack.CurrentScreen as OsuScreen;
 
             /// <summary>
             /// An entry corresponding to the subscreen stack of the current screen, if any.

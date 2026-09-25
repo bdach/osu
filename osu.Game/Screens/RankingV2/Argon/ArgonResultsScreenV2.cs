@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
@@ -44,6 +43,34 @@ namespace osu.Game.Screens.RankingV2.Argon
         public ArgonResultsScreenV2(IScoreInfo initialScore)
         {
             score.Value = initialScore;
+
+            GlobalFooterContent.Value = new ScreenFooterContent(
+                BackButton: true,
+                // TODO: replace fontawesome, localise strings, actually hook up actions
+                LeftButtons: () =>
+                [
+                    new ScreenFooterButton
+                    {
+                        Icon = FontAwesome.Solid.ChartBar,
+                        Text = "Ranking",
+                        Action = () => { },
+                        AccentColour = colours.Green1, // to match web ranking pages
+                    },
+                    new ScreenFooterButton
+                    {
+                        Icon = FontAwesome.Solid.Search,
+                        Text = "More statistics",
+                        Action = () => { },
+                        AccentColour = colours.Blue1,
+                    },
+                    new ScreenFooterButton
+                    {
+                        Icon = FontAwesome.Solid.Inbox,
+                        Text = "Catalogue",
+                        Action = () => { },
+                        AccentColour = colours.Blue1, // to match beatmap pages
+                    },
+                ]); // TODO: main buttons on the right
         }
 
         [BackgroundDependencyLoader]
@@ -102,33 +129,5 @@ namespace osu.Game.Screens.RankingV2.Argon
                 },
             ];
         }
-
-        public override bool ShowFooter => true;
-
-        public override IReadOnlyList<ScreenFooterButton> CreateFooterButtons() =>
-        [
-            // TODO: replace fontawesome, localise strings, actually hook up actions
-            new ScreenFooterButton
-            {
-                Icon = FontAwesome.Solid.ChartBar,
-                Text = "Ranking",
-                Action = () => { },
-                AccentColour = colours.Green1, // to match web ranking pages
-            },
-            new ScreenFooterButton
-            {
-                Icon = FontAwesome.Solid.Search,
-                Text = "More statistics",
-                Action = () => { },
-                AccentColour = colours.Blue1,
-            },
-            new ScreenFooterButton
-            {
-                Icon = FontAwesome.Solid.Inbox,
-                Text = "Catalogue",
-                Action = () => { },
-                AccentColour = colours.Blue1, // to match beatmap pages
-            },
-        ]; // TODO: how to do main buttons on the right?
     }
 }
