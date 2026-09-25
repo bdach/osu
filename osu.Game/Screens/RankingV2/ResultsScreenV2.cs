@@ -11,6 +11,7 @@ using osu.Game.Skinning;
 
 namespace osu.Game.Screens.RankingV2
 {
+    [Cached(typeof(ResultsScreenV2))]
     public partial class ResultsScreenV2 : ScreenWithBeatmapBackground
     {
         [Cached(typeof(IBindable<IScoreInfo>))]

@@ -8,12 +8,10 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osu.Game.Graphics;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
 using osu.Game.Scoring;
-using osu.Game.Screens.Footer;
 using osu.Game.Screens.Play;
 using osuTK;
 using osuTK.Graphics;
@@ -43,34 +41,6 @@ namespace osu.Game.Screens.RankingV2.Argon
         public ArgonResultsScreenV2(IScoreInfo initialScore)
         {
             score.Value = initialScore;
-
-            GlobalFooterContent.Value = new ScreenFooterContent(
-                BackButton: true,
-                // TODO: replace fontawesome, localise strings, actually hook up actions
-                LeftButtons: () =>
-                [
-                    new ScreenFooterButton
-                    {
-                        Icon = FontAwesome.Solid.ChartBar,
-                        Text = "Ranking",
-                        Action = () => { },
-                        AccentColour = colours.Green1, // to match web ranking pages
-                    },
-                    new ScreenFooterButton
-                    {
-                        Icon = FontAwesome.Solid.Search,
-                        Text = "More statistics",
-                        Action = () => { },
-                        AccentColour = colours.Blue1,
-                    },
-                    new ScreenFooterButton
-                    {
-                        Icon = FontAwesome.Solid.Inbox,
-                        Text = "Catalogue",
-                        Action = () => { },
-                        AccentColour = colours.Blue1, // to match beatmap pages
-                    },
-                ]); // TODO: main buttons on the right
         }
 
         [BackgroundDependencyLoader]
@@ -127,6 +97,7 @@ namespace osu.Game.Screens.RankingV2.Argon
                         },
                     ],
                 },
+                new ArgonResultsFooter(),
             ];
         }
     }
