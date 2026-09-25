@@ -115,6 +115,7 @@ namespace osu.Game.Tests.Visual.RankingV2
             score.TotalScore = RNG.Next(0, 1_200_001);
 
             score.BeatmapInfo = Beatmap.Value.BeatmapInfo;
+            score.MaxCombo = RNG.NextBool() ? score.GetMaximumAchievableCombo() : 999;
 
             return score;
         }

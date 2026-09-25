@@ -15,7 +15,7 @@ using osuTK;
 namespace osu.Game.Screens.RankingV2.Legacy
 {
     // TODO: tooltip with extended info
-    public partial class LegacyRankingGraph : CompositeDrawable
+    public partial class LegacyRankingGraph : CompositeDrawable, ISerialisableDrawable
     {
         private Sprite perfectIndicator = null!;
 
@@ -27,10 +27,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
         {
             AutoSizeAxes = Axes.Both;
 
-            // TODO: move to skinnable container defaults
             bool useNewLayout = skin.GetConfig<SkinConfiguration.LegacySetting, decimal>(SkinConfiguration.LegacySetting.Version)?.Value > 1M;
             var baselinePosition = new Vector2(160, useNewLayout ? 380 : 360);
-            Position = baselinePosition * LegacySkin.STABLE_MAGIC_SCALE_FACTOR;
 
             var graphSize = new Vector2(186, 86) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR;
             const float graph_path_radius = 3;
@@ -114,5 +112,7 @@ namespace osu.Game.Screens.RankingV2.Legacy
         {
             perfectIndicator.Alpha = score.Value.MaxCombo == score.Value.GetMaximumAchievableCombo() ? 1 : 0;
         }
+
+        public bool UsesFixedAnchor { get; set; }
     }
 }

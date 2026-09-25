@@ -19,11 +19,12 @@ using osu.Game.Overlays;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Scoring.Legacy;
+using osu.Game.Skinning;
 using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Argon
 {
-    public partial class TotalScoreWedge : CompositeDrawable
+    public partial class TotalScoreWedge : CompositeDrawable, ISerialisableDrawable
     {
         public static readonly ColourInfo TEXT_GRADIENT = ColourInfo.GradientVertical(Colour4.White, Colour4.FromHex(@"B2E5FE"));
 
@@ -38,7 +39,7 @@ namespace osu.Game.Screens.RankingV2.Argon
         [BackgroundDependencyLoader]
         private void load(OverlayColourProvider colourProvider, TextureStore textures, OsuConfigManager configManager)
         {
-            RelativeSizeAxes = Axes.X;
+            Width = ArgonResultsScreenV2.LEFT_WEDGE_HEIGHT * 1.3f;
             AutoSizeAxes = Axes.Y;
 
             InternalChildren =
@@ -158,5 +159,7 @@ namespace osu.Game.Screens.RankingV2.Argon
             totalScoreText.Text = score.Value.GetDisplayScore(scoringMode.Value).ToLocalisableString(@"N0");
             perfectIndicator.Alpha = score.Value.MaxCombo == score.Value.GetMaximumAchievableCombo() ? 1 : 0;
         }
+
+        public bool UsesFixedAnchor { get; set; }
     }
 }

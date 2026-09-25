@@ -58,7 +58,7 @@ namespace osu.Game.Screens.RankingV2.Argon
         [BackgroundDependencyLoader]
         private void load(OverlayColourProvider colourProvider)
         {
-            RelativeSizeAxes = Axes.X;
+            Width = ArgonResultsScreenV2.LEFT_WEDGE_HEIGHT;
             AutoSizeAxes = Axes.Y;
 
             InternalChildren =

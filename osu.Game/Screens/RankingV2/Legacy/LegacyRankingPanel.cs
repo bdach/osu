@@ -16,7 +16,7 @@ using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Legacy
 {
-    public partial class LegacyRankingPanel : CompositeDrawable
+    public partial class LegacyRankingPanel : CompositeDrawable, ISerialisableDrawable
     {
         private Vector2 baselinePosition;
 
@@ -45,10 +45,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
         {
             AutoSizeAxes = Axes.Both;
 
-            // TODO: move to skinnable container defaults
             bool useNewLayout = skin.GetConfig<SkinConfiguration.LegacySetting, decimal>(SkinConfiguration.LegacySetting.Version)?.Value > 1M;
             baselinePosition = new Vector2(0, useNewLayout ? 64 : 46);
-            Position = baselinePosition * LegacySkin.STABLE_MAGIC_SCALE_FACTOR;
 
             int row4Offset = useNewLayout ? 20 : 0;
 
@@ -322,5 +320,7 @@ namespace osu.Game.Screens.RankingV2.Legacy
                     text.Text = ScoreText;
             }
         }
+
+        public bool UsesFixedAnchor { get; set; }
     }
 }

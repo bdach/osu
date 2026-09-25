@@ -13,6 +13,7 @@ using osu.Game.Beatmaps.Formats;
 using osu.Game.Extensions;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.IO;
+using osu.Game.Screens.Footer;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.HUD.HitErrorMeters;
@@ -284,12 +285,29 @@ namespace osu.Game.Skinning
                             return new DefaultSkinComponentsContainer(container =>
                             {
                                 var beatmapInfoWedge = container.OfType<BeatmapInfoWedge>().FirstOrDefault();
+                                var userInfoWedge = container.OfType<UserInfoWedge>().FirstOrDefault();
+                                var totalScoreWedge = container.OfType<TotalScoreWedge>().FirstOrDefault();
+                                var statisticsGrid = container.OfType<StatisticsGrid>().FirstOrDefault();
+                                var gradeDisplay = container.OfType<GradeDisplay>().FirstOrDefault();
 
-                                beatmapInfoWedge?.Position = new Vector2(-ShearedButton.CORNER_RADIUS);
-                                beatmapInfoWedge?.Width = 0.55f;
+                                var leftWedgeBasePosition = new Vector2(-ShearedButton.CORNER_RADIUS);
+                                static Vector2 leftWedgeOffset(float y) => new Vector2(-y * OsuGame.SHEAR.X, y);
+
+                                beatmapInfoWedge?.Position = leftWedgeBasePosition;
+                                userInfoWedge?.Position = leftWedgeBasePosition + leftWedgeOffset(161);
+                                totalScoreWedge?.Position = leftWedgeBasePosition + leftWedgeOffset(233);
+                                statisticsGrid?.Position = new Vector2(20, 354);
+
+                                gradeDisplay?.Anchor = Anchor.CentreRight;
+                                gradeDisplay?.Origin = Anchor.CentreRight;
+                                gradeDisplay?.Position = new Vector2(100, -ScreenFooter.HEIGHT / 2f);
                             })
                             {
+                                new GradeDisplay(),
                                 new BeatmapInfoWedge(),
+                                new UserInfoWedge(),
+                                new TotalScoreWedge(),
+                                new StatisticsGrid(),
                             };
                     }
 

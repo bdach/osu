@@ -18,7 +18,7 @@ using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Argon
 {
-    public partial class GradeDisplay : CompositeDrawable
+    public partial class GradeDisplay : CompositeDrawable, ISerialisableDrawable
     {
         private Container gradedCirclesContainer = null!;
         private Sprite rankSprite = null!;
@@ -120,5 +120,7 @@ namespace osu.Game.Screens.RankingV2.Argon
 
             rankSprite.Texture = skinManager.DefaultClassicSkin.GetTexture(DrawableRank.GetLegacyRankTextureName(score.Value.Rank));
         }
+
+        public bool UsesFixedAnchor { get; set; }
     }
 }
