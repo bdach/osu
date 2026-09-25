@@ -4,13 +4,15 @@
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Graphics.Containers;
 using osu.Framework.Utils;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
+using osu.Game.Overlays.SkinEditor;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Mania;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
+using osu.Game.Screens.RankingV2;
 using osu.Game.Screens.RankingV2.Argon;
 using osu.Game.Screens.RankingV2.Legacy;
 using osu.Game.Skinning;
@@ -73,6 +75,28 @@ namespace osu.Game.Tests.Visual.RankingV2
                 var score = createTestScore();
                 LoadScreen(new LegacyResultsScreenV2(score));
             });
+        }
+
+        [Test]
+        public void TestSkinnableScreen()
+        {
+            ResultsScreenV2 results;
+            SkinEditorOverlay skinEditor = null!;
+
+            AddStep("create screen", () =>
+            {
+                var score = createTestScore();
+                LoadScreen(results = new ResultsScreenV2(score));
+                // dodgy as hell but it's annoying to set this up otherwise.
+                // TL;DR: the intention is to add the skin editor *outside* of the scaling container
+                // but tricks like `base.Content.Add()` don't work here because that is *inside* the scaling container already
+                // which makes the skin editor look broken
+                ((Container)ScalingContainer.Parent!).Add(skinEditor = new SkinEditorOverlay(ScalingContainer));
+                skinEditor.SetTarget(results);
+            });
+            AddStep("set argon skin", () => skins.CurrentSkinInfo.SetDefault());
+            AddStep("set legacy skin", () => skins.CurrentSkinInfo.Value = skins.DefaultClassicSkin.SkinInfo);
+            AddToggleStep("toggle skin editor", b => skinEditor.State.Value = b ? Visibility.Visible : Visibility.Hidden);
         }
 
         private IScoreInfo createTestScore()

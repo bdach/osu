@@ -20,12 +20,13 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
 using osu.Game.Overlays;
 using osu.Game.Scoring;
+using osu.Game.Skinning;
 using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Argon
 {
     // TODO: transition / animation pass
-    public partial class BeatmapInfoWedge : CompositeDrawable
+    public partial class BeatmapInfoWedge : CompositeDrawable, ISerialisableDrawable
     {
         public const float SUB_WEDGE_HEIGHT = 40;
 
@@ -209,5 +210,7 @@ namespace osu.Game.Screens.RankingV2.Argon
                                });
                            });
         }
+
+        public bool UsesFixedAnchor { get; set; }
     }
 }

@@ -11,10 +11,12 @@ using osu.Framework.Graphics.Textures;
 using osu.Game.Audio;
 using osu.Game.Beatmaps.Formats;
 using osu.Game.Extensions;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.IO;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.HUD.HitErrorMeters;
+using osu.Game.Screens.RankingV2.Argon;
 using osu.Game.Skinning.Components;
 using osuTK;
 using osuTK.Graphics;
@@ -277,6 +279,18 @@ namespace osu.Game.Skinning
                             };
 
                             return mainHUDComponents;
+
+                        case GlobalSkinnableContainers.Results:
+                            return new DefaultSkinComponentsContainer(container =>
+                            {
+                                var beatmapInfoWedge = container.OfType<BeatmapInfoWedge>().FirstOrDefault();
+
+                                beatmapInfoWedge?.Position = new Vector2(-ShearedButton.CORNER_RADIUS);
+                                beatmapInfoWedge?.Width = 0.55f;
+                            })
+                            {
+                                new BeatmapInfoWedge(),
+                            };
                     }
 
                     return null;

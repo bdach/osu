@@ -23,6 +23,7 @@ using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.Play.HUD.HitErrorMeters;
+using osu.Game.Skinning.Components;
 using osuTK;
 using osuTK.Graphics;
 
@@ -470,6 +471,37 @@ namespace osu.Game.Skinning
                                     // for the sake of hacky full screen area health bars
                                     new LegacyHealthDisplay(),
                                 }
+                            };
+
+                        case GlobalSkinnableContainers.Results:
+                            return new DefaultSkinComponentsContainer(container =>
+                            {
+                                var headerBox = container.OfType<BoxElement>().FirstOrDefault();
+                                var artistTitleText = container.OfType<BeatmapAttributeText>().ElementAtOrDefault(0);
+                                var creatorText = container.OfType<BeatmapAttributeText>().ElementAtOrDefault(1);
+                                var playedByText = container.OfType<ScoreAttributeText>().FirstOrDefault();
+
+                                headerBox?.Position = -Vector2.One;
+                                headerBox?.Size = new Vector2(9999, 60) * STABLE_MAGIC_SCALE_FACTOR + Vector2.One;
+                                headerBox?.CornerRadius.Value = 0;
+                                headerBox?.AccentColour.Value = Colour4.Black;
+
+                                artistTitleText?.Scale = new Vector2(22 * STABLE_MAGIC_SCALE_FACTOR / BeatmapAttributeText.DEFAULT_TEXT_SIZE);
+                                artistTitleText?.Template.Value = @"{Artist} - {Title} [{DifficultyName}]";
+
+                                creatorText?.Position = new Vector2(1, 20) * STABLE_MAGIC_SCALE_FACTOR;
+                                creatorText?.Scale = new Vector2(16 * STABLE_MAGIC_SCALE_FACTOR / BeatmapAttributeText.DEFAULT_TEXT_SIZE);
+                                creatorText?.Template.Value = @"Beatmap by {Creator}"; // TODO: localisation...???
+
+                                playedByText?.Position = new Vector2(1, 34) * STABLE_MAGIC_SCALE_FACTOR;
+                                playedByText?.Scale = new Vector2(16 * STABLE_MAGIC_SCALE_FACTOR / ScoreAttributeText.DEFAULT_TEXT_SIZE);
+                                playedByText?.Template.Value = @"Played by {Username} on {Date}"; // TODO: localisation...???
+                            })
+                            {
+                                new BoxElement(),
+                                new BeatmapAttributeText(),
+                                new BeatmapAttributeText(),
+                                new ScoreAttributeText(),
                             };
                     }
 
