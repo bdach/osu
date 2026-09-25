@@ -131,8 +131,6 @@ namespace osu.Game.Screens.Select
 
         public override bool? ApplyModTrackAdjustments => true;
 
-        public override bool ShowFooter => true;
-
         private Sample? errorSample;
 
         [Resolved]
@@ -324,6 +322,9 @@ namespace osu.Game.Screens.Select
             });
 
             showConvertedBeatmaps = config.GetBindable<bool>(OsuSetting.ShowConvertedBeatmaps);
+
+            // TODO: very doubtful this works correctly with virtuals, confirm
+            GlobalFooterContent.Value = new ScreenFooterContent(BackButton: true, LeftButtons: () => CreateFooterButtons().ToArray());
         }
 
         // Colour scheme for mod overlay is left as default (green) to match mods button.
@@ -346,7 +347,7 @@ namespace osu.Game.Screens.Select
         /// </summary>
         protected abstract void OnStart();
 
-        public override IReadOnlyList<ScreenFooterButton> CreateFooterButtons() => new ScreenFooterButton[]
+        public virtual IReadOnlyList<ScreenFooterButton> CreateFooterButtons() => new ScreenFooterButton[]
         {
             new FooterButtonMods(modSelectOverlay)
             {

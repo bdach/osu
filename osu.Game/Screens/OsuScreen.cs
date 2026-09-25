@@ -39,7 +39,9 @@ namespace osu.Game.Screens
 
         public virtual bool AllowUserExit => true;
 
-        public virtual bool ShowFooter => false;
+        public readonly Bindable<ScreenFooterContent> GlobalFooterContent = new Bindable<ScreenFooterContent>();
+
+        IBindable<ScreenFooterContent> IOsuScreen.GlobalFooterContent => GlobalFooterContent;
 
         public virtual bool AllowExternalScreenChange => false;
 
@@ -318,8 +320,6 @@ namespace osu.Game.Screens
         /// Note that the instance created may not be the used instance if it matches the BackgroundMode equality clause.
         /// </summary>
         protected virtual BackgroundScreen CreateBackground() => null;
-
-        public virtual IReadOnlyList<ScreenFooterButton> CreateFooterButtons() => Array.Empty<ScreenFooterButton>();
 
         public virtual bool OnBackButton() => false;
     }

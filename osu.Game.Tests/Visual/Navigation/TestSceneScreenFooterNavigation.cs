@@ -249,8 +249,6 @@ namespace osu.Game.Tests.Visual.Navigation
 
         private partial class TestScreen : OsuScreen
         {
-            public override bool ShowFooter { get; }
-
             public Func<IReadOnlyList<ScreenFooterButton>> CreateButtons = Array.Empty<ScreenFooterButton>;
 
             public ShearedOverlayContainer Overlay = new TestShearedOverlayContainer();
@@ -265,7 +263,7 @@ namespace osu.Game.Tests.Visual.Navigation
 
             public TestScreen(bool showFooter = true)
             {
-                ShowFooter = showFooter;
+                GlobalFooterContent.Value = showFooter ? new ScreenFooterContent(LeftButtons: () => CreateButtons().ToArray()) : null;
             }
 
             [BackgroundDependencyLoader]
@@ -279,8 +277,6 @@ namespace osu.Game.Tests.Visual.Navigation
                 base.LoadComplete();
                 overlayRegistration = overlayManager?.RegisterBlockingOverlay(Overlay);
             }
-
-            public override IReadOnlyList<ScreenFooterButton> CreateFooterButtons() => CreateButtons.Invoke();
 
             protected override void Dispose(bool isDisposing)
             {
