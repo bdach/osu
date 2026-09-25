@@ -518,7 +518,7 @@ namespace osu.Game.Overlays.SkinEditor
 
             var drawableComponent = (Drawable)component;
 
-            if (applyDefaults)
+            if (applyDefaults && component.CanBeMoved)
             {
                 // give newly added components a sane starting location.
                 drawableComponent.Origin = Anchor.TopCentre;
