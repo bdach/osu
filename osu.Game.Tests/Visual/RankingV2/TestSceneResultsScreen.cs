@@ -4,14 +4,12 @@
 using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
+using osu.Framework.Utils;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Catch;
 using osu.Game.Rulesets.Mania;
-using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Scoring;
-using osu.Game.Rulesets.Taiko;
 using osu.Game.Scoring;
 using osu.Game.Screens.RankingV2.Argon;
 using osu.Game.Screens.RankingV2.Legacy;
@@ -32,6 +30,9 @@ namespace osu.Game.Tests.Visual.RankingV2
 
         [Resolved]
         private SkinManager skins { get; set; } = null!;
+
+        [Resolved]
+        private RulesetStore rulesets { get; set; } = null!;
 
         private int onlineScoreID = 1;
 
@@ -76,15 +77,18 @@ namespace osu.Game.Tests.Visual.RankingV2
 
         private IScoreInfo createTestScore()
         {
-            var score = TestResources.CreateTestScoreInfo(new OsuRuleset().RulesetInfo);
+            var rulesetInfo = rulesets.GetRuleset(RNG.Next(0, 4));
+            var rulesetInstance = rulesetInfo!.CreateInstance();
+            var score = TestResources.CreateTestScoreInfo(rulesetInfo);
 
             score.OnlineID = onlineScoreID++;
             score.HitEvents = TestSceneStatisticsPanel.CreatePositionDistributedHitEvents();
-            score.Accuracy = 0.92;
-            score.Rank = ScoreRank.A;
+            score.Accuracy = RNG.NextDouble(0.7, 1);
+            score.Rank = rulesetInstance.CreateScoreProcessor().RankFromScore(score.Accuracy, score.Statistics);
             score.PP = 138.4234;
 
-            score.Statistics[HitResult.Miss] = 2;
+            score.Statistics[HitResult.Miss] = RNG.NextBool() ? 2 : 0;
+            score.TotalScore = RNG.Next(0, 1_200_001);
 
             score.BeatmapInfo = Beatmap.Value.BeatmapInfo;
 
