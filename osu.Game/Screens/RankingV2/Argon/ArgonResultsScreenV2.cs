@@ -57,13 +57,7 @@ namespace osu.Game.Screens.RankingV2.Argon
                     Width = 0.6f,
                     Colour = ColourInfo.GradientHorizontal(Color4.Black.Opacity(0.3f), Color4.Black.Opacity(0f)),
                 },
-                new GradeDisplay
-                {
-                    Anchor = Anchor.CentreRight,
-                    Origin = Anchor.CentreRight,
-                    X = 100,
-                    Y = -ScreenFooter.HEIGHT / 2f,
-                },
+                new GradeDisplay(),
                 new FillFlowContainer
                 {
                     AutoSizeAxes = Axes.Both,

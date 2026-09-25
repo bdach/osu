@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
@@ -13,6 +14,7 @@ using osu.Game.Graphics;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Overlays;
 using osu.Game.Scoring;
+using osu.Game.Screens.Footer;
 using osu.Game.Skinning;
 using osuTK;
 
@@ -20,6 +22,11 @@ namespace osu.Game.Screens.RankingV2.Argon
 {
     public partial class GradeDisplay : CompositeDrawable, ISerialisableDrawable
     {
+        public bool CanBePlaced(SkinnableContainer skinnableContainer) => !skinnableContainer.Components.OfType<GradeDisplay>().Any();
+        public bool CanBeMoved => false;
+        public bool CanBeRotated => false;
+        public bool CanBeScaled => false;
+
         private Container gradedCirclesContainer = null!;
         private Sprite rankSprite = null!;
 
@@ -35,6 +42,10 @@ namespace osu.Game.Screens.RankingV2.Argon
         private void load(OverlayColourProvider colourProvider)
         {
             AutoSizeAxes = Axes.Both;
+            Anchor = Anchor.CentreRight;
+            Origin = Anchor.CentreRight;
+            X = 100;
+            Y = -ScreenFooter.HEIGHT / 2f;
 
             InternalChildren =
             [

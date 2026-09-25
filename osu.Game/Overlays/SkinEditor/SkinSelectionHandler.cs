@@ -85,6 +85,9 @@ namespace osu.Game.Overlays.SkinEditor
 
             foreach (var b in SelectedBlueprints)
             {
+                if (!b.Item.CanBeScaled)
+                    continue;
+
                 var drawableItem = (Drawable)b.Item;
 
                 var flippedPosition = GeometryUtils.GetFlippedPosition(direction, flipOverOrigin ? drawableItem.Parent!.ScreenSpaceDrawQuad : selectionQuad, b.ScreenSpaceSelectionPoint);
@@ -103,6 +106,9 @@ namespace osu.Game.Overlays.SkinEditor
             foreach (var c in SelectedBlueprints)
             {
                 var item = c.Item;
+                if (!item.CanBeMoved)
+                    continue;
+
                 Drawable drawable = (Drawable)item;
 
                 if (!item.UsesFixedAnchor)
@@ -126,8 +132,7 @@ namespace osu.Game.Overlays.SkinEditor
         {
             base.OnSelectionChanged();
 
-            SelectionBox.CanFlipX = true;
-            SelectionBox.CanFlipY = true;
+            SelectionBox.CanFlipX = SelectionBox.CanFlipY = SelectedItems.All(i => i.CanBeScaled);
             SelectionBox.CanReverse = false;
         }
 

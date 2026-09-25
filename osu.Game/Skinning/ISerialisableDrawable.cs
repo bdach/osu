@@ -3,6 +3,7 @@
 
 using System;
 using System.Globalization;
+using System.Text.Json.Serialization;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;
@@ -22,10 +23,12 @@ namespace osu.Game.Skinning
     /// </remarks>
     public interface ISerialisableDrawable : IDrawable
     {
-        /// <summary>
-        /// Whether this component should be editable by an end user.
-        /// </summary>
-        bool IsEditable => true;
+        // todo: tighten down serialisation on these (shouldn't dump to json) and ensure deserialisation can't bypass them
+        bool CanBePlaced(SkinnableContainer skinnableContainer) => true;
+        bool CanBeSelected => true;
+        bool CanBeMoved => CanBeSelected;
+        bool CanBeScaled => CanBeSelected;
+        bool CanBeRotated => CanBeSelected;
 
         /// <summary>
         /// In the context of the skin layout editor, whether this <see cref="ISerialisableDrawable"/> has a permanent anchor defined.
