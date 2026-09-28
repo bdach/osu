@@ -234,7 +234,8 @@ namespace osu.Game.Screens.RankingV2.Argon
             {
                 main.RelativePositionAxes = Axes.X;
                 main.MoveTo(new Vector2(-1, 0), 1000, Easing.OutQuint)
-                    .Then().FadeOut();
+                    .Then()
+                    .FadeOut();
 
                 details.RelativePositionAxes = Axes.X;
                 details.Anchor = Anchor.CentreRight;
@@ -256,7 +257,8 @@ namespace osu.Game.Screens.RankingV2.Argon
                     .MoveTo(Vector2.Zero, 1000, Easing.OutQuint);
 
                 details.MoveTo(Vector2.Zero, 1000, Easing.OutQuint)
-                       .Then().FadeOut();
+                       .Then()
+                       .FadeOut();
 
                 transitionCommitted = false;
                 scrollDelta = null;

@@ -19,13 +19,19 @@ using osuTK;
 namespace osu.Game.Screens.RankingV2.Legacy
 {
     // TODO: action, disabled state, yadda yadda
-    public abstract partial class LegacyButton : CompositeDrawable, ISerialisableDrawable
+    public partial class LegacyButton : CompositeDrawable, ISerialisableDrawable
     {
         private NineSliceSprite backgroundSprite = null!;
 
-        public Colour4 AccentColour { get; init; }
+        public required Colour4 AccentColour { get; init; }
 
-        public LocalisableString Text { get; init; }
+        public required LocalisableString Text { get; init; }
+
+        public new required Vector2 Size
+        {
+            get => base.Size;
+            init => base.Size = value;
+        }
 
         public Action? Action { get; set; }
 
@@ -55,33 +61,34 @@ namespace osu.Game.Screens.RankingV2.Legacy
         {
             base.LoadComplete();
 
-            updateState(false);
+            updateState();
         }
 
-        protected override bool OnMouseMove(MouseMoveEvent e)
+        protected override bool OnHover(HoverEvent e)
         {
-            // todo: hack workarounds for `ReceivePositionalInputAt()` hacks so the button can receive scrolls from all over the screen
-            // its all bad, fix it later
-            updateState(Contains(e.ScreenSpaceMousePosition));
+            updateState();
             return true;
+        }
+
+        protected override void OnHoverLost(HoverLostEvent e)
+        {
+            updateState();
+            base.OnHoverLost(e);
         }
 
         protected override bool OnClick(ClickEvent e)
         {
-            if (!Contains(e.ScreenSpaceMousePosition))
-                return false;
-
             Action?.Invoke();
             backgroundSprite.FlashColour(Colour4.White, 400);
             return true;
         }
 
-        private void updateState(bool hovered)
+        private void updateState()
         {
             var targetColour = AccentColour;
             const float unhovered_reduction = 20 / 255f;
 
-            if (!hovered)
+            if (!IsHovered)
             {
                 targetColour = new Colour4(
                     MathF.Max(0, targetColour.R - unhovered_reduction),
@@ -96,15 +103,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
         public bool UsesFixedAnchor { get; set; }
     }
 
-    public partial class LegacyOnlineRankingButton : LegacyButton
+    public partial class LegacyOnlineRankingButton : CompositeDrawable
     {
-        public LegacyOnlineRankingButton()
-        {
-            AccentColour = Colour4.BlueViolet;
-            Text = "▼ Online Ranking ▼";
-            Size = new Vector2(200, 30) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR;
-        }
-
         public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
 
         [Resolved]
@@ -119,7 +119,13 @@ namespace osu.Game.Screens.RankingV2.Legacy
             // just a dummy BDL that requires `IBindable<IScoreInfo>`
             // this is done so that this component doesn't show up on other skinnable screens
 
-            Action = commitTransitionToDetails;
+            InternalChild = new LegacyButton
+            {
+                AccentColour = Colour4.BlueViolet,
+                Text = "▼ Online Ranking ▼",
+                Size = new Vector2(200, 30) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
+                Action = commitTransitionToDetails,
+            };
         }
 
         protected override void LoadComplete()
@@ -215,7 +221,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
                     .MoveTo(Vector2.Zero, 1000, Easing.OutQuint);
 
                 details.MoveTo(Vector2.Zero, 1000, Easing.OutQuint)
-                       .Then().FadeOut();
+                       .Then()
+                       .FadeOut();
 
                 transitionCommitted = false;
                 scrollDelta = null;
