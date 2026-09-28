@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -45,6 +44,8 @@ namespace osu.Game.Screens.RankingV2.Argon
 
         [Resolved]
         private ResultsScreenV2? results { get; set; } = null!;
+
+        private readonly Bindable<Visibility> detailsVisibility = new Bindable<Visibility>();
 
         [BackgroundDependencyLoader]
         private void load(OverlayColourProvider colourProvider)
@@ -112,6 +113,20 @@ namespace osu.Game.Screens.RankingV2.Argon
             base.LoadComplete();
 
             score.BindValueChanged(_ => updateState(), true);
+
+            if (results != null)
+            {
+                detailsVisibility.BindTo(results.DetailsVisible);
+                detailsVisibility.BindValueChanged(visible =>
+                {
+                    // this workaround ensures the scroll flow works correctly if the details are hidden in some way invisible to this component
+                    if (visible.NewValue == Visibility.Hidden)
+                    {
+                        transitionCommitted = false;
+                        scrollDelta = null;
+                    }
+                });
+            }
         }
 
         private void updateState()
@@ -145,6 +160,7 @@ namespace osu.Game.Screens.RankingV2.Argon
 
         private Vector2? scrollDelta;
         private ScheduledDelegate? cancelScroll;
+        private bool transitionCommitted;
 
         protected override bool OnDragStart(DragStartEvent e)
         {
@@ -156,7 +172,9 @@ namespace osu.Game.Screens.RankingV2.Argon
         {
             base.OnDrag(e);
             dragDelta = e.MousePosition - e.MouseDownPosition;
-            startTransitionToDetails(dragDelta.Value);
+
+            if (dragDelta.Value.X < 0)
+                startTransitionToDetails(dragDelta.Value);
         }
 
         protected override void OnDragEnd(DragEndEvent e)
@@ -181,7 +199,7 @@ namespace osu.Game.Screens.RankingV2.Argon
                 return true;
             }
 
-            if (scrollDelta.Value.X == 0)
+            if (scrollDelta.Value.X == 0 || transitionCommitted)
                 return false;
 
             if (scrollDelta.Value.X > 15)
@@ -191,45 +209,57 @@ namespace osu.Game.Screens.RankingV2.Argon
             }
 
             startTransitionToDetails(new Vector2(-scrollDelta.Value.X * 20, 0));
-            cancelScroll = Scheduler.AddDelayed(() =>
-            {
-                cancelTransitionToDetails();
-                scrollDelta = null;
-            }, 500);
+            cancelScroll = Scheduler.AddDelayed(cancelTransitionToDetails, 500);
             return true;
         }
 
         private void startTransitionToDetails(Vector2 delta)
         {
-            FinishTransforms(false, nameof(Margin));
-            Margin = new MarginPadding { Right = -Math.Min(delta.X, 0) };
-            results?.PopInDetails(details =>
+            results?.PopInDetails((main, details) =>
             {
-                details.Alpha = 1;
+                main.RelativePositionAxes = Axes.None;
+                main.MoveTo(new Vector2(delta.X, 0));
+
                 details.RelativePositionAxes = Axes.None;
                 details.Anchor = Anchor.CentreRight;
                 details.Origin = Anchor.CentreLeft;
-                details.Position = new Vector2(delta.X, 0);
+                details.FadeIn()
+                       .MoveTo(new Vector2(delta.X, 0));
             });
         }
 
         private void commitTransitionToDetails()
         {
-            this.TransformTo(nameof(Margin), new MarginPadding(), 1000, Easing.OutQuint);
-            results?.PopInDetails(details =>
+            results?.PopInDetails((main, details) =>
             {
+                main.RelativePositionAxes = Axes.X;
+                main.MoveTo(new Vector2(-1, 0), 1000, Easing.OutQuint)
+                    .Then().FadeOut();
+
                 details.RelativePositionAxes = Axes.X;
-                details.MoveTo(new Vector2(-1, 0), 1000, Easing.OutQuint);
+                details.Anchor = Anchor.CentreRight;
+                details.Origin = Anchor.CentreLeft;
+                details.FadeIn()
+                       .Then()
+                       .MoveTo(new Vector2(-1, 0), 1000, Easing.OutQuint);
+
+                transitionCommitted = true;
+                scrollDelta = null;
             });
         }
 
         private void cancelTransitionToDetails()
         {
-            this.TransformTo(nameof(Margin), new MarginPadding(), 1000, Easing.OutQuint);
-            results?.PopOutDetails(details =>
+            results?.PopOutDetails((main, details) =>
             {
+                main.FadeIn()
+                    .MoveTo(Vector2.Zero, 1000, Easing.OutQuint);
+
                 details.MoveTo(Vector2.Zero, 1000, Easing.OutQuint)
                        .Then().FadeOut();
+
+                transitionCommitted = false;
+                scrollDelta = null;
             });
         }
 

@@ -55,34 +55,33 @@ namespace osu.Game.Screens.RankingV2.Legacy
         {
             base.LoadComplete();
 
-            updateState();
+            updateState(false);
         }
 
-        protected override bool OnHover(HoverEvent e)
+        protected override bool OnMouseMove(MouseMoveEvent e)
         {
-            updateState();
+            // todo: hack workarounds for `ReceivePositionalInputAt()` hacks so the button can receive scrolls from all over the screen
+            // its all bad, fix it later
+            updateState(Contains(e.ScreenSpaceMousePosition));
             return true;
-        }
-
-        protected override void OnHoverLost(HoverLostEvent e)
-        {
-            updateState();
-            base.OnHoverLost(e);
         }
 
         protected override bool OnClick(ClickEvent e)
         {
+            if (!Contains(e.ScreenSpaceMousePosition))
+                return false;
+
             Action?.Invoke();
             backgroundSprite.FlashColour(Colour4.White, 400);
             return true;
         }
 
-        private void updateState()
+        private void updateState(bool hovered)
         {
             var targetColour = AccentColour;
             const float unhovered_reduction = 20 / 255f;
 
-            if (!IsHovered)
+            if (!hovered)
             {
                 targetColour = new Colour4(
                     MathF.Max(0, targetColour.R - unhovered_reduction),
@@ -111,25 +110,35 @@ namespace osu.Game.Screens.RankingV2.Legacy
         [Resolved]
         private ResultsScreenV2? results { get; set; }
 
+        private bool transitionCommitted;
+        private readonly Bindable<Visibility> detailsVisibility = new Bindable<Visibility>();
+
         [BackgroundDependencyLoader]
         private void load(IBindable<IScoreInfo> _)
         {
             // just a dummy BDL that requires `IBindable<IScoreInfo>`
             // this is done so that this component doesn't show up on other skinnable screens
 
-            Action = () =>
+            Action = commitTransitionToDetails;
+        }
+
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            if (results != null)
             {
-                results?.PopInDetails(details =>
+                detailsVisibility.BindTo(results.DetailsVisible);
+                detailsVisibility.BindValueChanged(visible =>
                 {
-                    details.Anchor = Anchor.TopLeft;
-                    details.Origin = Anchor.TopLeft;
-                    details.RelativePositionAxes = Axes.Both;
-                    details.FadeIn()
-                           .MoveTo(new Vector2(0, 1))
-                           .Then()
-                           .MoveTo(Vector2.Zero, 1000, Easing.OutQuint);
+                    // this workaround ensures the scroll flow works correctly if the details are hidden in some way invisible to this component
+                    if (visible.NewValue == Visibility.Hidden)
+                    {
+                        transitionCommitted = false;
+                        scrollDelta = null;
+                    }
                 });
-            };
+            }
         }
 
         private Vector2? scrollDelta;
@@ -139,13 +148,16 @@ namespace osu.Game.Screens.RankingV2.Legacy
         {
             scrollDelta = (scrollDelta ?? Vector2.Zero) + e.ScrollDelta;
 
+            cancelScroll?.Cancel();
+
             if (scrollDelta.Value.Y > 0)
             {
                 cancelTransitionToDetails();
                 return true;
             }
 
-            cancelScroll?.Cancel();
+            if (scrollDelta.Value.Y == 0 || transitionCommitted)
+                return false;
 
             if (scrollDelta.Value.Y < -15)
             {
@@ -154,43 +166,59 @@ namespace osu.Game.Screens.RankingV2.Legacy
             }
 
             startTransitionToDetails(new Vector2(0, scrollDelta.Value.Y * 20));
-            cancelScroll = Scheduler.AddDelayed(() =>
-            {
-                cancelTransitionToDetails();
-                scrollDelta = null;
-            }, 500);
+            cancelScroll = Scheduler.AddDelayed(cancelTransitionToDetails, 500);
             return true;
         }
 
         private void startTransitionToDetails(Vector2 delta)
         {
-            Margin = new MarginPadding { Bottom = Math.Max(-delta.Y, 0) };
-            results?.PopInDetails(details =>
+            results?.PopInDetails((main, details) =>
             {
+                main.RelativePositionAxes = Axes.None;
+                main.MoveTo(new Vector2(0, delta.Y));
+
                 details.Alpha = 1;
                 details.RelativePositionAxes = Axes.None;
                 details.Anchor = Anchor.BottomCentre;
                 details.Origin = Anchor.TopCentre;
-                details.Position = new Vector2(0, delta.Y);
+                details.FadeIn()
+                       .MoveTo(new Vector2(0, delta.Y));
             });
         }
 
         private void commitTransitionToDetails()
         {
-            this.TransformTo(nameof(Margin), new MarginPadding(), 1000, Easing.OutQuint);
-            results?.PopInDetails(details =>
+            results?.PopInDetails((main, details) =>
             {
+                main.RelativePositionAxes = Axes.Y;
+                main.MoveTo(new Vector2(0, -1), 1000, Easing.OutQuint)
+                    .Then()
+                    .FadeOut();
+
+                details.Anchor = Anchor.BottomCentre;
+                details.Origin = Anchor.TopCentre;
                 details.RelativePositionAxes = Axes.Y;
-                details.MoveTo(new Vector2(0, -1), 1000, Easing.OutQuint);
+                details.FadeIn()
+                       .Then()
+                       .MoveTo(new Vector2(0, -1), 1000, Easing.OutQuint);
+
+                transitionCommitted = true;
+                scrollDelta = null;
             });
         }
 
         private void cancelTransitionToDetails()
         {
-            results?.PopOutDetails(details =>
+            results?.PopOutDetails((main, details) =>
             {
+                main.FadeIn()
+                    .MoveTo(Vector2.Zero, 1000, Easing.OutQuint);
+
                 details.MoveTo(Vector2.Zero, 1000, Easing.OutQuint)
                        .Then().FadeOut();
+
+                transitionCommitted = false;
+                scrollDelta = null;
             });
         }
     }

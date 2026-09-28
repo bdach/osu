@@ -60,10 +60,17 @@ namespace osu.Game.Screens.RankingV2.Argon
                                 switch (results?.DetailsVisible.Value)
                                 {
                                     case Visibility.Hidden:
-                                        results.PopInDetails(details =>
+                                        results.PopInDetails((main, details) =>
                                         {
+                                            main.RelativePositionAxes = Axes.Both;
+                                            main.MoveTo(Vector2.Zero)
+                                                .Then()
+                                                .MoveTo(new Vector2(0, -1), 1000, Easing.OutQuint)
+                                                .Then()
+                                                .FadeOut();
+
                                             details.RelativePositionAxes = Axes.Both;
-                                            details.Anchor = details.Origin = Anchor.TopRight;
+                                            details.Anchor = details.Origin = Anchor.TopLeft;
                                             details.MoveTo(new Vector2(0, 1))
                                                    .FadeTo(1)
                                                    .Then()
@@ -72,10 +79,16 @@ namespace osu.Game.Screens.RankingV2.Argon
                                         break;
 
                                     case Visibility.Visible:
-                                        results.PopOutDetails(details =>
+                                        results.PopOutDetails((main, details) =>
                                         {
+                                            main.RelativePositionAxes = Axes.Both;
+                                            main.FadeIn()
+                                                .MoveTo(new Vector2(0, -1))
+                                                .Then()
+                                                .MoveTo(Vector2.Zero, 1000, Easing.OutQuint);
+
                                             details.RelativePositionAxes = Axes.Both;
-                                            details.Anchor = details.Origin = Anchor.TopRight;
+                                            details.Anchor = details.Origin = Anchor.TopLeft;
                                             details.MoveTo(Vector2.Zero)
                                                    .Then()
                                                    .MoveTo(new Vector2(0, 1), 1000, Easing.OutQuint)

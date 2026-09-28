@@ -1,7 +1,6 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -28,6 +27,7 @@ namespace osu.Game.Screens.RankingV2
         [Cached]
         private OverlayColourProvider colourProvider = new OverlayColourProvider(OverlayColourScheme.Blue);
 
+        private SkinnableContainer mainScreen = null!;
         private Drawable detailsView = null!;
 
         // TODO: multiplayer screens accept null score when showing a playlist item's scores - decide how to handle that
@@ -41,7 +41,7 @@ namespace osu.Game.Screens.RankingV2
         {
             InternalChildren =
             [
-                new SkinnableContainer(new GlobalSkinnableContainerLookup(GlobalSkinnableContainers.Results))
+                mainScreen = new SkinnableContainer(new GlobalSkinnableContainerLookup(GlobalSkinnableContainers.Results))
                 {
                     RelativeSizeAxes = Axes.Both,
                 },
@@ -70,18 +70,20 @@ namespace osu.Game.Screens.RankingV2
             ];
         }
 
-        public void PopInDetails(Action<Drawable> transition)
+        public delegate void ScreenTransition(Drawable mainScreen, Drawable subScreen);
+
+        public void PopInDetails(ScreenTransition transition)
         {
             detailsView.FinishTransforms();
             DetailsVisible.Value = Visibility.Visible;
-            transition.Invoke(detailsView);
+            transition.Invoke(mainScreen, detailsView);
         }
 
-        public void PopOutDetails(Action<Drawable> transition)
+        public void PopOutDetails(ScreenTransition transition)
         {
             detailsView.FinishTransforms();
             DetailsVisible.Value = Visibility.Hidden;
-            transition.Invoke(detailsView);
+            transition.Invoke(mainScreen, detailsView);
         }
 
         protected override void LoadComplete()
