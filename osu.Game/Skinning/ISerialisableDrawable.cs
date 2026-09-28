@@ -3,7 +3,6 @@
 
 using System;
 using System.Globalization;
-using System.Text.Json.Serialization;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.TypeExtensions;
 using osu.Framework.Graphics;

@@ -9,6 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
+using osu.Framework.Threading;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Scoring;
@@ -105,11 +106,92 @@ namespace osu.Game.Screens.RankingV2.Legacy
             Size = new Vector2(200, 30) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR;
         }
 
+        public override bool ReceivePositionalInputAt(Vector2 screenSpacePos) => true;
+
+        [Resolved]
+        private ResultsScreenV2? results { get; set; }
+
         [BackgroundDependencyLoader]
         private void load(IBindable<IScoreInfo> _)
         {
             // just a dummy BDL that requires `IBindable<IScoreInfo>`
             // this is done so that this component doesn't show up on other skinnable screens
+
+            Action = () =>
+            {
+                results?.PopInDetails(details =>
+                {
+                    details.Anchor = Anchor.TopLeft;
+                    details.Origin = Anchor.TopLeft;
+                    details.RelativePositionAxes = Axes.Both;
+                    details.FadeIn()
+                           .MoveTo(new Vector2(0, 1))
+                           .Then()
+                           .MoveTo(Vector2.Zero, 1000, Easing.OutQuint);
+                });
+            };
+        }
+
+        private Vector2? scrollDelta;
+        private ScheduledDelegate? cancelScroll;
+
+        protected override bool OnScroll(ScrollEvent e)
+        {
+            scrollDelta = (scrollDelta ?? Vector2.Zero) + e.ScrollDelta;
+
+            if (scrollDelta.Value.Y > 0)
+            {
+                cancelTransitionToDetails();
+                return true;
+            }
+
+            cancelScroll?.Cancel();
+
+            if (scrollDelta.Value.Y < -15)
+            {
+                commitTransitionToDetails();
+                return true;
+            }
+
+            startTransitionToDetails(new Vector2(0, scrollDelta.Value.Y * 20));
+            cancelScroll = Scheduler.AddDelayed(() =>
+            {
+                cancelTransitionToDetails();
+                scrollDelta = null;
+            }, 500);
+            return true;
+        }
+
+        private void startTransitionToDetails(Vector2 delta)
+        {
+            Margin = new MarginPadding { Bottom = Math.Max(-delta.Y, 0) };
+            results?.PopInDetails(details =>
+            {
+                details.Alpha = 1;
+                details.RelativePositionAxes = Axes.None;
+                details.Anchor = Anchor.BottomCentre;
+                details.Origin = Anchor.TopCentre;
+                details.Position = new Vector2(0, delta.Y);
+            });
+        }
+
+        private void commitTransitionToDetails()
+        {
+            this.TransformTo(nameof(Margin), new MarginPadding(), 1000, Easing.OutQuint);
+            results?.PopInDetails(details =>
+            {
+                details.RelativePositionAxes = Axes.Y;
+                details.MoveTo(new Vector2(0, -1), 1000, Easing.OutQuint);
+            });
+        }
+
+        private void cancelTransitionToDetails()
+        {
+            results?.PopOutDetails(details =>
+            {
+                details.MoveTo(Vector2.Zero, 1000, Easing.OutQuint)
+                       .Then().FadeOut();
+            });
         }
     }
 }

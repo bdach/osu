@@ -11,6 +11,7 @@ using osu.Game.Graphics;
 using osu.Game.Overlays.SkinEditor;
 using osu.Game.Screens.Footer;
 using osu.Game.Skinning;
+using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Argon
 {
@@ -53,7 +54,37 @@ namespace osu.Game.Screens.RankingV2.Argon
                         {
                             Icon = FontAwesome.Solid.Search,
                             Text = "More statistics",
-                            Action = () => { },
+                            OverlayState = { BindTarget = results?.DetailsVisible },
+                            Action = () =>
+                            {
+                                switch (results?.DetailsVisible.Value)
+                                {
+                                    case Visibility.Hidden:
+                                        results.PopInDetails(details =>
+                                        {
+                                            details.RelativePositionAxes = Axes.Both;
+                                            details.Anchor = details.Origin = Anchor.TopRight;
+                                            details.MoveTo(new Vector2(0, 1))
+                                                   .FadeTo(1)
+                                                   .Then()
+                                                   .MoveTo(Vector2.Zero, 1000, Easing.OutQuint);
+                                        });
+                                        break;
+
+                                    case Visibility.Visible:
+                                        results.PopOutDetails(details =>
+                                        {
+                                            details.RelativePositionAxes = Axes.Both;
+                                            details.Anchor = details.Origin = Anchor.TopRight;
+                                            details.MoveTo(Vector2.Zero)
+                                                   .Then()
+                                                   .MoveTo(new Vector2(0, 1), 1000, Easing.OutQuint)
+                                                   .Then()
+                                                   .FadeTo(0);
+                                        });
+                                        break;
+                                }
+                            },
                             AccentColour = colours.Blue1,
                         },
                         new ScreenFooterButton
