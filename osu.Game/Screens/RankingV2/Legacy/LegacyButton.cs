@@ -44,7 +44,11 @@ namespace osu.Game.Screens.RankingV2.Legacy
                 {
                     RelativeSizeAxes = Axes.Both,
                     Texture = skin.GetTexture(@"button"),
-                    TextureInset = new MarginPadding { Horizontal = 16, },
+                    TextureInset = new MarginPadding
+                    {
+                        Left = skin.GetTexture(@"button-left")?.Width ?? 0,
+                        Right = skin.GetTexture(@"button-right")?.Width ?? 0,
+                    },
                 },
                 new OsuSpriteText
                 {
