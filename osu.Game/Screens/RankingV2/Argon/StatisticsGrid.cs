@@ -9,6 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Localisation;
+using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
@@ -25,12 +26,16 @@ namespace osu.Game.Screens.RankingV2.Argon
 {
     public partial class StatisticsGrid : CompositeDrawable, ISerialisableDrawable
     {
+        private const double cell_fade_in_time = 300;
+        private const double cell_fade_in_overlap = 120;
+
         private StatisticsCell accuracyCell = null!;
         private StatisticsCell comboCell = null!;
         private StatisticsCell ppCell = null!;
         private GridContainer basicStatsFirstRow = null!;
         private GridContainer basicStatsSecondRow = null!;
         private GridContainer extendedStatsRow = null!;
+        private ModCell modCell = null!;
 
         [Resolved]
         private IBindable<IScoreInfo> score { get; set; } = null!;
@@ -98,7 +103,7 @@ namespace osu.Game.Screens.RankingV2.Argon
                         Margin = new MarginPadding { Top = 10 },
                         RowDimensions = [new Dimension(GridSizeMode.AutoSize)],
                     },
-                    new ModCell
+                    modCell = new ModCell
                     {
                         Margin = new MarginPadding { Top = 10 },
                     }
@@ -154,8 +159,32 @@ namespace osu.Game.Screens.RankingV2.Argon
                     BaseFontSize = 28,
                 }).ToArray<Drawable>(),
             };
+
+            modCell.Alpha = (score.Value as ScoreInfo)?.Mods.Length > 0 ? 1 : 0;
         }
 
+        public double StartAnimating(double startTime)
+        {
+            double lastTransformStartTime = startTime + cell_fade_in_overlap;
+
+            foreach (var cell in this.ChildrenOfType<StatisticsCell>())
+                lastTransformStartTime = cell.StartAnimating(lastTransformStartTime) - cell_fade_in_overlap;
+
+            if ((score.Value as ScoreInfo)?.Mods.Length > 0)
+                lastTransformStartTime = modCell.StartAnimating(lastTransformStartTime);
+
+            return lastTransformStartTime;
+        }
+
+        public void FinishAnimating()
+        {
+            foreach (var cell in this.ChildrenOfType<StatisticsCell>())
+                cell.FinishAnimating();
+
+            modCell.FinishAnimating();
+        }
+
+        // TODO: mark perfect results with green, maybe add a progress bar
         public partial class StatisticsCell : CompositeDrawable
         {
             public required LocalisableString Caption { get; init; }
@@ -202,14 +231,15 @@ namespace osu.Game.Screens.RankingV2.Argon
             private void load(OverlayColourProvider colourProvider)
             {
                 RelativeSizeAxes = Axes.X;
-                AutoSizeAxes = Axes.Y;
+                // constant height ensures correctness of transition playback
+                // (no jumps from sudden autosize adjustments once components become present)
+                Height = 2 * BaseFontSize - 12 + 10;
                 Shear = -OsuGame.SHEAR;
                 Padding = new MarginPadding { Right = 5, };
 
                 InternalChild = contentContainer = new Container
                 {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
+                    RelativeSizeAxes = Axes.Both,
                     Shear = OsuGame.SHEAR,
                     Masking = true,
                     EdgeEffect = BeatmapInfoWedge.CreateShadowEdgeEffect(),
@@ -223,8 +253,7 @@ namespace osu.Game.Screens.RankingV2.Argon
                         },
                         new FillFlowContainer
                         {
-                            RelativeSizeAxes = Axes.X,
-                            AutoSizeAxes = Axes.Y,
+                            RelativeSizeAxes = Axes.Both,
                             Direction = FillDirection.Vertical,
                             Shear = -OsuGame.SHEAR,
                             Padding = new MarginPadding
@@ -293,11 +322,30 @@ namespace osu.Game.Screens.RankingV2.Argon
                 valueText.Text = value;
                 maxValueText.Text = maxValue == null ? default : LocalisableString.Interpolate($"/ {maxValue}");
             }
+
+            public double StartAnimating(double startTime)
+            {
+                contentContainer.FadeOut()
+                                .MoveToOffset(new Vector2(-30, 0));
+
+                using (BeginAbsoluteSequence(startTime))
+                {
+                    contentContainer.FadeIn(cell_fade_in_time, Easing.OutQuint)
+                                    .MoveToOffset(new Vector2(30, 0), cell_fade_in_time, Easing.OutQuint);
+
+                    return contentContainer.LatestTransformEndTime;
+                }
+            }
+
+            public void FinishAnimating()
+            {
+                contentContainer.FinishTransforms();
+            }
         }
 
-        // TODO: mark perfect results with green, maybe add a progress bar
         public partial class ModCell : CompositeDrawable
         {
+            private Container contentContainer = null!;
             private ModDisplay modDisplay = null!;
 
             [Resolved]
@@ -306,11 +354,13 @@ namespace osu.Game.Screens.RankingV2.Argon
             [BackgroundDependencyLoader]
             private void load(OverlayColourProvider colourProvider)
             {
-                AutoSizeAxes = Axes.Both;
+                // constant height ensures correctness of transition playback
+                // (no jumps from sudden autosize adjustments once components become present)
+                Height = 70;
                 Shear = -OsuGame.SHEAR;
                 Padding = new MarginPadding { Right = 5, };
 
-                InternalChild = new Container
+                InternalChild = contentContainer = new Container
                 {
                     AutoSizeAxes = Axes.Both,
                     Shear = OsuGame.SHEAR,
@@ -334,7 +384,6 @@ namespace osu.Game.Screens.RankingV2.Argon
                                 Horizontal = 7,
                                 Vertical = 5,
                             },
-                            Spacing = new Vector2(0, -3),
                             Children =
                             [
                                 new OsuSpriteText
@@ -365,6 +414,25 @@ namespace osu.Game.Screens.RankingV2.Argon
             {
                 // TODO: needs to be unhacked
                 modDisplay.Current.Value = (score.Value as ScoreInfo)?.Mods ?? [];
+            }
+
+            public double StartAnimating(double startTime)
+            {
+                contentContainer.FadeOut()
+                                .MoveToOffset(new Vector2(-30, 0));
+
+                using (BeginAbsoluteSequence(startTime))
+                {
+                    contentContainer.FadeIn(cell_fade_in_time, Easing.OutQuint)
+                                    .MoveToOffset(new Vector2(30, 0), cell_fade_in_time, Easing.OutQuint);
+
+                    return contentContainer.LatestTransformEndTime;
+                }
+            }
+
+            public void FinishAnimating()
+            {
+                contentContainer.FinishTransforms();
             }
         }
 

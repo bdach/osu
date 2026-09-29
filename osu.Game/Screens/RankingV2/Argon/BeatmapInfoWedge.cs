@@ -46,6 +46,7 @@ namespace osu.Game.Screens.RankingV2.Argon
         [Resolved]
         private BeatmapDifficultyCache difficultyCache { get; set; } = null!;
 
+        private FillFlowContainer content = null!;
         private BeatmapSetOnlineStatusPill statusPill = null!;
         private MarqueeContainer titleText = null!;
         private MarqueeContainer artistText = null!;
@@ -63,7 +64,7 @@ namespace osu.Game.Screens.RankingV2.Argon
 
             InternalChildren =
             [
-                new FillFlowContainer
+                content = new FillFlowContainer
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
@@ -209,6 +210,27 @@ namespace osu.Game.Screens.RankingV2.Argon
                                    difficultyText.Colour = col;
                                });
                            });
+        }
+
+        public double StartAnimating(double startTime)
+        {
+            const double transition_duration = 500;
+
+            content.FadeOut()
+                   .MoveToOffset(new Vector2(-50, 0));
+
+            using (BeginAbsoluteSequence(startTime))
+            {
+                content.FadeIn(transition_duration, Easing.OutQuint)
+                       .MoveToOffset(new Vector2(50, 0), transition_duration, Easing.OutQuint);
+
+                return content.LatestTransformEndTime;
+            }
+        }
+
+        public void FinishAnimating()
+        {
+            content.FinishTransforms();
         }
 
         public bool UsesFixedAnchor { get; set; }

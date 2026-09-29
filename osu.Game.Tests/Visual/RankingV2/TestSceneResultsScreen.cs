@@ -56,11 +56,15 @@ namespace osu.Game.Tests.Visual.RankingV2
         [Test]
         public void TestArgonScreen()
         {
+            ArgonResultsScreenV2 argonResults = null!;
+
             AddStep("create argon screen", () =>
             {
                 var score = createTestScore();
-                LoadScreen(new ArgonResultsScreenV2(score));
+                LoadScreen(argonResults = new ArgonResultsScreenV2(score));
             });
+            AddStep("start animating", () => argonResults.StartAnimating());
+            AddStep("finish animating", () => argonResults.FinishAnimating());
         }
 
         [Test]

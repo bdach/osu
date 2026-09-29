@@ -126,15 +126,18 @@ namespace osu.Game.Screens.RankingV2.Legacy
                             .Then()
                             .ResizeWidthTo(1, graph_reveal_duration);
 
-            // this doesn't exactly match stable - the indicator is only supposed to fade in after all other ranking elements,
-            // but because of how skinnable components are grouped in lazer to make sense this is very annoying to do, so it's not done
-            // (in stable EVERY SINGLE ELEMENT was just loose on the ranking screen, so arbitrary transitions like this were trivial to do)
-            perfectIndicator.ScaleTo(1.1f)
-                            .FadeOut()
-                            .Delay(graph_reveal_duration)
-                            .Then()
-                            .ScaleTo(1f, LegacyRankingPanel.LegacyRankingElement.TRANSITION_DURATION, Easing.Out)
-                            .FadeIn(LegacyRankingPanel.LegacyRankingElement.TRANSITION_DURATION, Easing.Out);
+            if (score.Value.MaxCombo == score.Value.GetMaximumAchievableCombo())
+            {
+                // this doesn't exactly match stable - the indicator is only supposed to fade in after all other ranking elements,
+                // but because of how skinnable components are grouped in lazer to make sense this is very annoying to do, so it's not done
+                // (in stable EVERY SINGLE ELEMENT was just loose on the ranking screen, so arbitrary transitions like this were trivial to do)
+                perfectIndicator.ScaleTo(1.1f)
+                                .FadeOut()
+                                .Delay(graph_reveal_duration)
+                                .Then()
+                                .ScaleTo(1f, LegacyRankingPanel.LegacyRankingElement.TRANSITION_DURATION, Easing.Out)
+                                .FadeIn(LegacyRankingPanel.LegacyRankingElement.TRANSITION_DURATION, Easing.Out);
+            }
         }
 
         public void FinishAnimating()

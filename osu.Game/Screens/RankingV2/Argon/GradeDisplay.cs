@@ -30,7 +30,9 @@ namespace osu.Game.Screens.RankingV2.Argon
         public bool CanBeScaled => false;
 
         private Container gradedCirclesContainer = null!;
+        private GradedCirclesV2 gradedCircles = null!;
         private Sprite rankSprite = null!;
+        private Sprite rankSpriteAdditive = null!;
 
         private Drawable glowLayer = null!;
 
@@ -93,7 +95,17 @@ namespace osu.Game.Screens.RankingV2.Argon
                             Anchor = Anchor.Centre,
                             Origin = Anchor.Centre,
                             FillMode = FillMode.Fit,
-                        }
+                        },
+                        rankSpriteAdditive = new Sprite
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Size = new Vector2(0.7f),
+                            Anchor = Anchor.Centre,
+                            Origin = Anchor.Centre,
+                            FillMode = FillMode.Fit,
+                            Alpha = 0,
+                            Blending = BlendingParameters.Additive,
+                        },
                     ]
                 },
                 glowLayer = new Box
@@ -133,7 +145,7 @@ namespace osu.Game.Screens.RankingV2.Argon
         {
             var scoreProcessor = score.Value.Ruleset.CreateInstance().CreateScoreProcessor();
 
-            gradedCirclesContainer.Child = new GradedCirclesV2(scoreProcessor)
+            gradedCirclesContainer.Child = gradedCircles = new GradedCirclesV2(scoreProcessor)
             {
                 RelativeSizeAxes = Axes.Both,
                 Progress = score.Value.Accuracy,
@@ -153,7 +165,7 @@ namespace osu.Game.Screens.RankingV2.Argon
             //     Radius = 50,
             // };
 
-            rankSprite.Texture = skinManager.DefaultClassicSkin.GetTexture(DrawableRank.GetLegacyRankTextureName(score.Value.Rank));
+            rankSprite.Texture = rankSpriteAdditive.Texture = skinManager.DefaultClassicSkin.GetTexture(DrawableRank.GetLegacyRankTextureName(score.Value.Rank));
         }
 
         private Vector2? dragDelta;
@@ -263,6 +275,50 @@ namespace osu.Game.Screens.RankingV2.Argon
                 transitionCommitted = false;
                 scrollDelta = null;
             });
+        }
+
+        public double StartAnimating(double startTime)
+        {
+            gradedCircles.Progress = 0;
+            glowLayer.FadeOut();
+            rankSprite.FadeOut();
+            rankSpriteAdditive.FadeOut()
+                              .ScaleTo(Vector2.One);
+
+            using (BeginAbsoluteSequence(startTime))
+            {
+                gradedCircles.TransformTo(nameof(GradedCirclesV2.Progress), score.Value.Accuracy, TotalScoreWedge.TotalScoreCounter.ROLLING_DURATION, TotalScoreWedge.TotalScoreCounter.ROLLING_EASING);
+            }
+
+            using (BeginAbsoluteSequence(startTime + TotalScoreWedge.TotalScoreCounter.ROLLING_DURATION))
+            {
+                if (score.Value.Rank > ScoreRank.C)
+                {
+                    glowLayer.FadeIn()
+                             .FlashColour(ColourInfo.GradientHorizontal(
+                                 OsuColour.ForRank(score.Value.Rank).Opacity(0.0f),
+                                 OsuColour.ForRank(score.Value.Rank).Opacity(0.7f)
+                             ), 1000, Easing.OutSine);
+                    rankSprite.FadeIn();
+                    rankSpriteAdditive.FadeOutFromOne(500, Easing.OutQuint)
+                                      .ScaleTo(new Vector2(1.2f), 500, Easing.OutQuint);
+                }
+                else
+                {
+                    rankSprite.FadeIn(300, Easing.OutQuint);
+                    glowLayer.FadeIn(300, Easing.OutQuint);
+                }
+            }
+
+            return gradedCircles.LatestTransformEndTime;
+        }
+
+        public void FinishAnimating()
+        {
+            gradedCircles.FinishTransforms();
+            glowLayer.FinishTransforms();
+            rankSprite.FinishTransforms();
+            rankSpriteAdditive.FinishTransforms();
         }
 
         public bool UsesFixedAnchor { get; set; }

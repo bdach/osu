@@ -28,6 +28,7 @@ namespace osu.Game.Screens.RankingV2.Argon
         [Resolved]
         private IBindable<IScoreInfo> score { get; set; } = null!;
 
+        private Container content = null!;
         private OsuSpriteText positionText = null!;
         private UpdateableAvatar userAvatar = null!;
         private UserCoverBackground userCover = null!;
@@ -39,7 +40,7 @@ namespace osu.Game.Screens.RankingV2.Argon
         {
             Width = ArgonResultsScreenV2.LEFT_WEDGE_HEIGHT;
             Height = height;
-            InternalChild = new Container
+            InternalChild = content = new Container
             {
                 RelativeSizeAxes = Axes.Both,
                 Shear = OsuGame.SHEAR,
@@ -158,6 +159,27 @@ namespace osu.Game.Screens.RankingV2.Argon
 
             usernameText.Text = score.Value.User.Username;
             achievedOnText.Text = $"Achieved on {score.Value.Date:g}";
+        }
+
+        public double StartAnimating(double startTime)
+        {
+            const double transition_duration = 500;
+
+            content.FadeOut()
+                   .MoveToOffset(new Vector2(-50, 0));
+
+            using (BeginAbsoluteSequence(startTime))
+            {
+                content.FadeIn(transition_duration, Easing.OutQuint)
+                       .MoveToOffset(new Vector2(50, 0), transition_duration, Easing.OutQuint);
+
+                return content.LatestTransformEndTime;
+            }
+        }
+
+        public void FinishAnimating()
+        {
+            content.FinishTransforms();
         }
 
         public bool UsesFixedAnchor { get; set; }

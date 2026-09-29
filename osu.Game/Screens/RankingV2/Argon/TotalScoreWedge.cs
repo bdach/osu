@@ -4,13 +4,13 @@
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.Color4Extensions;
-using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.Textures;
+using osu.Framework.Localisation;
 using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
@@ -28,8 +28,11 @@ namespace osu.Game.Screens.RankingV2.Argon
     {
         public static readonly ColourInfo TEXT_GRADIENT = ColourInfo.GradientVertical(Colour4.White, Colour4.FromHex(@"B2E5FE"));
 
+        private Container scoreContainer = null!;
         private Sprite perfectIndicator = null!;
-        private OsuSpriteText totalScoreText = null!;
+        private Container personalBestIndicator = null!;
+        private Box personalBestFlash = null!;
+        private TotalScoreCounter totalScoreText = null!;
 
         [Resolved]
         private IBindable<IScoreInfo> score { get; set; } = null!;
@@ -40,14 +43,15 @@ namespace osu.Game.Screens.RankingV2.Argon
         private void load(OverlayColourProvider colourProvider, TextureStore textures, OsuConfigManager configManager)
         {
             Width = ArgonResultsScreenV2.LEFT_WEDGE_HEIGHT * 1.3f;
-            AutoSizeAxes = Axes.Y;
+            Height = 115;
 
             InternalChildren =
             [
-                new Container
+                scoreContainer = new Container
                 {
-                    RelativeSizeAxes = Axes.X,
-                    AutoSizeAxes = Axes.Y,
+                    RelativeSizeAxes = Axes.Both,
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
                     Shear = OsuGame.SHEAR,
                     CornerRadius = ShearedButton.CORNER_RADIUS,
                     Masking = true,
@@ -77,31 +81,30 @@ namespace osu.Game.Screens.RankingV2.Argon
                             Origin = Anchor.CentreRight,
                             Children =
                             [
-                                perfectIndicator = new Sprite
+                                new Container
                                 {
                                     Anchor = Anchor.CentreRight,
                                     Origin = Anchor.CentreRight,
-                                    Texture = textures.Get(@"Icons/Ranking/perfect"),
                                     Size = new Vector2(65),
-                                    AlwaysPresent = true,
-                                    Colour = new ColourInfo
+                                    Child = perfectIndicator = new Sprite
                                     {
-                                        TopLeft = Colour4.FromHex(@"00FFAA"),
-                                        TopRight = Colour4.FromHex(@"7CF6FF"),
-                                        BottomLeft = Colour4.FromHex(@"7CF6FF"),
-                                        BottomRight = Colour4.FromHex(@"FF9AD7"),
-                                    }
+                                        Anchor = Anchor.Centre,
+                                        Origin = Anchor.Centre,
+                                        Texture = textures.Get(@"Icons/Ranking/perfect"),
+                                        Size = new Vector2(75),
+                                        Colour = new ColourInfo
+                                        {
+                                            TopLeft = Colour4.FromHex(@"00FFAA"),
+                                            TopRight = Colour4.FromHex(@"7CF6FF"),
+                                            BottomLeft = Colour4.FromHex(@"7CF6FF"),
+                                            BottomRight = Colour4.FromHex(@"FF9AD7"),
+                                        }
+                                    },
                                 },
-                                totalScoreText = new OsuSpriteText
+                                totalScoreText = new TotalScoreCounter
                                 {
                                     Anchor = Anchor.CentreRight,
                                     Origin = Anchor.CentreRight,
-                                    // TODO: classic scoring likely breaks this sizing. figure out later what to do with ultra large score numbers
-                                    Font = OsuFont.TorusAlternate.With(size: 120, weight: FontWeight.Light, fixedWidth: true),
-                                    Spacing = new Vector2(-5),
-                                    Colour = TEXT_GRADIENT,
-                                    UseFullGlyphHeight = false,
-                                    Margin = new MarginPadding { Top = 5, }, // `UseFullGlyphHeight` *almost* does the job to trim the glyph paddings, but it still can look offset because of decimal commas and such
                                 },
                             ]
                         }
@@ -109,11 +112,11 @@ namespace osu.Game.Screens.RankingV2.Argon
                 },
                 // TODO: not actually hooked up to anything because this doesn't exist on old screens
                 // figure it out later
-                new Container
+                personalBestIndicator = new Container
                 {
                     AutoSizeAxes = Axes.Both,
                     Origin = Anchor.Centre,
-                    RelativeAnchorPosition = new Vector2(0.9f, 0),
+                    RelativeAnchorPosition = new Vector2(0.95f, 0),
                     Shear = OsuGame.SHEAR,
                     CornerRadius = ShearedButton.CORNER_RADIUS,
                     Masking = true,
@@ -138,6 +141,13 @@ namespace osu.Game.Screens.RankingV2.Argon
                                 Horizontal = 12,
                                 Vertical = 6,
                             }
+                        },
+                        personalBestFlash = new Box
+                        {
+                            RelativeSizeAxes = Axes.Both,
+                            Colour = Colour4.White,
+                            Alpha = 0,
+                            Blending = BlendingParameters.Additive,
                         }
                     ]
                 }
@@ -156,10 +166,98 @@ namespace osu.Game.Screens.RankingV2.Argon
 
         private void updateState()
         {
-            totalScoreText.Text = score.Value.GetDisplayScore(scoringMode.Value).ToLocalisableString(@"N0");
+            totalScoreText.SetCountWithoutRolling(score.Value.GetDisplayScore(scoringMode.Value));
             perfectIndicator.Alpha = score.Value.MaxCombo == score.Value.GetMaximumAchievableCombo() ? 1 : 0;
         }
 
+        public double StartAnimating(double startTime)
+        {
+            const double transition_duration = 500;
+
+            scoreContainer.FadeOut()
+                          .MoveToOffset(new Vector2(-50, 0));
+
+            perfectIndicator.FadeOut()
+                            .RotateTo(30)
+                            .ScaleTo(new Vector2(1.2f));
+
+            personalBestIndicator.FadeOut()
+                                 .ScaleTo(new Vector2(1.2f));
+
+            double latestTransformEndTime = startTime;
+
+            using (BeginAbsoluteSequence(latestTransformEndTime))
+            {
+                scoreContainer.FadeIn(transition_duration, Easing.OutQuint)
+                              .MoveToOffset(new Vector2(50, 0), transition_duration, Easing.OutQuint);
+            }
+
+            totalScoreText.ResetCount();
+            totalScoreText.Current.Value = score.Value.GetDisplayScore(scoringMode.Value);
+            latestTransformEndTime = totalScoreText.LatestTransformEndTime;
+
+            if (score.Value.MaxCombo == score.Value.GetMaximumAchievableCombo())
+            {
+                using (BeginAbsoluteSequence(latestTransformEndTime))
+                {
+                    perfectIndicator.FadeIn(150, Easing.OutQuint)
+                                    .RotateTo(0, 500, Easing.InOutElastic)
+                                    .ScaleTo(Vector2.One, 500, Easing.InOutElastic);
+
+                    latestTransformEndTime = perfectIndicator.LatestTransformEndTime;
+
+                    perfectIndicator.FlashColour(Colour4.White, 1000, Easing.OutSine);
+                }
+            }
+
+            using (BeginAbsoluteSequence(latestTransformEndTime))
+            {
+                personalBestIndicator.FadeIn(150, Easing.OutQuint)
+                                     .ScaleTo(Vector2.One, 500, Easing.InOutElastic);
+                personalBestFlash.FadeOutFromOne(1000, Easing.OutSine);
+
+                latestTransformEndTime = personalBestIndicator.LatestTransformEndTime;
+            }
+
+            return latestTransformEndTime;
+        }
+
+        public void FinishAnimating()
+        {
+            scoreContainer.FinishTransforms();
+            perfectIndicator.FinishTransforms();
+            personalBestIndicator.FinishTransforms();
+            personalBestFlash.FinishTransforms();
+            totalScoreText.StopRolling();
+        }
+
         public bool UsesFixedAnchor { get; set; }
+
+        public partial class TotalScoreCounter : RollingCounter<long>
+        {
+            public const double ROLLING_DURATION = 3000;
+            public const Easing ROLLING_EASING = Easing.OutPow10;
+
+            protected override double RollingDuration => ROLLING_DURATION;
+
+            protected override Easing RollingEasing => ROLLING_EASING;
+
+            protected override IHasText CreateText()
+            {
+                return new OsuSpriteText
+                {
+                    Anchor = Anchor.CentreRight,
+                    Origin = Anchor.CentreRight,
+                    // TODO: classic scoring likely breaks this sizing. figure out later what to do with ultra large score numbers
+                    Font = OsuFont.TorusAlternate.With(size: 120, weight: FontWeight.Light, fixedWidth: true),
+                    Spacing = new Vector2(-5),
+                    Colour = TEXT_GRADIENT,
+                    UseFullGlyphHeight = false,
+                    Margin = new MarginPadding { Top = 5, }, // `UseFullGlyphHeight` *almost* does the job to trim the glyph paddings, but it still can look offset because of decimal commas and such
+                };
+            }
+
+            protected override LocalisableString FormatCount(long count) => count.ToString(@"N0");
+        }
     }
 }

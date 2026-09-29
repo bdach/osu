@@ -26,6 +26,8 @@ namespace osu.Game.Screens.RankingV2.Argon
      */
     public partial class ArgonResultsScreenV2 : ScreenWithBeatmapBackground
     {
+        public const float LEFT_WEDGE_HEIGHT = 560;
+
         [Cached(typeof(IBindable<IScoreInfo>))]
         private Bindable<IScoreInfo> score = new Bindable<IScoreInfo>();
 
@@ -35,7 +37,11 @@ namespace osu.Game.Screens.RankingV2.Argon
         [Resolved]
         private OsuColour colours { get; set; } = null!;
 
-        public const float LEFT_WEDGE_HEIGHT = 560;
+        private BeatmapInfoWedge beatmapWedge = null!;
+        private UserInfoWedge userWedge = null!;
+        private TotalScoreWedge scoreWedge = null!;
+        private StatisticsGrid statsGrid = null!;
+        private GradeDisplay grade = null!;
 
         // TODO: multiplayer screens accept null score when showing a playlist item's scores - decide how to handle that
         public ArgonResultsScreenV2(IScoreInfo initialScore)
@@ -54,7 +60,7 @@ namespace osu.Game.Screens.RankingV2.Argon
                     Width = 0.6f,
                     Colour = ColourInfo.GradientHorizontal(Color4.Black.Opacity(0.3f), Color4.Black.Opacity(0f)),
                 },
-                new GradeDisplay(),
+                grade = new GradeDisplay(),
                 new FillFlowContainer
                 {
                     AutoSizeAxes = Axes.Both,
@@ -77,21 +83,21 @@ namespace osu.Game.Screens.RankingV2.Argon
                             },
                             Children =
                             [
-                                new BeatmapInfoWedge
+                                beatmapWedge = new BeatmapInfoWedge
                                 {
                                     Shear = -OsuGame.SHEAR,
                                 },
-                                new UserInfoWedge
+                                userWedge = new UserInfoWedge
                                 {
                                     Shear = -OsuGame.SHEAR,
                                 },
-                                new TotalScoreWedge
+                                scoreWedge = new TotalScoreWedge
                                 {
                                     Shear = -OsuGame.SHEAR,
                                 },
                             ]
                         },
-                        new StatisticsGrid
+                        statsGrid = new StatisticsGrid
                         {
                             Margin = new MarginPadding { Left = 20, },
                         },
@@ -99,6 +105,30 @@ namespace osu.Game.Screens.RankingV2.Argon
                 },
                 new ArgonResultsFooter(),
             ];
+        }
+
+        public void StartAnimating()
+        {
+            FinishAnimating();
+
+            using (BeginAbsoluteSequence(Time.Current))
+            {
+                double latestTransformEndTime = LatestTransformEndTime;
+                latestTransformEndTime = beatmapWedge.StartAnimating(latestTransformEndTime);
+                latestTransformEndTime = userWedge.StartAnimating(latestTransformEndTime);
+                scoreWedge.StartAnimating(latestTransformEndTime);
+                latestTransformEndTime = grade.StartAnimating(latestTransformEndTime);
+                statsGrid.StartAnimating(latestTransformEndTime);
+            }
+        }
+
+        public void FinishAnimating()
+        {
+            beatmapWedge.FinishAnimating();
+            userWedge.FinishAnimating();
+            scoreWedge.FinishAnimating();
+            grade.FinishAnimating();
+            statsGrid.FinishAnimating();
         }
     }
 }
