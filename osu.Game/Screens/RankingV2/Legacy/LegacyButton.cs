@@ -53,7 +53,7 @@ namespace osu.Game.Screens.RankingV2.Legacy
                 new OsuSpriteText
                 {
                     Text = Text,
-                    Font = OsuFont.Default.With(size: 14 * Height / 18),
+                    Font = OsuFont.Inter.With(size: 14 * Height / 18),
                     UseFullGlyphHeight = false,
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
