@@ -4,6 +4,7 @@
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
+using osu.Game.Graphics;
 using osu.Game.Scoring;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Play.HUD;
@@ -24,6 +25,10 @@ namespace osu.Game.Screens.RankingV2.Legacy
     {
         [Cached(typeof(IBindable<IScoreInfo>))]
         private Bindable<IScoreInfo> score = new Bindable<IScoreInfo>();
+
+        private LegacyRankingPanel panel = null!;
+        private LegacyRankingGraph graph = null!;
+        private LegacyRankingGrade grade = null!;
 
         // TODO: multiplayer screens accept null score when showing a playlist item's scores - decide how to handle that
         public LegacyResultsScreenV2(IScoreInfo initialScore)
@@ -53,19 +58,22 @@ namespace osu.Game.Screens.RankingV2.Legacy
                 new BeatmapAttributeText
                 {
                     Scale = new Vector2(22 * LegacySkin.STABLE_MAGIC_SCALE_FACTOR / BeatmapAttributeText.DEFAULT_TEXT_SIZE),
-                    Template = { Value = @"{Artist} - {Title} [{DifficultyName}]" }
+                    Template = { Value = @"{Artist} - {Title} [{DifficultyName}]" },
+                    Font = { Value = Typeface.Inter },
                 },
                 new BeatmapAttributeText
                 {
                     Position = new Vector2(1, 20) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
                     Scale = new Vector2(16 * LegacySkin.STABLE_MAGIC_SCALE_FACTOR / BeatmapAttributeText.DEFAULT_TEXT_SIZE),
-                    Template = { Value = @"Beatmap by {Creator}" } // TODO: localisation...???
+                    Template = { Value = @"Beatmap by {Creator}" }, // TODO: localisation...???
+                    Font = { Value = Typeface.Inter },
                 },
                 new ScoreAttributeText
                 {
                     Position = new Vector2(1, 34) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
                     Scale = new Vector2(16 * LegacySkin.STABLE_MAGIC_SCALE_FACTOR / BeatmapAttributeText.DEFAULT_TEXT_SIZE),
-                    Template = { Value = @"Played by {Username} on {Date}" } // TODO: localisation...???
+                    Template = { Value = @"Played by {Username} on {Date}" }, // TODO: localisation...???
+                    Font = { Value = Typeface.Inter },
                 },
                 new SkinnableSprite
                 {
@@ -74,15 +82,15 @@ namespace osu.Game.Screens.RankingV2.Legacy
                     Origin = Anchor.TopRight,
                     Position = new Vector2(-20, 0) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
                 },
-                new LegacyRankingPanel
+                panel = new LegacyRankingPanel
                 {
                     Position = new Vector2(0, 64) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
                 },
-                new LegacyRankingGraph
+                graph = new LegacyRankingGraph
                 {
                     Position = new Vector2(160, 380) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
                 },
-                new LegacyRankingGrade
+                grade = new LegacyRankingGrade
                 {
                     Anchor = Anchor.TopRight,
                     Origin = Anchor.Centre,
@@ -115,6 +123,23 @@ namespace osu.Game.Screens.RankingV2.Legacy
                     Position = new Vector2(-100, -26) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
                 }
             ];
+        }
+
+        public void StartAnimating()
+        {
+            using (BeginAbsoluteSequence(Time.Current))
+            {
+                graph.StartAnimating();
+                double panelEndTime = panel.StartAnimating();
+                grade.StartAnimating(panelEndTime);
+            }
+        }
+
+        public void FinishAnimating()
+        {
+            panel.FinishAnimating();
+            graph.FinishAnimating();
+            grade.FinishAnimating();
         }
 
         protected override void LoadComplete()

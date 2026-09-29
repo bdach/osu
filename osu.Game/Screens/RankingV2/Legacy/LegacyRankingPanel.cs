@@ -2,11 +2,13 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System.Linq;
+using System.Text;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Framework.Utils;
 using osu.Game.Configuration;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
@@ -76,7 +78,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
                     Origin = Anchor.TopLeft,
                     Position = (new Vector2(imgx1 - 35, row4 - row4Offset) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
                     ScoreTextPosition = (new Vector2(textx1 - 65, row4 + 10) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
-                    ElementScale = Vector2.One,
+                    InitialElementScale = Vector2.One,
+                    FinalElementScale = Vector2.One,
                 },
                 accuracyElement = new LegacyRankingElement
                 {
@@ -84,7 +87,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
                     Origin = Anchor.TopLeft,
                     Position = (new Vector2(imgx2 - 58, row4 - row4Offset) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
                     ScoreTextPosition = (new Vector2(textx2 - 86, row4 + 10) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
-                    ElementScale = Vector2.One,
+                    InitialElementScale = Vector2.One,
+                    FinalElementScale = Vector2.One,
                 },
             ];
 
@@ -101,9 +105,7 @@ namespace osu.Game.Screens.RankingV2.Legacy
 
         private void updateState()
         {
-            long totalScore = score.Value.GetDisplayScore(scoringMode.Value);
-            string template = new string(Enumerable.Repeat('0', scoringMode.Value == ScoringMode.Standardised ? 7 : 8).ToArray());
-            scoreText.Text = totalScore.ToString(template);
+            updateTotalScoreText();
 
             rulesetRankingElements.Clear();
 
@@ -181,7 +183,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
                         {
                             ElementName = @"fruit-drop",
                             ElementColour = Colour4.YellowGreen,
-                            ElementScale = new Vector2(0.6f),
+                            InitialElementScale = new Vector2(1),
+                            FinalElementScale = new Vector2(0.6f),
                             ScoreText = $@"{score.Value.GetCount100()}x",
                             Position = (new Vector2(imgx1, row2) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
                         },
@@ -189,7 +192,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
                         {
                             ElementName = @"fruit-drop",
                             ElementColour = Colour4.LightBlue,
-                            ElementScale = new Vector2(0.6f),
+                            InitialElementScale = new Vector2(1),
+                            FinalElementScale = new Vector2(0.4f),
                             ScoreText = $@"{score.Value.GetCount50()}x",
                             Position = (new Vector2(imgx1, row3) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
                         },
@@ -252,13 +256,79 @@ namespace osu.Game.Screens.RankingV2.Legacy
             accuracyElement.ScoreText = $@"{score.Value.Accuracy * 100:0.00}%"; // TODO: probably has rounding shit issues
         }
 
+        protected override void Update()
+        {
+            base.Update();
+
+            updateTotalScoreText();
+        }
+
+        private double? scoreRevealStartTime;
+
+        private void updateTotalScoreText()
+        {
+            long totalScore = score.Value.GetDisplayScore(scoringMode.Value);
+            string template = new string(Enumerable.Repeat('0', scoringMode.Value == ScoringMode.Standardised ? 7 : 8).ToArray());
+            string totalScoreString = totalScore.ToString(template);
+
+            double digitsVisible = (Time.Current - (scoreRevealStartTime ?? double.NegativeInfinity)) / 500;
+
+            if (digitsVisible >= totalScoreString.Length)
+            {
+                scoreText.Text = totalScoreString;
+                return;
+            }
+
+            var stringBuilder = new StringBuilder();
+
+            for (int i = 0; i < totalScoreString.Length; ++i)
+            {
+                if (i >= digitsVisible)
+                    stringBuilder.Append((char)('0' + RNG.Next(0, 10)));
+                else
+                    stringBuilder.Append(totalScoreString[i]);
+            }
+
+            scoreText.Text = stringBuilder.ToString();
+        }
+
+        public double StartAnimating()
+        {
+            double latestTransformEndTime = LatestTransformEndTime;
+            scoreRevealStartTime = latestTransformEndTime;
+
+            const double gap_between_elements = 300;
+
+            foreach (var element in rulesetRankingElements)
+                latestTransformEndTime = element.StartAnimating(latestTransformEndTime) + gap_between_elements;
+
+            latestTransformEndTime = maxComboElement.StartAnimating(latestTransformEndTime) + gap_between_elements;
+            latestTransformEndTime = accuracyElement.StartAnimating(latestTransformEndTime);
+
+            return latestTransformEndTime;
+        }
+
+        public void FinishAnimating()
+        {
+            foreach (var element in rulesetRankingElements)
+                element.FinishAnimating();
+            maxComboElement.FinishAnimating();
+            accuracyElement.FinishAnimating();
+            scoreRevealStartTime = null;
+        }
+
         public partial class LegacyRankingElement : CompositeDrawable
         {
+            public const double TEXT_DELAY = 200;
+            public const double TRANSITION_DURATION = 300;
+
             public required string ElementName { get; init; }
 
             public Colour4 ElementColour { get; init; } = Colour4.White;
 
-            public Vector2 ElementScale { get; init; } = new Vector2(0.5f);
+            public Vector2 InitialElementScale { get; init; } = Vector2.One;
+
+            public Vector2 FinalElementScale { get; init; } = new Vector2(0.5f);
 
             private string? scoreText;
 
@@ -277,6 +347,7 @@ namespace osu.Game.Screens.RankingV2.Legacy
 
             public Vector2? ScoreTextPosition { get; init; }
 
+            private Sprite element = null!;
             private LegacySpriteText text = null!;
 
             [BackgroundDependencyLoader]
@@ -285,12 +356,12 @@ namespace osu.Game.Screens.RankingV2.Legacy
                 AutoSizeAxes = Axes.Both;
                 bool useNewLayout = skin.GetConfig<SkinConfiguration.LegacySetting, decimal>(SkinConfiguration.LegacySetting.Version)?.Value > 1M;
 
-                AddInternal(new Sprite
+                AddInternal(element = new Sprite
                 {
                     Texture = skin.GetTextures(ElementName, default, default, true, "-", null, out _).FirstOrDefault(),
                     Anchor = Anchor.TopLeft,
                     Origin = Origin,
-                    Scale = ElementScale,
+                    Scale = FinalElementScale,
                     Colour = ElementColour,
                 });
 
@@ -318,6 +389,33 @@ namespace osu.Game.Screens.RankingV2.Legacy
                 text.Alpha = ScoreText != null ? 1 : 0;
                 if (ScoreText != null)
                     text.Text = ScoreText;
+            }
+
+            public double StartAnimating(double startTime)
+            {
+                element.ScaleTo(InitialElementScale)
+                       .FadeOut();
+
+                text.MoveToX(0)
+                    .FadeOut();
+
+                using (BeginAbsoluteSequence(startTime))
+                {
+                    element.ScaleTo(FinalElementScale, TRANSITION_DURATION)
+                           .FadeIn(TRANSITION_DURATION);
+
+                    text.Delay(TEXT_DELAY)
+                        .MoveToX(40 * LegacySkin.STABLE_MAGIC_SCALE_FACTOR, TRANSITION_DURATION, Easing.Out)
+                        .FadeIn(TRANSITION_DURATION, Easing.Out);
+
+                    return text.LatestTransformEndTime;
+                }
+            }
+
+            public void FinishAnimating()
+            {
+                element.FinishTransforms();
+                text.FinishTransforms();
             }
         }
 

@@ -15,6 +15,7 @@ namespace osu.Game.Screens.RankingV2.Legacy
     public partial class LegacyRankingGrade : CompositeDrawable, ISerialisableDrawable
     {
         private Sprite gradeSprite = null!;
+        private Sprite gradeAdditiveSprite = null!;
 
         [Resolved]
         private IBindable<IScoreInfo> score { get; set; } = null!;
@@ -27,11 +28,21 @@ namespace osu.Game.Screens.RankingV2.Legacy
         {
             AutoSizeAxes = Axes.Both;
 
-            InternalChild = gradeSprite = new Sprite
-            {
-                Anchor = Anchor.Centre,
-                Origin = Anchor.Centre,
-            };
+            InternalChildren =
+            [
+                gradeSprite = new Sprite
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                },
+                gradeAdditiveSprite = new Sprite
+                {
+                    Anchor = Anchor.Centre,
+                    Origin = Anchor.Centre,
+                    Blending = BlendingParameters.Additive,
+                    Alpha = 0,
+                },
+            ];
         }
 
         protected override void LoadComplete()
@@ -43,8 +54,40 @@ namespace osu.Game.Screens.RankingV2.Legacy
 
         private void updateState()
         {
-            gradeSprite.Size = Vector2.Zero;
-            gradeSprite.Texture = skin.GetTexture($@"ranking-{score.Value.Rank.ToString()}");
+            gradeAdditiveSprite.Size = gradeSprite.Size = Vector2.Zero;
+            gradeAdditiveSprite.Texture = gradeSprite.Texture = skin.GetTexture($@"ranking-{score.Value.Rank.ToString()}");
+        }
+
+        public void StartAnimating(double startTime)
+        {
+            gradeSprite.ScaleTo(new Vector2(2));
+            gradeSprite.FadeOut();
+            gradeAdditiveSprite.ScaleTo(Vector2.One);
+            gradeAdditiveSprite.FadeOut();
+
+            const double basic_transition_duration = 1000;
+            const double flash_duration = 3400 - 1000;
+
+            using (BeginAbsoluteSequence(startTime))
+            {
+                gradeSprite.ScaleTo(Vector2.One, basic_transition_duration, Easing.In);
+                gradeSprite.FadeIn(basic_transition_duration, Easing.In);
+
+                if (score.Value.Rank > ScoreRank.C)
+                {
+                    using (BeginDelayedSequence(basic_transition_duration))
+                    {
+                        gradeAdditiveSprite.ScaleTo(new Vector2(1.05f), flash_duration, Easing.Out);
+                        gradeAdditiveSprite.FadeOutFromOne(flash_duration, Easing.Out);
+                    }
+                }
+            }
+        }
+
+        public void FinishAnimating()
+        {
+            gradeSprite.FinishTransforms();
+            gradeAdditiveSprite.FinishTransforms();
         }
 
         public bool UsesFixedAnchor { get; set; }

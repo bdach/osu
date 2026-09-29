@@ -17,6 +17,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
     // TODO: tooltip with extended info
     public partial class LegacyRankingGraph : CompositeDrawable, ISerialisableDrawable
     {
+        private Container passingContainer = null!;
+        private Container failingContainer = null!;
         private Sprite perfectIndicator = null!;
 
         [Resolved]
@@ -59,7 +61,7 @@ namespace osu.Game.Screens.RankingV2.Legacy
                     Size = graphSize + new Vector2(graph_path_radius, 0),
                     Children =
                     [
-                        new Container
+                        passingContainer = new Container
                         {
                             RelativeSizeAxes = Axes.Both,
                             Masking = true,
@@ -73,7 +75,7 @@ namespace osu.Game.Screens.RankingV2.Legacy
                                 Vertices = hpGraphVertices,
                             },
                         },
-                        new Container
+                        failingContainer = new Container
                         {
                             RelativePositionAxes = Axes.Y,
                             Y = 0.5f,
@@ -111,6 +113,35 @@ namespace osu.Game.Screens.RankingV2.Legacy
         private void updateState()
         {
             perfectIndicator.Alpha = score.Value.MaxCombo == score.Value.GetMaximumAchievableCombo() ? 1 : 0;
+        }
+
+        public void StartAnimating()
+        {
+            const double graph_reveal_duration = 4000;
+
+            passingContainer.ResizeWidthTo(0)
+                            .Then()
+                            .ResizeWidthTo(1, graph_reveal_duration);
+            failingContainer.ResizeWidthTo(0)
+                            .Then()
+                            .ResizeWidthTo(1, graph_reveal_duration);
+
+            // this doesn't exactly match stable - the indicator is only supposed to fade in after all other ranking elements,
+            // but because of how skinnable components are grouped in lazer to make sense this is very annoying to do, so it's not done
+            // (in stable EVERY SINGLE ELEMENT was just loose on the ranking screen, so arbitrary transitions like this were trivial to do)
+            perfectIndicator.ScaleTo(1.1f)
+                            .FadeOut()
+                            .Delay(graph_reveal_duration)
+                            .Then()
+                            .ScaleTo(1f, LegacyRankingPanel.LegacyRankingElement.TRANSITION_DURATION, Easing.Out)
+                            .FadeIn(LegacyRankingPanel.LegacyRankingElement.TRANSITION_DURATION, Easing.Out);
+        }
+
+        public void FinishAnimating()
+        {
+            passingContainer.FinishTransforms();
+            failingContainer.FinishTransforms();
+            perfectIndicator.FinishTransforms();
         }
 
         public bool UsesFixedAnchor { get; set; }

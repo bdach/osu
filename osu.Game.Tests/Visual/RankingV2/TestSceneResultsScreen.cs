@@ -66,6 +66,8 @@ namespace osu.Game.Tests.Visual.RankingV2
         [Test]
         public void TestLegacyScreen()
         {
+            LegacyResultsScreenV2 legacyResults = null!;
+
             AddStep("set legacy skin", () =>
             {
                 skins.CurrentSkinInfo.Value = skins.DefaultClassicSkin.SkinInfo;
@@ -73,8 +75,10 @@ namespace osu.Game.Tests.Visual.RankingV2
             AddStep("create legacy screen", () =>
             {
                 var score = createTestScore();
-                LoadScreen(new LegacyResultsScreenV2(score));
+                LoadScreen(legacyResults = new LegacyResultsScreenV2(score));
             });
+            AddStep("start animating", () => legacyResults.StartAnimating());
+            AddStep("finish animating", () => legacyResults.FinishAnimating());
         }
 
         [Test]
