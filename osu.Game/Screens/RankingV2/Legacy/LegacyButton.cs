@@ -154,6 +154,7 @@ namespace osu.Game.Screens.RankingV2.Legacy
         private Vector2? scrollDelta;
         private ScheduledDelegate? cancelScroll;
 
+        // TODO: turn drag / scroll interactions off while animating
         protected override bool OnScroll(ScrollEvent e)
         {
             scrollDelta = (scrollDelta ?? Vector2.Zero) + e.ScrollDelta;

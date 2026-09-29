@@ -277,6 +277,7 @@ namespace osu.Game.Screens.RankingV2.Argon
             });
         }
 
+        // TODO: turn drag / scroll interactions off while animating
         public double StartAnimating(double startTime)
         {
             gradedCircles.Progress = 0;
