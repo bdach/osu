@@ -18,6 +18,7 @@ using osu.Framework.IO.Stores;
 using osu.Game.Audio;
 using osu.Game.Beatmaps.Formats;
 using osu.Game.Extensions;
+using osu.Game.Graphics;
 using osu.Game.IO;
 using osu.Game.Rulesets.Objects.Types;
 using osu.Game.Rulesets.Scoring;
@@ -504,14 +505,17 @@ namespace osu.Game.Skinning
 
                                 artistTitleText?.Scale = new Vector2(22 * STABLE_MAGIC_SCALE_FACTOR / BeatmapAttributeText.DEFAULT_TEXT_SIZE);
                                 artistTitleText?.Template.Value = @"{Artist} - {Title} [{DifficultyName}]";
+                                artistTitleText?.Font.Value = Typeface.Inter;
 
                                 creatorText?.Position = new Vector2(1, 20) * STABLE_MAGIC_SCALE_FACTOR;
                                 creatorText?.Scale = new Vector2(16 * STABLE_MAGIC_SCALE_FACTOR / BeatmapAttributeText.DEFAULT_TEXT_SIZE);
                                 creatorText?.Template.Value = @"Beatmap by {Creator}"; // TODO: localisation...???
+                                creatorText?.Font.Value = Typeface.Inter;
 
                                 playedByText?.Position = new Vector2(1, 34) * STABLE_MAGIC_SCALE_FACTOR;
                                 playedByText?.Scale = new Vector2(16 * STABLE_MAGIC_SCALE_FACTOR / ScoreAttributeText.DEFAULT_TEXT_SIZE);
                                 playedByText?.Template.Value = @"Played by {Username} on {Date}"; // TODO: localisation...???
+                                playedByText?.Font.Value = Typeface.Inter;
 
                                 rankingTitle?.SpriteName.Value = @"ranking-title";
                                 rankingTitle?.Anchor = Anchor.TopRight;

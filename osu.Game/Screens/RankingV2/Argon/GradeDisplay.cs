@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Input.Events;
 using osu.Framework.Threading;
+using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Overlays;
@@ -22,7 +23,7 @@ using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Argon
 {
-    public partial class GradeDisplay : CompositeDrawable, ISerialisableDrawable
+    public partial class GradeDisplay : CompositeDrawable, ISerialisableDrawable, IAnimatableSkinnable
     {
         public bool CanBePlaced(SkinnableContainer skinnableContainer) => !skinnableContainer.Components.OfType<GradeDisplay>().Any();
         public bool CanBeMoved => false;
@@ -278,6 +279,16 @@ namespace osu.Game.Screens.RankingV2.Argon
         }
 
         // TODO: turn drag / scroll interactions off while animating
+
+        [SettingSource("Animation sequence")]
+        public BindableInt GroupNumber { get; } = new BindableInt(2)
+        {
+            MinValue = 0,
+            MaxValue = 10,
+        };
+
+        int IAnimatableSkinnable.GroupNumber => GroupNumber.Value;
+
         public double StartAnimating(double startTime)
         {
             gradedCircles.Progress = 0;

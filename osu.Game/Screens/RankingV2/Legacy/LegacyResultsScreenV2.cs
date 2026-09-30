@@ -127,12 +127,11 @@ namespace osu.Game.Screens.RankingV2.Legacy
 
         public void StartAnimating()
         {
-            using (BeginAbsoluteSequence(Time.Current))
-            {
-                graph.StartAnimating();
-                double panelEndTime = panel.StartAnimating();
-                grade.StartAnimating(panelEndTime);
-            }
+            double latestTransformStartTime = LatestTransformEndTime;
+
+            graph.StartAnimating(latestTransformStartTime);
+            latestTransformStartTime = panel.StartAnimating(latestTransformStartTime);
+            grade.StartAnimating(latestTransformStartTime);
         }
 
         public void FinishAnimating()

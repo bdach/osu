@@ -11,6 +11,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Localisation;
 using osu.Framework.Testing;
 using osu.Framework.Utils;
+using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
@@ -24,7 +25,7 @@ using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Argon
 {
-    public partial class StatisticsGrid : CompositeDrawable, ISerialisableDrawable
+    public partial class StatisticsGrid : CompositeDrawable, ISerialisableDrawable, IAnimatableSkinnable
     {
         private const double cell_fade_in_time = 300;
         private const double cell_fade_in_overlap = 120;
@@ -162,6 +163,15 @@ namespace osu.Game.Screens.RankingV2.Argon
 
             modCell.Alpha = (score.Value as ScoreInfo)?.Mods.Length > 0 ? 1 : 0;
         }
+
+        [SettingSource("Animation sequence")]
+        public BindableInt GroupNumber { get; } = new BindableInt(3)
+        {
+            MinValue = 0,
+            MaxValue = 10,
+        };
+
+        int IAnimatableSkinnable.GroupNumber => GroupNumber.Value;
 
         public double StartAnimating(double startTime)
         {

@@ -6,6 +6,7 @@ using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
@@ -20,7 +21,7 @@ using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Argon
 {
-    public partial class UserInfoWedge : CompositeDrawable, ISerialisableDrawable
+    public partial class UserInfoWedge : CompositeDrawable, ISerialisableDrawable, IAnimatableSkinnable
     {
         private const float height = 60;
         private const float spacing = 12;
@@ -160,6 +161,15 @@ namespace osu.Game.Screens.RankingV2.Argon
             usernameText.Text = score.Value.User.Username;
             achievedOnText.Text = $"Achieved on {score.Value.Date:g}";
         }
+
+        [SettingSource("Animation sequence")]
+        public BindableInt GroupNumber { get; } = new BindableInt(1)
+        {
+            MinValue = 0,
+            MaxValue = 10,
+        };
+
+        int IAnimatableSkinnable.GroupNumber => GroupNumber.Value;
 
         public double StartAnimating(double startTime)
         {

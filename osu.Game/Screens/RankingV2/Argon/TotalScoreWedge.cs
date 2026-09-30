@@ -24,7 +24,7 @@ using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Argon
 {
-    public partial class TotalScoreWedge : CompositeDrawable, ISerialisableDrawable
+    public partial class TotalScoreWedge : CompositeDrawable, ISerialisableDrawable, IAnimatableSkinnable
     {
         public static readonly ColourInfo TEXT_GRADIENT = ColourInfo.GradientVertical(Colour4.White, Colour4.FromHex(@"B2E5FE"));
 
@@ -169,6 +169,15 @@ namespace osu.Game.Screens.RankingV2.Argon
             totalScoreText.SetCountWithoutRolling(score.Value.GetDisplayScore(scoringMode.Value));
             perfectIndicator.Alpha = score.Value.MaxCombo == score.Value.GetMaximumAchievableCombo() ? 1 : 0;
         }
+
+        [SettingSource("Animation sequence")]
+        public BindableInt GroupNumber { get; } = new BindableInt(2)
+        {
+            MinValue = 0,
+            MaxValue = 10,
+        };
+
+        int IAnimatableSkinnable.GroupNumber => GroupNumber.Value;
 
         public double StartAnimating(double startTime)
         {

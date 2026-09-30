@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -8,6 +9,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Lines;
 using osu.Framework.Graphics.Sprites;
+using osu.Game.Configuration;
 using osu.Game.Scoring;
 using osu.Game.Skinning;
 using osuTK;
@@ -15,7 +17,7 @@ using osuTK;
 namespace osu.Game.Screens.RankingV2.Legacy
 {
     // TODO: tooltip with extended info
-    public partial class LegacyRankingGraph : CompositeDrawable, ISerialisableDrawable
+    public partial class LegacyRankingGraph : CompositeDrawable, ISerialisableDrawable, IAnimatableSkinnable
     {
         private Container passingContainer = null!;
         private Container failingContainer = null!;
@@ -115,7 +117,16 @@ namespace osu.Game.Screens.RankingV2.Legacy
             perfectIndicator.Alpha = score.Value.MaxCombo == score.Value.GetMaximumAchievableCombo() ? 1 : 0;
         }
 
-        public void StartAnimating()
+        [SettingSource("Animation sequence")]
+        public BindableInt GroupNumber { get; } = new BindableInt
+        {
+            MinValue = 0,
+            MaxValue = 10,
+        };
+
+        int IAnimatableSkinnable.GroupNumber => GroupNumber.Value;
+
+        public double StartAnimating(double startTime)
         {
             const double graph_reveal_duration = 4000;
 
@@ -138,6 +149,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
                                 .ScaleTo(1f, LegacyRankingPanel.LegacyRankingElement.TRANSITION_DURATION, Easing.Out)
                                 .FadeIn(LegacyRankingPanel.LegacyRankingElement.TRANSITION_DURATION, Easing.Out);
             }
+
+            return Math.Max(passingContainer.LatestTransformEndTime, perfectIndicator.LatestTransformEndTime);
         }
 
         public void FinishAnimating()

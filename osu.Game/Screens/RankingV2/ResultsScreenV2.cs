@@ -86,6 +86,10 @@ namespace osu.Game.Screens.RankingV2
             transition.Invoke(mainScreen, detailsView);
         }
 
+        public void StartAnimating() => mainScreen.StartAnimationSequence();
+
+        public void FinishAnimating() => mainScreen.FinishAnimationSequence();
+
         protected override void LoadComplete()
         {
             base.LoadComplete();

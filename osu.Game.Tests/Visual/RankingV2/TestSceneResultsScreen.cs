@@ -5,6 +5,7 @@ using System.Linq;
 using NUnit.Framework;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Testing;
 using osu.Framework.Utils;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
@@ -86,9 +87,10 @@ namespace osu.Game.Tests.Visual.RankingV2
         }
 
         [Test]
+        [Solo]
         public void TestSkinnableScreen()
         {
-            ResultsScreenV2 results;
+            ResultsScreenV2 results = null!;
             SkinEditorOverlay skinEditor = null!;
 
             AddStep("create screen", () =>
@@ -104,6 +106,8 @@ namespace osu.Game.Tests.Visual.RankingV2
             });
             AddStep("set argon skin", () => skins.CurrentSkinInfo.SetDefault());
             AddStep("set legacy skin", () => skins.CurrentSkinInfo.Value = skins.DefaultClassicSkin.SkinInfo);
+            AddStep("start animating", () => results.StartAnimating());
+            AddStep("finish animating", () => results.FinishAnimating());
             AddToggleStep("toggle skin editor", b => skinEditor.State.Value = b ? Visibility.Visible : Visibility.Hidden);
         }
 

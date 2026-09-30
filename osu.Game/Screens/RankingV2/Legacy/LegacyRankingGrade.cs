@@ -1,18 +1,20 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
+using osu.Game.Configuration;
 using osu.Game.Scoring;
 using osu.Game.Skinning;
 using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Legacy
 {
-    public partial class LegacyRankingGrade : CompositeDrawable, ISerialisableDrawable
+    public partial class LegacyRankingGrade : CompositeDrawable, ISerialisableDrawable, IAnimatableSkinnable
     {
         private Sprite gradeSprite = null!;
         private Sprite gradeAdditiveSprite = null!;
@@ -58,7 +60,16 @@ namespace osu.Game.Screens.RankingV2.Legacy
             gradeAdditiveSprite.Texture = gradeSprite.Texture = skin.GetTexture($@"ranking-{score.Value.Rank.ToString()}");
         }
 
-        public void StartAnimating(double startTime)
+        [SettingSource("Animation sequence")]
+        public BindableInt GroupNumber { get; } = new BindableInt(1)
+        {
+            MinValue = 0,
+            MaxValue = 10,
+        };
+
+        int IAnimatableSkinnable.GroupNumber => GroupNumber.Value;
+
+        public double StartAnimating(double startTime)
         {
             gradeSprite.ScaleTo(new Vector2(2));
             gradeSprite.FadeOut();
@@ -82,6 +93,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
                     }
                 }
             }
+
+            return Math.Max(gradeSprite.LatestTransformEndTime, gradeAdditiveSprite.LatestTransformEndTime);
         }
 
         public void FinishAnimating()

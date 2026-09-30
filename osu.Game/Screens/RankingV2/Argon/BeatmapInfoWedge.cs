@@ -14,6 +14,7 @@ using osu.Framework.Graphics.Shapes;
 using osu.Framework.Localisation;
 using osu.Game.Beatmaps;
 using osu.Game.Beatmaps.Drawables;
+using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
@@ -25,8 +26,7 @@ using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Argon
 {
-    // TODO: transition / animation pass
-    public partial class BeatmapInfoWedge : CompositeDrawable, ISerialisableDrawable
+    public partial class BeatmapInfoWedge : CompositeDrawable, ISerialisableDrawable, IAnimatableSkinnable
     {
         public const float SUB_WEDGE_HEIGHT = 40;
 
@@ -60,7 +60,7 @@ namespace osu.Game.Screens.RankingV2.Argon
         private void load(OverlayColourProvider colourProvider)
         {
             Width = ArgonResultsScreenV2.LEFT_WEDGE_HEIGHT;
-            AutoSizeAxes = Axes.Y;
+            Height = 150;
 
             InternalChildren =
             [
@@ -211,6 +211,15 @@ namespace osu.Game.Screens.RankingV2.Argon
                                });
                            });
         }
+
+        [SettingSource("Animation sequence")]
+        public BindableInt GroupNumber { get; } = new BindableInt
+        {
+            MinValue = 0,
+            MaxValue = 10,
+        };
+
+        int IAnimatableSkinnable.GroupNumber => GroupNumber.Value;
 
         public double StartAnimating(double startTime)
         {

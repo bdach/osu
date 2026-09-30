@@ -18,7 +18,7 @@ using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Legacy
 {
-    public partial class LegacyRankingPanel : CompositeDrawable, ISerialisableDrawable
+    public partial class LegacyRankingPanel : CompositeDrawable, ISerialisableDrawable, IAnimatableSkinnable
     {
         private Vector2 baselinePosition;
 
@@ -292,9 +292,18 @@ namespace osu.Game.Screens.RankingV2.Legacy
             scoreText.Text = stringBuilder.ToString();
         }
 
-        public double StartAnimating()
+        [SettingSource("Animation sequence")]
+        public BindableInt GroupNumber { get; } = new BindableInt
         {
-            double latestTransformEndTime = LatestTransformEndTime;
+            MinValue = 0,
+            MaxValue = 10,
+        };
+
+        int IAnimatableSkinnable.GroupNumber => GroupNumber.Value;
+
+        public double StartAnimating(double startTime)
+        {
+            double latestTransformEndTime = startTime;
             scoreRevealStartTime = latestTransformEndTime;
 
             const double gap_between_elements = 300;
