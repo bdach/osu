@@ -98,6 +98,7 @@ jobs:
           osu.Game.Tournament.Tests/bin/Debug/**/osu.Game.Tournament.Tests.dll
           Templates/**/*.Tests/bin/Debug/**/*.Tests.dll
           --logger "trx;LogFileName=TestResults-${{matrix.os.prettyname}}-${{matrix.threadingMode}}.trx"
+          -v=d
           --
           NUnit.ConsoleOut=0
 
