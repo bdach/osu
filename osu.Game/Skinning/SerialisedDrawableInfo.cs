@@ -116,7 +116,7 @@ namespace osu.Game.Skinning
         /// Retrieve all types available which support serialisation.
         /// </summary>
         /// <param name="ruleset">The ruleset to filter results to. If <c>null</c>, global components will be returned instead.</param>
-        public static Type[] GetAllAvailableDrawables(RulesetInfo? ruleset = null)
+        public static Type[] GetAllAvailableDrawables(IRulesetInfo? ruleset = null)
         {
             return (ruleset?.CreateInstance().GetType() ?? typeof(OsuGame))
                    .Assembly.GetTypes()

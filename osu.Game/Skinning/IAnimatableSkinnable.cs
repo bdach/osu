@@ -18,11 +18,11 @@ namespace osu.Game.Skinning
 
     public static class AnimatableSkinnableExtensions
     {
-        public static void StartAnimationSequence(this SkinnableContainer parent)
+        public static double StartAnimationSequence(this SkinnableContainer parent, double? startTime = null)
         {
             parent.FinishAnimationSequence();
 
-            double latestTransformEndTime = parent.LatestTransformEndTime;
+            double latestTransformEndTime = startTime ?? parent.LatestTransformEndTime;
 
             var groups = parent.Components.OfType<IAnimatableSkinnable>()
                                .GroupBy(anim => anim.GroupNumber);
@@ -40,6 +40,8 @@ namespace osu.Game.Skinning
 
                 latestTransformEndTime = groupEndTime;
             }
+
+            return latestTransformEndTime;
         }
 
         public static void FinishAnimationSequence(this SkinnableContainer parent)

@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Utils;
 using osu.Game.Configuration;
+using osu.Game.Overlays.SkinEditor;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Scoring.Legacy;
@@ -26,9 +27,13 @@ namespace osu.Game.Screens.RankingV2.Legacy
         private Container<LegacyRankingElement> rulesetRankingElements = null!;
         private LegacyRankingElement maxComboElement = null!;
         private LegacyRankingElement accuracyElement = null!;
+        private SkinnableContainer? skinnableStats = null!;
 
         [Resolved]
         private IBindable<IScoreInfo> score { get; set; } = null!;
+
+        [Resolved]
+        private SkinEditor? skinEditor { get; set; }
 
         private readonly Bindable<ScoringMode> scoringMode = new Bindable<ScoringMode>();
 
@@ -112,32 +117,32 @@ namespace osu.Game.Screens.RankingV2.Legacy
             switch (score.Value.Ruleset.OnlineID)
             {
                 case 0:
-                    rulesetRankingElements.AddRange([
-                        new LegacyRankingElement
-                        {
-                            ElementName = @"hit300",
-                            ScoreText = $@"{score.Value.GetCount300()}x",
-                            Position = (new Vector2(imgx1, row1) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
-                        },
-                        new LegacyRankingElement
-                        {
-                            ElementName = @"hit100",
-                            ScoreText = $@"{score.Value.GetCount100()}x",
-                            Position = (new Vector2(imgx1, row2) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
-                        },
-                        new LegacyRankingElement
-                        {
-                            ElementName = @"hit50",
-                            ScoreText = $@"{score.Value.GetCount50()}x",
-                            Position = (new Vector2(imgx1, row3) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
-                        },
-                        new LegacyRankingElement
-                        {
-                            ElementName = @"hit0",
-                            ScoreText = $@"{score.Value.GetCountMiss()}x",
-                            Position = (new Vector2(imgx2, row3) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
-                        },
-                    ]);
+                    //rulesetRankingElements.AddRange([
+                    //    new LegacyRankingElement
+                    //    {
+                    //        ElementName = @"hit300",
+                    //        ScoreText = $@"{score.Value.GetCount300()}x",
+                    //        Position = (new Vector2(imgx1, row1) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
+                    //    },
+                    //    new LegacyRankingElement
+                    //    {
+                    //        ElementName = @"hit100",
+                    //        ScoreText = $@"{score.Value.GetCount100()}x",
+                    //        Position = (new Vector2(imgx1, row2) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
+                    //    },
+                    //    new LegacyRankingElement
+                    //    {
+                    //        ElementName = @"hit50",
+                    //        ScoreText = $@"{score.Value.GetCount50()}x",
+                    //        Position = (new Vector2(imgx1, row3) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
+                    //    },
+                    //    new LegacyRankingElement
+                    //    {
+                    //        ElementName = @"hit0",
+                    //        ScoreText = $@"{score.Value.GetCountMiss()}x",
+                    //        Position = (new Vector2(imgx2, row3) - baselinePosition) * LegacySkin.STABLE_MAGIC_SCALE_FACTOR,
+                    //    },
+                    //]);
                     break;
 
                 case 1:
@@ -252,6 +257,13 @@ namespace osu.Game.Screens.RankingV2.Legacy
                 // TODO: good luck with custom rulesets!!!
             }
 
+            skinnableStats?.RemoveAndDisposeImmediately();
+            AddInternal(skinnableStats = new SkinnableContainer(new GlobalSkinnableContainerLookup(GlobalSkinnableContainers.ResultsStatistics, score.Value.Ruleset))
+            {
+                RelativeSizeAxes = Axes.Both,
+            });
+            skinEditor?.RefreshTargets();
+
             maxComboElement.ScoreText = $@"{score.Value.MaxCombo}x";
             accuracyElement.ScoreText = $@"{score.Value.Accuracy * 100:0.00}%"; // TODO: probably has rounding shit issues
         }
@@ -311,6 +323,9 @@ namespace osu.Game.Screens.RankingV2.Legacy
             foreach (var element in rulesetRankingElements)
                 latestTransformEndTime = element.StartAnimating(latestTransformEndTime) + gap_between_elements;
 
+            if (skinnableStats != null)
+                latestTransformEndTime = skinnableStats.StartAnimationSequence(latestTransformEndTime);
+
             latestTransformEndTime = maxComboElement.StartAnimating(latestTransformEndTime) + gap_between_elements;
             latestTransformEndTime = accuracyElement.StartAnimating(latestTransformEndTime);
 
@@ -326,7 +341,7 @@ namespace osu.Game.Screens.RankingV2.Legacy
             scoreRevealStartTime = null;
         }
 
-        public partial class LegacyRankingElement : CompositeDrawable
+        public partial class LegacyRankingElement : CompositeDrawable, ISerialisableDrawable, IAnimatableSkinnable
         {
             public const double TEXT_DELAY = 200;
             public const double TRANSITION_DURATION = 300;
@@ -400,6 +415,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
                     text.Text = ScoreText;
             }
 
+            public int GroupNumber { get; init; }
+
             public double StartAnimating(double startTime)
             {
                 element.ScaleTo(InitialElementScale)
@@ -426,6 +443,8 @@ namespace osu.Game.Screens.RankingV2.Legacy
                 element.FinishTransforms();
                 text.FinishTransforms();
             }
+
+            public bool UsesFixedAnchor { get; set; }
         }
 
         public bool UsesFixedAnchor { get; set; }

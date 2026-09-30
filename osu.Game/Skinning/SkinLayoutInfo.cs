@@ -39,13 +39,13 @@ namespace osu.Game.Skinning
         [JsonIgnore]
         public IEnumerable<SerialisedDrawableInfo> AllDrawables => DrawableInfo.Values.SelectMany(v => v);
 
-        public bool TryGetDrawableInfo(RulesetInfo? ruleset, [NotNullWhen(true)] out SerialisedDrawableInfo[]? components) =>
+        public bool TryGetDrawableInfo(IRulesetInfo? ruleset, [NotNullWhen(true)] out SerialisedDrawableInfo[]? components) =>
             DrawableInfo.TryGetValue(ruleset?.ShortName ?? global_identifier, out components);
 
         public void Reset(RulesetInfo? ruleset) =>
             DrawableInfo.Remove(ruleset?.ShortName ?? global_identifier);
 
-        public void Update(RulesetInfo? ruleset, SerialisedDrawableInfo[] components) =>
+        public void Update(IRulesetInfo? ruleset, SerialisedDrawableInfo[] components) =>
             DrawableInfo[ruleset?.ShortName ?? global_identifier] = components;
     }
 }

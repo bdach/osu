@@ -85,6 +85,7 @@ namespace osu.Game.Overlays.SkinEditor
 
         private EditorSidebar componentsSidebar = null!;
         private EditorSidebar settingsSidebar = null!;
+        private SettingsDropdown<GlobalSkinnableContainerLookup?> layerSelector = null!;
 
         private SkinEditorChangeHandler? changeHandler;
 
@@ -404,14 +405,15 @@ namespace osu.Game.Overlays.SkinEditor
                 {
                     Children = new Drawable[]
                     {
-                        new SettingsDropdown<GlobalSkinnableContainerLookup?>
+                        layerSelector = new SettingsDropdown<GlobalSkinnableContainerLookup?>
                         {
-                            Items = availableTargets.Select(t => t.Lookup).Distinct(),
                             Current = selectedTarget,
                         }
                     }
                 },
             };
+
+            RefreshTargets();
 
             // If the new target has a ruleset, let's show ruleset-specific items at the top, and the rest below.
             if (target.NewValue.Ruleset != null)
@@ -449,12 +451,14 @@ namespace osu.Game.Overlays.SkinEditor
                 changeHandler = new SkinEditorChangeHandler(skinnableContainer);
                 changeHandler.CanUndo.BindValueChanged(v => undoMenuItem.Action.Disabled = !v.NewValue, true);
                 changeHandler.CanRedo.BindValueChanged(v => redoMenuItem.Action.Disabled = !v.NewValue, true);
-                changeHandler.OnStateChange += reloadToolboxes;
+                changeHandler.OnStateChange += skinStateChanged;
             }
         }
 
-        private void reloadToolboxes()
+        private void skinStateChanged()
         {
+            RefreshTargets();
+
             foreach (var toolbox in componentsSidebar.OfType<SkinComponentToolbox>())
                 toolbox.ReloadComponents();
         }
@@ -481,7 +485,7 @@ namespace osu.Game.Overlays.SkinEditor
                 cp.Colour = colours.Yellow;
             });
 
-            changeHandler?.OnStateChange -= reloadToolboxes;
+            changeHandler?.OnStateChange -= skinStateChanged;
             changeHandler?.Dispose();
             changeHandler = null;
 
@@ -552,6 +556,11 @@ namespace osu.Game.Overlays.SkinEditor
         }
 
         private IEnumerable<SkinnableContainer> availableTargets => targetScreen.ChildrenOfType<SkinnableContainer>();
+
+        public void RefreshTargets()
+        {
+            layerSelector.Items = availableTargets.Select(t => t.Lookup).Distinct();
+        }
 
         private SkinnableContainer? getFirstTarget() => availableTargets.FirstOrDefault();
 

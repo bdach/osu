@@ -562,6 +562,62 @@ namespace osu.Game.Skinning
                                 new LegacyRankingWatchReplayButton(),
                                 new LegacyOnlineRankingButton(),
                             };
+
+                        case GlobalSkinnableContainers.ResultsStatistics:
+                        {
+                            switch (containerLookup.Ruleset?.ShortName)
+                            {
+                                case "osu":
+                                {
+                                    const float textx1 = 80;
+                                    const float imgx1 = 40;
+                                    const float textx2 = 280;
+                                    const float imgx2 = 240;
+
+                                    const float row1 = 160;
+                                    const float row2 = 220;
+                                    const float row3 = 280;
+                                    const float row4 = 320;
+
+                                    bool useNewLayout = GetConfig<SkinConfiguration.LegacySetting, decimal>(SkinConfiguration.LegacySetting.Version)?.Value > 1M;
+                                    var baselinePosition = new Vector2(0, useNewLayout ? 64 : 46);
+
+                                    return new DefaultSkinComponentsContainer(_ => { })
+                                    {
+                                        new LegacyRankingPanel.LegacyRankingElement
+                                        {
+                                            ElementName = @"hit300",
+                                            ScoreText = @"300x",
+                                            Position = (new Vector2(imgx1, row1) - baselinePosition) * STABLE_MAGIC_SCALE_FACTOR,
+                                            GroupNumber = 0,
+                                        },
+                                        new LegacyRankingPanel.LegacyRankingElement
+                                        {
+                                            ElementName = @"hit100",
+                                            ScoreText = @"100x",
+                                            Position = (new Vector2(imgx1, row2) - baselinePosition) * STABLE_MAGIC_SCALE_FACTOR,
+                                            GroupNumber = 1,
+                                        },
+                                        new LegacyRankingPanel.LegacyRankingElement
+                                        {
+                                            ElementName = @"hit50",
+                                            ScoreText = @"50x",
+                                            Position = (new Vector2(imgx1, row3) - baselinePosition) * STABLE_MAGIC_SCALE_FACTOR,
+                                            GroupNumber = 2,
+                                        },
+                                        new LegacyRankingPanel.LegacyRankingElement
+                                        {
+                                            ElementName = @"hit0",
+                                            ScoreText = @"2x",
+                                            Position = (new Vector2(imgx2, row3) - baselinePosition) * STABLE_MAGIC_SCALE_FACTOR,
+                                            GroupNumber = 3,
+                                        },
+                                    };
+                                }
+                            }
+
+                            break;
+                        }
                     }
 
                     return null;
