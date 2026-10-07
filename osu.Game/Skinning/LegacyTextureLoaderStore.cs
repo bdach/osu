@@ -100,7 +100,7 @@ namespace osu.Game.Skinning
             if (left == null && middle == null && right == null)
                 return null;
 
-            var spliced = new Image<Rgba32>((left?.Width + middle?.Width + right?.Width) ?? 0, left?.Height ?? middle?.Height ?? right?.Height ?? 0);
+            var spliced = new Image<Rgba32>((left?.Width ?? 0) + (middle?.Width ?? 0) + (right?.Width ?? 0), (left?.Height ?? 0) + (middle?.Height ?? 0) + (right?.Height ?? 0));
             if (spliced.Width == 0 || spliced.Height == 0)
                 return null;
 
