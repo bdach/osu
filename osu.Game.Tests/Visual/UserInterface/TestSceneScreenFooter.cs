@@ -257,11 +257,13 @@ namespace osu.Game.Tests.Visual.UserInterface
 
             AddStep("show overlay", () => screen.Overlay.Show());
             contentDisplayed();
-            AddAssert("other buttons hidden", () => ScreenFooter.ChildrenOfType<ScreenFooterButton>().Skip(1).All(b => b.Child.Parent!.Y > 0));
+            AddAssert("left buttons hidden", () => ScreenFooter.ChildrenOfType<ScreenFooterButton>().Skip(1).All(b => b.Child.Parent!.Y > 0));
+            AddAssert("right buttons hidden", () => ScreenFooter.ChildrenOfType<ShearedButton>().Any(b => b.ChildrenOfType<Container>().ElementAt(1).Y > 0));
 
             AddStep("hide overlay", () => screen.Overlay.Hide());
             contentHidden();
-            AddAssert("other buttons returned", () => ScreenFooter.ChildrenOfType<ScreenFooterButton>().Skip(1).All(b => b.ChildrenOfType<Container>().First().Y == 0));
+            AddAssert("left buttons returned", () => ScreenFooter.ChildrenOfType<ScreenFooterButton>().Skip(1).All(b => b.ChildrenOfType<Container>().First().Y == 0));
+            AddAssert("right buttons returned", () => ScreenFooter.ChildrenOfType<ShearedButton>().All(b => b.ChildrenOfType<Container>().ElementAt(1).Y == 0));
         }
 
         [Test]
@@ -279,17 +281,30 @@ namespace osu.Game.Tests.Visual.UserInterface
                     Overlay = overlay,
                     FooterContent =
                     {
-                        Value = ScreenFooterContent.Argon(() => new[]
-                        {
-                            new ScreenFooterButton(overlay)
+                        Value = ScreenFooterContent.Argon(
+                            leftButtons: () => new[]
                             {
-                                AccentColour = Dependencies.Get<OsuColour>().Orange1,
-                                Icon = FontAwesome.Solid.Toolbox,
-                                Text = "One",
+                                new ScreenFooterButton(overlay)
+                                {
+                                    AccentColour = Dependencies.Get<OsuColour>().Orange1,
+                                    Icon = FontAwesome.Solid.Toolbox,
+                                    Text = "One",
+                                },
+                                new ScreenFooterButton { Text = "Two", Hotkey = GlobalAction.Select, Action = () => buttonTriggered = true },
+                                new ScreenFooterButton { Text = "Three", Action = () => { } },
                             },
-                            new ScreenFooterButton { Text = "Two", Hotkey = GlobalAction.Select, Action = () => buttonTriggered = true },
-                            new ScreenFooterButton { Text = "Three", Action = () => { } },
-                        }),
+                            rightButtons: () => new[]
+                            {
+                                new ShearedButton
+                                {
+                                    Text = "Main action 1",
+                                    Width = 150,
+                                    LighterColour = colours.Blue1,
+                                    DarkerColour = colours.Blue3,
+                                    Action = () => buttonTriggered = true,
+                                }
+                            }
+                        ),
                     },
                 });
             });
@@ -298,10 +313,13 @@ namespace osu.Game.Tests.Visual.UserInterface
             AddStep("show overlay", () => screen.Overlay.Show());
             contentDisplayed();
 
-            AddStep("try direct click", () => ScreenFooter.ChildrenOfType<ScreenFooterButton>().ElementAt(1).TriggerClick());
+            AddStep("try direct click on left button", () => ScreenFooter.ChildrenOfType<ScreenFooterButton>().ElementAt(1).TriggerClick());
             AddAssert("action not triggered", () => buttonTriggered, () => Is.False);
 
-            AddStep("try hotkey", () => InputManager.Key(Key.Enter));
+            AddStep("try left button hotkey", () => InputManager.Key(Key.Enter));
+            AddAssert("action not triggered", () => buttonTriggered, () => Is.False);
+
+            AddStep("try direct click on right button", () => ScreenFooter.ChildrenOfType<ShearedButton>().Single(b => b.Text == "Main action 1").TriggerClick());
             AddAssert("action not triggered", () => buttonTriggered, () => Is.False);
         }
 

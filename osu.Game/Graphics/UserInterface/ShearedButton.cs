@@ -199,6 +199,8 @@ namespace osu.Game.Graphics.UserInterface
 
         public void AppearFromLeft(double delay)
         {
+            Enabled.Value = Action != null;
+
             Content.FinishTransforms();
             Content.MoveToX(-300f)
                    .FadeOut()
@@ -209,6 +211,8 @@ namespace osu.Game.Graphics.UserInterface
 
         public void AppearFromBottom(double delay)
         {
+            Enabled.Value = Action != null;
+
             Content.FinishTransforms();
             Content.MoveToY(100f)
                    .FadeOut()
@@ -219,6 +223,8 @@ namespace osu.Game.Graphics.UserInterface
 
         public void DisappearToRight(double delay, bool expire)
         {
+            Enabled.Value = false;
+
             Content.FinishTransforms();
             Content.Delay(delay)
                    .FadeOut(240, Easing.InOutCubic)
@@ -230,6 +236,8 @@ namespace osu.Game.Graphics.UserInterface
 
         public void DisappearToBottom(double delay, bool expire)
         {
+            Enabled.Value = false;
+
             Content.FinishTransforms();
             Content.Delay(delay)
                    .FadeOut(240, Easing.InOutCubic)
