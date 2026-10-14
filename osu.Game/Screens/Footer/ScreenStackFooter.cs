@@ -78,7 +78,7 @@ namespace osu.Game.Screens.Footer
             {
                 ((Bindable<ScreenFooterContent>)footerContent).Value = ScreenFooterContent.Legacy(showBackButton: true);
 
-                Footer.SetButtons([], []);
+                Footer.SetButtons([], [], Direction.Vertical);
                 Footer.Hide();
                 return;
             }
@@ -99,13 +99,13 @@ namespace osu.Game.Screens.Footer
             switch (footerContent.Value.Mode)
             {
                 case ScreenFooterContent.FooterMode.None:
-                    Footer.SetButtons([], []);
+                    Footer.SetButtons([], [], Direction.Vertical);
                     Footer.Hide();
                     BackButton.Hide();
                     break;
 
                 case ScreenFooterContent.FooterMode.Legacy:
-                    Footer.SetButtons([], []);
+                    Footer.SetButtons([], [], Direction.Vertical);
                     Footer.Hide();
                     BackButton.State.Value = footerContent.Value.BackButton ? Visibility.Visible : Visibility.Hidden;
                     break;
@@ -117,28 +117,33 @@ namespace osu.Game.Screens.Footer
                     var osuScreen = screenTracker.LeadingScreen as OsuScreen;
                     Debug.Assert(osuScreen != null);
 
+                    var leftButtons = footerContent.Value.LeftButtons?.Invoke().ToArray() ?? [];
+                    var rightButtons = footerContent.Value.RightButtons?.Invoke().ToArray() ?? [];
+
+                    bool anyOldButtons = Footer.HasButtons;
+                    bool anyNewButtons = leftButtons.Length > 0 || rightButtons.Length > 0;
+
+                    var direction = anyOldButtons && anyNewButtons ? Direction.Horizontal : Direction.Vertical;
+
                     if (osuScreen.IsLoaded)
-                        updateFooterButtons(osuScreen);
+                        updateFooterButtons(osuScreen, leftButtons, rightButtons, direction);
                     else
                     {
                         // ensure the current buttons are immediately disabled on screen change (so they can't be pressed).
-                        Footer.SetButtons([], []);
+                        Footer.SetButtons([], [], direction);
 
-                        osuScreen.OnLoadComplete += _ => updateFooterButtons(osuScreen);
+                        osuScreen.OnLoadComplete += _ => updateFooterButtons(osuScreen, leftButtons, rightButtons, direction);
                     }
 
                     break;
             }
 
-            void updateFooterButtons(OsuScreen osuScreen)
+            void updateFooterButtons(OsuScreen osuScreen, ScreenFooterButton[] leftButtons, ShearedButton[] rightButtons, Direction direction)
             {
-                var leftButtons = footerContent.Value.LeftButtons?.Invoke().ToArray() ?? [];
                 osuScreen.LoadComponentsAgainstScreenDependencies(leftButtons);
-
-                var rightButtons = footerContent.Value.RightButtons?.Invoke().ToArray() ?? [];
                 osuScreen.LoadComponentsAgainstScreenDependencies(rightButtons);
 
-                Footer.SetButtons(leftButtons, rightButtons);
+                Footer.SetButtons(leftButtons, rightButtons, direction);
                 Footer.Show();
             }
         }
