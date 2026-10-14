@@ -11,10 +11,11 @@ using osu.Framework.Localisation;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Overlays;
+using osu.Game.Screens.Footer;
 
 namespace osu.Game.Graphics.UserInterface
 {
-    public partial class ShearedButton : OsuClickableContainer
+    public partial class ShearedButton : OsuClickableContainer, IScreenFooterButton
     {
         public const float DEFAULT_HEIGHT = 50;
         public const float CORNER_RADIUS = 7;
@@ -194,6 +195,48 @@ namespace osu.Game.Graphics.UserInterface
                 colourContent = colourContent.Opacity(0.6f);
 
             ButtonContent.FadeColour(colourContent, 150, Easing.OutQuint);
+        }
+
+        public void AppearFromLeft(double delay)
+        {
+            Content.FinishTransforms();
+            Content.MoveToX(-300f)
+                   .FadeOut()
+                   .Delay(delay)
+                   .MoveToX(0f, 240, Easing.OutCubic)
+                   .FadeIn(240, Easing.OutCubic);
+        }
+
+        public void AppearFromBottom(double delay)
+        {
+            Content.FinishTransforms();
+            Content.MoveToY(100f)
+                   .FadeOut()
+                   .Delay(delay)
+                   .MoveToY(0f, 240, Easing.OutCubic)
+                   .FadeIn(240, Easing.OutCubic);
+        }
+
+        public void DisappearToRight(double delay, bool expire)
+        {
+            Content.FinishTransforms();
+            Content.Delay(delay)
+                   .FadeOut(240, Easing.InOutCubic)
+                   .MoveToX(300f, 360, Easing.InOutCubic);
+
+            if (expire)
+                this.Delay(Content.LatestTransformEndTime - Time.Current).Expire();
+        }
+
+        public void DisappearToBottom(double delay, bool expire)
+        {
+            Content.FinishTransforms();
+            Content.Delay(delay)
+                   .FadeOut(240, Easing.InOutCubic)
+                   .MoveToY(100f, 240, Easing.InOutCubic);
+
+            if (expire)
+                this.Delay(Content.LatestTransformEndTime - Time.Current).Expire();
         }
     }
 }
