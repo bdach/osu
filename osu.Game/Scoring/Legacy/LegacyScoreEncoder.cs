@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -201,8 +202,26 @@ namespace osu.Game.Scoring.Legacy
 
         private string getHpGraphFormatted()
         {
-            // todo: implement, maybe?
-            return string.Empty;
+            if (score.ScoreInfo.HealthGraph.Count == 0)
+                return string.Empty;
+
+            var graphData = new StringBuilder();
+            double lastTime = double.MinValue;
+
+            for (int i = 0; i < score.ScoreInfo.HealthGraph.Count; ++i)
+            {
+                var point = score.ScoreInfo.HealthGraph[i];
+
+                if (i == 0 || i == score.ScoreInfo.HealthGraph.Count - 1 || point.Time - lastTime > 2000)
+                {
+                    lastTime = point.Time;
+                    graphData.AppendFormat(@"{0}|{1}",
+                        Math.Round(point.Time, 2).ToString(CultureInfo.InvariantCulture),
+                        Math.Round(point.Health, 2).ToString(CultureInfo.InvariantCulture));
+                }
+            }
+
+            return graphData.ToString();
         }
     }
 }
