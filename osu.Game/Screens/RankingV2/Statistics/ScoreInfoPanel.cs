@@ -31,6 +31,8 @@ namespace osu.Game.Screens.RankingV2.Statistics
         private ModDisplay modDisplay = null!;
         private OsuSpriteText modMultiplierSpriteText = null!;
         private FillFlowContainer hitStatisticsFlow = null!;
+        private FillFlowContainer leftDetails = null!;
+        private FillFlowContainer rightDetails = null!;
 
         [Resolved]
         private IBindable<IScoreInfo> score { get; set; } = null!;
@@ -172,6 +174,58 @@ namespace osu.Game.Screens.RankingV2.Statistics
                                 },
                             },
                         },
+                        new Container
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            CornerRadius = 20,
+                            Masking = true,
+                            Children =
+                            [
+                                new Box
+                                {
+                                    RelativeSizeAxes = Axes.Both,
+                                    Colour = colourProvider.Background5,
+                                },
+                                new GridContainer
+                                {
+                                    Padding = new MarginPadding(15),
+                                    RelativeSizeAxes = Axes.X,
+                                    AutoSizeAxes = Axes.Y,
+                                    ColumnDimensions =
+                                    [
+                                        new Dimension(GridSizeMode.Absolute, 350),
+                                        new Dimension(GridSizeMode.Absolute, 10),
+                                        new Dimension(),
+                                    ],
+                                    RowDimensions = [new Dimension(GridSizeMode.AutoSize)],
+                                    Content = new[]
+                                    {
+                                        new Drawable[]
+                                        {
+                                            leftDetails = new FillFlowContainer
+                                            {
+                                                RelativeSizeAxes = Axes.X,
+                                                AutoSizeAxes = Axes.Y,
+                                                Spacing = new Vector2(10),
+                                                Direction = FillDirection.Vertical,
+                                                Children =
+                                                [
+                                                    new GlobalStatisticsUpdatePanel(),
+                                                ]
+                                            },
+                                            rightDetails = new FillFlowContainer
+                                            {
+                                                RelativeSizeAxes = Axes.X,
+                                                AutoSizeAxes = Axes.Y,
+                                                Spacing = new Vector2(10),
+                                                Direction = FillDirection.Full,
+                                            },
+                                        },
+                                    }
+                                }
+                            ]
+                        }
                     ],
                 },
             ];
