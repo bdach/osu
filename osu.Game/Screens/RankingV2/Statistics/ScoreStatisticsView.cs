@@ -27,6 +27,7 @@ namespace osu.Game.Screens.RankingV2.Statistics
                     Children =
                     [
                         new BeatmapInfoPanel(),
+                        new UserInfoPanel(),
                     ]
                 }
             ];
