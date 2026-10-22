@@ -4,6 +4,7 @@
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
@@ -29,12 +30,16 @@ namespace osu.Game.Screens.RankingV2.Statistics
         private OsuSpriteText totalScoreText = null!;
         private ModDisplay modDisplay = null!;
         private OsuSpriteText modMultiplierSpriteText = null!;
+        private FillFlowContainer hitStatisticsFlow = null!;
 
         [Resolved]
         private IBindable<IScoreInfo> score { get; set; } = null!;
 
         [Resolved]
         private SkinManager skins { get; set; } = null!;
+
+        [Resolved]
+        private OsuColour colours { get; set; } = null!;
 
         [BackgroundDependencyLoader]
         private void load(OverlayColourProvider colourProvider, OsuColour colours)
@@ -55,80 +60,120 @@ namespace osu.Game.Screens.RankingV2.Statistics
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Direction = FillDirection.Horizontal,
-                    Spacing = new Vector2(15),
-                    Padding = new MarginPadding
-                    {
-                        Vertical = 5,
-                        Horizontal = 15,
-                    },
+                    Direction = FillDirection.Vertical,
                     Children =
                     [
-                        new Container
+                        new GridContainer
                         {
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                            Size = new Vector2(60),
-                            Child = rankSprite = new Sprite
+                            RelativeSizeAxes = Axes.X,
+                            AutoSizeAxes = Axes.Y,
+                            ColumnDimensions =
+                            [
+                                new Dimension(GridSizeMode.AutoSize),
+                                new Dimension(),
+                            ],
+                            RowDimensions = [new Dimension(GridSizeMode.AutoSize)],
+                            Content = new[]
                             {
-                                RelativeSizeAxes = Axes.Both,
-                                FillMode = FillMode.Fit,
-                                Anchor = Anchor.Centre,
-                                Origin = Anchor.Centre,
+                                new Drawable[]
+                                {
+                                    new FillFlowContainer
+                                    {
+                                        AutoSizeAxes = Axes.Both,
+                                        Anchor = Anchor.CentreLeft,
+                                        Origin = Anchor.CentreLeft,
+                                        Direction = FillDirection.Horizontal,
+                                        Spacing = new Vector2(15),
+                                        Padding = new MarginPadding
+                                        {
+                                            Vertical = 5,
+                                            Left = 15,
+                                        },
+                                        Children =
+                                        [
+                                            new Container
+                                            {
+                                                Anchor = Anchor.CentreLeft,
+                                                Origin = Anchor.CentreLeft,
+                                                Size = new Vector2(50, 60),
+                                                Child = rankSprite = new Sprite
+                                                {
+                                                    RelativeSizeAxes = Axes.Both,
+                                                    FillMode = FillMode.Fit,
+                                                    Anchor = Anchor.Centre,
+                                                    Origin = Anchor.Centre,
+                                                },
+                                            },
+                                            totalScoreText = new OsuSpriteText
+                                            {
+                                                Anchor = Anchor.CentreLeft,
+                                                Origin = Anchor.CentreLeft,
+                                                Font = OsuFont.TorusAlternate.With(size: 54, weight: FontWeight.Light),
+                                                Colour = ArgonTotalScorePanel.TEXT_GRADIENT,
+                                                UseFullGlyphHeight = false,
+                                            },
+                                            new FillFlowContainer
+                                            {
+                                                AutoSizeAxes = Axes.Both,
+                                                Anchor = Anchor.CentreLeft,
+                                                Origin = Anchor.CentreLeft,
+                                                Direction = FillDirection.Vertical,
+                                                Children =
+                                                [
+                                                    new OsuSpriteText
+                                                    {
+                                                        Text = "MODS",
+                                                        Font = OsuFont.Default.With(weight: FontWeight.Bold),
+                                                        Colour = colourProvider.Content2,
+                                                    },
+                                                    modDisplay = new ModDisplay
+                                                    {
+                                                        ExpansionMode = ExpansionMode.AlwaysContracted,
+                                                        Scale = new Vector2(0.6f),
+                                                    }
+                                                ]
+                                            },
+                                            new FillFlowContainer
+                                            {
+                                                AutoSizeAxes = Axes.Both,
+                                                Anchor = Anchor.CentreLeft,
+                                                Origin = Anchor.CentreLeft,
+                                                Direction = FillDirection.Vertical,
+                                                Children =
+                                                [
+                                                    new OsuSpriteText
+                                                    {
+                                                        Text = "MULTIPLIER",
+                                                        Font = OsuFont.Default.With(weight: FontWeight.Bold),
+                                                        Colour = colourProvider.Content2,
+                                                    },
+                                                    modMultiplierSpriteText = new OsuSpriteText
+                                                    {
+                                                        Font = OsuFont.Default.With(size: 28),
+                                                        Colour = ColourInfo.GradientVertical(colours.Red0, colours.Red1),
+                                                    },
+                                                ]
+                                            },
+                                        ],
+                                    },
+                                    hitStatisticsFlow = new FillFlowContainer
+                                    {
+                                        RelativeSizeAxes = Axes.X,
+                                        AutoSizeAxes = Axes.Y,
+                                        Anchor = Anchor.CentreRight,
+                                        Origin = Anchor.CentreRight,
+                                        Spacing = new Vector2(15, 0),
+                                        Padding = new MarginPadding
+                                        {
+                                            Vertical = 5,
+                                            Right = 15,
+                                        },
+                                    },
+                                },
                             },
                         },
-                        totalScoreText = new OsuSpriteText
-                        {
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                            Font = OsuFont.TorusAlternate.With(size: 54, weight: FontWeight.Light),
-                            Colour = ArgonTotalScorePanel.TEXT_GRADIENT,
-                            UseFullGlyphHeight = false,
-                        },
-                        new FillFlowContainer
-                        {
-                            AutoSizeAxes = Axes.Both,
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                            Direction = FillDirection.Vertical,
-                            Children =
-                            [
-                                new OsuSpriteText
-                                {
-                                    Text = "MODS",
-                                    Font = OsuFont.Default.With(weight: FontWeight.Bold),
-                                    Colour = colourProvider.Content2,
-                                },
-                                modDisplay = new ModDisplay
-                                {
-                                    ExpansionMode = ExpansionMode.AlwaysContracted,
-                                    Scale = new Vector2(0.6f),
-                                }
-                            ]
-                        },
-                        new FillFlowContainer
-                        {
-                            AutoSizeAxes = Axes.Both,
-                            Anchor = Anchor.CentreLeft,
-                            Origin = Anchor.CentreLeft,
-                            Direction = FillDirection.Vertical,
-                            Children =
-                            [
-                                new OsuSpriteText
-                                {
-                                    Text = "MULTIPLIER",
-                                    Font = OsuFont.Default.With(weight: FontWeight.Bold),
-                                    Colour = colourProvider.Content2,
-                                },
-                                modMultiplierSpriteText = new OsuSpriteText
-                                {
-                                    Font = OsuFont.Default.With(size: 28),
-                                    Colour = ColourInfo.GradientVertical(colours.Red0, colours.Red1),
-                                },
-                            ]
-                        },
-                    ]
-                }
+                    ],
+                },
             ];
         }
 
@@ -149,6 +194,21 @@ namespace osu.Game.Screens.RankingV2.Statistics
             var mods = score.Value.Mods.Select(m => m.ToMod(rulesetInstance)).ToArray();
             modDisplay.Current.Value = mods;
             modMultiplierSpriteText.Text = ModUtils.FormatScoreMultiplier(scoreMultiplierCalculator.CalculateFor(mods));
+
+            hitStatisticsFlow.RemoveAll(d => d is StatisticValue, true);
+            var statistics = score.Value.GetStatisticsForDisplay();
+
+            foreach (var statistic in statistics.Reverse())
+            {
+                hitStatisticsFlow.Add(new StatisticValue
+                {
+                    AccentColour = statistic.Result.IsBasic() ? colours.ForHitResult(statistic.Result) : null,
+                    Caption = statistic.DisplayName,
+                    Value = statistic.Count.ToLocalisableString(@"N0"),
+                    Anchor = Anchor.BottomRight,
+                    Origin = Anchor.BottomRight,
+                });
+            }
         }
     }
 }
