@@ -9,11 +9,13 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
+using osu.Game.Online;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Scoring;
 using osu.Game.Screens.RankingV2.Statistics;
 using osu.Game.Tests.Resources;
+using osu.Game.Users;
 using Realms;
 
 namespace osu.Game.Tests.Visual.RankingV2
@@ -28,6 +30,9 @@ namespace osu.Game.Tests.Visual.RankingV2
 
         [Cached(typeof(IBindable<IScoreInfo>))]
         private Bindable<IScoreInfo> score { get; set; } = new Bindable<IScoreInfo>();
+
+        [Cached(typeof(IBindable<ScoreBasedUserStatisticsUpdate>))]
+        private Bindable<ScoreBasedUserStatisticsUpdate> statisticsUpdate = new Bindable<ScoreBasedUserStatisticsUpdate>();
 
         [Cached]
         private OverlayColourProvider colours { get; set; } = new OverlayColourProvider(OverlayColourScheme.Blue);
@@ -54,6 +59,42 @@ namespace osu.Game.Tests.Visual.RankingV2
             {
                 var s = TestResources.CreateTestScoreInfo(Beatmap.Value.BeatmapInfo);
                 score.Value = s;
+                statisticsUpdate.Value = new ScoreBasedUserStatisticsUpdate(s,
+                    new UserStatistics
+                    {
+                        Level = new UserStatistics.LevelInfo
+                        {
+                            Current = 5,
+                            Progress = 20,
+                        },
+                        GlobalRank = 38000,
+                        CountryRank = 12006,
+                        PP = 2134,
+                        RankedScore = 21123849,
+                        Accuracy = 0.985,
+                        PlayCount = 13375,
+                        PlayTime = 354490,
+                        TotalScore = 128749597,
+                        TotalHits = 0,
+                        MaxCombo = 1233,
+                    }, new UserStatistics
+                    {
+                        Level = new UserStatistics.LevelInfo
+                        {
+                            Current = 5,
+                            Progress = 30,
+                        },
+                        GlobalRank = 36000,
+                        CountryRank = 12000,
+                        PP = (decimal)2134.5,
+                        RankedScore = 23897015,
+                        Accuracy = 0.984,
+                        PlayCount = 13376,
+                        PlayTime = 35789,
+                        TotalScore = 132218497,
+                        TotalHits = 0,
+                        MaxCombo = 1233,
+                    });
             });
             AddStep("create content", () => Child = new Container
             {
