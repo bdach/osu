@@ -28,6 +28,7 @@ namespace osu.Game.Screens.RankingV2.Statistics
                     [
                         new BeatmapInfoPanel(),
                         new UserInfoPanel(),
+                        new ScoreInfoPanel(),
                     ]
                 }
             ];
