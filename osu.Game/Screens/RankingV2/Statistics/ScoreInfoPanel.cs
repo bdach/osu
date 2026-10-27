@@ -213,6 +213,7 @@ namespace osu.Game.Screens.RankingV2.Statistics
                                                 [
                                                     new GlobalStatisticsUpdatePanel(),
                                                     new TimingStatisticsPanel(),
+                                                    new PerformanceBreakdownPanel(),
                                                 ]
                                             },
                                             rightDetails = new FillFlowContainer
