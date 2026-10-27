@@ -7,16 +7,14 @@ using osu.Framework.Bindables;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Localisation;
 using osu.Game.Online;
 using osu.Game.Resources.Localisation.Web;
-using osu.Game.Screens.Ranking.Statistics;
 using osu.Game.Utils;
 
 namespace osu.Game.Screens.RankingV2.Statistics
 {
-    public partial class GlobalStatisticsUpdatePanel : CompositeDrawable
+    public partial class GlobalStatisticsUpdatePanel : StatisticItemPanel
     {
         private StatisticValue globalRank = null!;
         private StatisticValue pp = null!;
@@ -28,50 +26,33 @@ namespace osu.Game.Screens.RankingV2.Statistics
         [Resolved]
         private IBindable<ScoreBasedUserStatisticsUpdate?> statisticsUpdate { get; set; } = null!;
 
+        public GlobalStatisticsUpdatePanel()
+            : base("Overall Ranking")
+        {
+        }
+
         [BackgroundDependencyLoader]
         private void load()
         {
-            RelativeSizeAxes = Axes.X;
-            AutoSizeAxes = Axes.Y;
-
-            Masking = true;
-            CornerRadius = 5;
-
-            InternalChildren =
+            Children =
             [
-                new Box
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Colour = Colour4.Black,
-                    Alpha = 0.6f,
-                },
                 new GridContainer
                 {
                     RelativeSizeAxes = Axes.X,
                     AutoSizeAxes = Axes.Y,
-                    Padding = new MarginPadding(10),
                     ColumnDimensions =
                     [
-                        new Dimension(GridSizeMode.AutoSize),
-                        new Dimension(GridSizeMode.AutoSize),
+                        new Dimension(),
+                        new Dimension(),
                     ],
                     RowDimensions =
                     [
                         new Dimension(GridSizeMode.AutoSize),
                         new Dimension(GridSizeMode.AutoSize),
                         new Dimension(GridSizeMode.AutoSize),
-                        new Dimension(GridSizeMode.AutoSize),
                     ],
                     Content = new[]
                     {
-                        new[]
-                        {
-                            new StatisticItemHeader
-                            {
-                                Text = "Overall Ranking"
-                            },
-                            Empty(),
-                        },
                         new Drawable[]
                         {
                             globalRank = new StatisticValue
