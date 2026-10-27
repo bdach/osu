@@ -15,6 +15,7 @@ using osu.Game.Rulesets;
 using osu.Game.Scoring;
 using osu.Game.Screens.RankingV2.Statistics;
 using osu.Game.Tests.Resources;
+using osu.Game.Tests.Visual.Ranking;
 using osu.Game.Users;
 using Realms;
 
@@ -58,6 +59,7 @@ namespace osu.Game.Tests.Visual.RankingV2
             AddStep("set score", () =>
             {
                 var s = TestResources.CreateTestScoreInfo(Beatmap.Value.BeatmapInfo);
+                s.HitEvents = TestSceneStatisticsPanel.CreatePositionDistributedHitEvents();
                 score.Value = s;
                 statisticsUpdate.Value = new ScoreBasedUserStatisticsUpdate(s,
                     new UserStatistics
