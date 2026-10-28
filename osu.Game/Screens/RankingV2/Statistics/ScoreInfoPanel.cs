@@ -11,12 +11,14 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Game.Beatmaps;
+using osu.Game.Configuration;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.Leaderboards;
 using osu.Game.Overlays;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
+using osu.Game.Scoring.Legacy;
 using osu.Game.Screens.Play.HUD;
 using osu.Game.Screens.RankingV2.Argon;
 using osu.Game.Skinning;
@@ -47,8 +49,10 @@ namespace osu.Game.Screens.RankingV2.Statistics
         [Resolved]
         private OsuColour colours { get; set; } = null!;
 
+        private readonly Bindable<ScoringMode> scoringMode = new Bindable<ScoringMode>();
+
         [BackgroundDependencyLoader]
-        private void load(OverlayColourProvider colourProvider, OsuColour colours)
+        private void load(OverlayColourProvider colourProvider, OsuColour colours, OsuConfigManager configManager)
         {
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
@@ -233,19 +237,22 @@ namespace osu.Game.Screens.RankingV2.Statistics
                     ],
                 },
             ];
+
+            configManager.BindWith(OsuSetting.ScoreDisplayMode, scoringMode);
         }
 
         protected override void LoadComplete()
         {
             base.LoadComplete();
 
+            scoringMode.BindValueChanged(_ => updateTotalScore());
             score.BindValueChanged(_ => updateState(), true);
         }
 
         private void updateState()
         {
             rankSprite.Texture = skins.DefaultClassicSkin.GetTexture(DrawableRank.GetLegacyRankTextureName(score.Value.Rank));
-            totalScoreText.Text = score.Value.TotalScore.ToString(@"N0"); // TODO make classic scoring work
+            updateTotalScore();
 
             var rulesetInstance = score.Value.Ruleset.CreateInstance();
             var scoreMultiplierCalculator = rulesetInstance.CreateScoreMultiplierCalculator(new ScoreMultiplierContext(score.Value.Beatmap!.Difficulty));
@@ -275,6 +282,11 @@ namespace osu.Game.Screens.RankingV2.Statistics
             leftDetails.AddRange(rulesetContent.LeftColumn.Invoke());
             rightDetails.Clear();
             rightDetails.AddRange(rulesetContent.RightColumn.Invoke());
+        }
+
+        private void updateTotalScore()
+        {
+            totalScoreText.Text = score.Value.GetDisplayScore(scoringMode.Value).ToLocalisableString(@"N0");
         }
     }
 }

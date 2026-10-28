@@ -64,7 +64,7 @@ namespace osu.Game.Screens.Ranking.Statistics
                     ColumnDimensions = new[]
                     {
                         new Dimension(),
-                        new Dimension(GridSizeMode.Absolute, 50),
+                        new Dimension(GridSizeMode.Absolute, 20),
                         new Dimension()
                     },
                     Content = new[]

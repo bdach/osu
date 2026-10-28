@@ -41,6 +41,7 @@ using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
 using osu.Game.Screens.Edit.Setup;
 using osu.Game.Screens.Ranking.Statistics;
+using osu.Game.Screens.RankingV2.Statistics;
 using osu.Game.Skinning;
 using osuTK;
 
@@ -446,6 +447,33 @@ namespace osu.Game.Rulesets.Mania
                 }
             }, true)
         };
+
+        public override RulesetScoreStatistics CreateStatisticsForResults(IScoreInfo score, IBeatmap playableBeatmap)
+        {
+            return new RulesetScoreStatistics(
+                LeftColumn: () =>
+                [
+                    new TimingStatisticsPanel(),
+                    new PerformanceBreakdownPanel(),
+                ],
+                RightColumn: () =>
+                [
+                    new StatisticItemPanel("Timing Distribution")
+                    {
+                        Child = new HitEventTimingDistributionGraph((score as IScoreWithReplayData)?.HitEvents ?? [])
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Height = 200,
+                        },
+                        Padding = new MarginPadding
+                        {
+                            Left = 5,
+                            Bottom = 10,
+                        }
+                    },
+                    new HealthGraphPanel((IScoreWithReplayData)score),
+                ]);
+        }
 
         /// <seealso cref="ManiaHitWindows"/>
         public override BeatmapDifficulty GetAdjustedDisplayDifficulty(IBeatmapInfo beatmapInfo, IReadOnlyCollection<Mod> mods)
