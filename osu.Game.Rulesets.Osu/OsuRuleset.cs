@@ -44,6 +44,7 @@ using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
 using osu.Game.Screens.Edit.Setup;
 using osu.Game.Screens.Ranking.Statistics;
+using osu.Game.Screens.RankingV2.Statistics;
 using osu.Game.Skinning;
 using osu.Game.Utils;
 using osuTK;
@@ -382,6 +383,37 @@ namespace osu.Game.Rulesets.Osu
                     Height = 150 + 15 + StatisticItem.FONT_SIZE * 2,
                 }, requiresHitEvents: true, fullWidth: false),
             };
+        }
+
+        public override RulesetScoreStatistics CreateStatisticsForResults(IScoreInfo score, IBeatmap playableBeatmap)
+        {
+            return new RulesetScoreStatistics(
+                LeftColumn: () =>
+                [
+                    new TimingStatisticsPanel(),
+                    new PerformanceBreakdownPanel(),
+                ],
+                RightColumn: () =>
+                [
+                    new StatisticItemPanel("Accuracy Heatmap")
+                    {
+                        Child = new AccuracyHeatmap((ScoreInfo)score, playableBeatmap)
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Height = 200,
+                        },
+                        Width = 0.49f,
+                    },
+                    new StatisticItemPanel("Timing Distribution")
+                    {
+                        Child = new HitEventTimingDistributionGraph((score as IScoreWithReplayData)?.HitEvents ?? [])
+                        {
+                            RelativeSizeAxes = Axes.X,
+                            Height = 200,
+                        },
+                        Width = 0.49f,
+                    },
+                ]);
         }
 
         public override IEnumerable<Drawable> CreateEditorSetupSections() =>

@@ -10,6 +10,7 @@ using osu.Framework.Graphics.Colour;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
+using osu.Game.Beatmaps;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Online.Leaderboards;
@@ -33,6 +34,9 @@ namespace osu.Game.Screens.RankingV2.Statistics
         private FillFlowContainer hitStatisticsFlow = null!;
         private FillFlowContainer leftDetails = null!;
         private FillFlowContainer rightDetails = null!;
+
+        [Resolved]
+        private IBindable<WorkingBeatmap> beatmap { get; set; } = null!;
 
         [Resolved]
         private IBindable<IScoreInfo> score { get; set; } = null!;
@@ -194,14 +198,14 @@ namespace osu.Game.Screens.RankingV2.Statistics
                                     AutoSizeAxes = Axes.Y,
                                     ColumnDimensions =
                                     [
-                                        new Dimension(GridSizeMode.Absolute, 350),
+                                        new Dimension(GridSizeMode.Absolute, 300),
                                         new Dimension(GridSizeMode.Absolute, 10),
                                         new Dimension(),
                                     ],
                                     RowDimensions = [new Dimension(GridSizeMode.AutoSize)],
                                     Content = new[]
                                     {
-                                        new Drawable[]
+                                        new[]
                                         {
                                             leftDetails = new FillFlowContainer
                                             {
@@ -212,10 +216,9 @@ namespace osu.Game.Screens.RankingV2.Statistics
                                                 Children =
                                                 [
                                                     new GlobalStatisticsUpdatePanel(),
-                                                    new TimingStatisticsPanel(),
-                                                    new PerformanceBreakdownPanel(),
                                                 ]
                                             },
+                                            Empty(),
                                             rightDetails = new FillFlowContainer
                                             {
                                                 RelativeSizeAxes = Axes.X,
@@ -265,6 +268,14 @@ namespace osu.Game.Screens.RankingV2.Statistics
                     Origin = Anchor.BottomRight,
                 });
             }
+
+            var playableBeatmap = beatmap.Value.GetPlayableBeatmap(score.Value.Ruleset, mods);
+            var rulesetContent = rulesetInstance.CreateStatisticsForResults(score.Value, playableBeatmap);
+
+            leftDetails.RemoveAll(r => r is not GlobalStatisticsUpdatePanel, true);
+            leftDetails.AddRange(rulesetContent.LeftColumn.Invoke());
+            rightDetails.Clear();
+            rightDetails.AddRange(rulesetContent.RightColumn.Invoke());
         }
     }
 }
