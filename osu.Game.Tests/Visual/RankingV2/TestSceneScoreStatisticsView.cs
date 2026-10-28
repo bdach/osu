@@ -1,17 +1,21 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
+using osu.Framework.Utils;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
+using osu.Game.Graphics.Containers;
 using osu.Game.Online;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
+using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Screens.RankingV2.Statistics;
 using osu.Game.Tests.Resources;
@@ -60,6 +64,14 @@ namespace osu.Game.Tests.Visual.RankingV2
             {
                 var s = TestResources.CreateTestScoreInfo(Beatmap.Value.BeatmapInfo);
                 s.HitEvents = TestSceneStatisticsPanel.CreatePositionDistributedHitEvents();
+
+                var graph = new List<HealthValue>();
+
+                for (int i = 0; i < 300; ++i)
+                    graph.Add(new HealthValue(1500 * i, RNG.NextDouble()));
+
+                s.HealthGraph = graph;
+
                 score.Value = s;
                 statisticsUpdate.Value = new ScoreBasedUserStatisticsUpdate(s,
                     new UserStatistics
@@ -98,7 +110,7 @@ namespace osu.Game.Tests.Visual.RankingV2
                         MaxCombo = 1233,
                     });
             });
-            AddStep("create content", () => Child = new Container
+            AddStep("create content", () => Child = new OsuScrollContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Padding = new MarginPadding

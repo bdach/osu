@@ -223,7 +223,6 @@ namespace osu.Game.Screens.RankingV2.Statistics
                                             {
                                                 RelativeSizeAxes = Axes.X,
                                                 AutoSizeAxes = Axes.Y,
-                                                Spacing = new Vector2(10),
                                                 Direction = FillDirection.Full,
                                             },
                                         },

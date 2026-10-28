@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Testing;
-using osu.Framework.Utils;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Scoring;
@@ -55,7 +54,7 @@ namespace osu.Game.Tests.Visual.RankingV2
             var graph = new List<HealthValue>();
 
             for (int i = 0; i < healthPoints; ++i)
-                graph.Add(new HealthValue(1500 * i, RNG.NextDouble()));
+                graph.Add(new HealthValue(1500 * i, 1));
 
             var score = new ScoreInfo
             {

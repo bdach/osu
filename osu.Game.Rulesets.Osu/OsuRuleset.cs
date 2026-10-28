@@ -402,7 +402,12 @@ namespace osu.Game.Rulesets.Osu
                             RelativeSizeAxes = Axes.X,
                             Height = 200,
                         },
-                        Width = 0.49f,
+                        Width = 0.5f,
+                        Padding = new MarginPadding
+                        {
+                            Right = 5,
+                            Bottom = 10,
+                        }
                     },
                     new StatisticItemPanel("Timing Distribution")
                     {
@@ -411,8 +416,14 @@ namespace osu.Game.Rulesets.Osu
                             RelativeSizeAxes = Axes.X,
                             Height = 200,
                         },
-                        Width = 0.49f,
+                        Width = 0.5f,
+                        Padding = new MarginPadding
+                        {
+                            Left = 5,
+                            Bottom = 10,
+                        }
                     },
+                    new HealthGraphPanel((IScoreWithReplayData)score),
                 ]);
         }
 
