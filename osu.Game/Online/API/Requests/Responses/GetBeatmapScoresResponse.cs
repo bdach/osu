@@ -8,13 +8,13 @@ using Newtonsoft.Json;
 
 namespace osu.Game.Online.API.Requests.Responses
 {
-    public class APIScoresCollection
+    public class GetBeatmapScoresResponse
     {
         [JsonProperty(@"score_count")]
         public int ScoresCount;
 
         [JsonProperty(@"scores")]
-        public List<SoloScoreInfo> Scores;
+        public List<APIBeatmapScore> Scores;
 
         [JsonProperty(@"user_score")]
         public APIScoreWithPosition UserScore;

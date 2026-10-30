@@ -50,6 +50,7 @@ namespace osu.Game.Scoring
 
         /// <summary>
         /// The date on which this score was set.
+        /// Understood to be the end date of the score.
         /// </summary>
         DateTimeOffset Date { get; }
 

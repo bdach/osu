@@ -15,7 +15,7 @@ using osu.Game.Screens.Play.Leaderboards;
 
 namespace osu.Game.Online.API.Requests
 {
-    public class GetScoresRequest : APIRequest<APIScoresCollection>, IEquatable<GetScoresRequest>
+    public class GetBeatmapScoresRequest : APIRequest<GetBeatmapScoresResponse>, IEquatable<GetBeatmapScoresRequest>
     {
         public const int DEFAULT_SCORES_PER_REQUEST = 50;
         public const int MAX_SCORES_PER_REQUEST = 100;
@@ -27,7 +27,7 @@ namespace osu.Game.Online.API.Requests
         private readonly IRulesetInfo ruleset;
         private readonly IEnumerable<IMod> mods;
 
-        public GetScoresRequest(IBeatmapInfo beatmapInfo, IRulesetInfo ruleset, BeatmapLeaderboardScope scope = BeatmapLeaderboardScope.Global, IEnumerable<IMod>? mods = null)
+        public GetBeatmapScoresRequest(IBeatmapInfo beatmapInfo, IRulesetInfo ruleset, BeatmapLeaderboardScope scope = BeatmapLeaderboardScope.Global, IEnumerable<IMod>? mods = null)
         {
             if (beatmapInfo.OnlineID <= 0)
                 throw new InvalidOperationException($"Cannot lookup a beatmap's scores without having a populated {nameof(IBeatmapInfo.OnlineID)}.");
@@ -59,7 +59,24 @@ namespace osu.Game.Online.API.Requests
             return req;
         }
 
-        public bool Equals(GetScoresRequest? other)
+        protected override void PostProcess()
+        {
+            base.PostProcess();
+
+            if (Response != null)
+            {
+                foreach (var score in Response.Scores)
+                {
+                    score.Beatmap = beatmapInfo;
+                    score.Ruleset = ruleset;
+                }
+
+                Response.UserScore?.Score.Beatmap = beatmapInfo;
+                Response.UserScore?.Score.Ruleset = ruleset;
+            }
+        }
+
+        public bool Equals(GetBeatmapScoresRequest? other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;

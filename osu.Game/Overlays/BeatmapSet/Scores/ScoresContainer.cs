@@ -49,11 +49,11 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
         [Resolved]
         private RulesetStore rulesets { get; set; }
 
-        private GetScoresRequest getScoresRequest;
+        private GetBeatmapScoresRequest getBeatmapScoresRequest;
 
         private CancellationTokenSource loadCancellationSource;
 
-        protected APIScoresCollection Scores
+        protected GetBeatmapScoresResponse Scores
         {
             set => Schedule(() =>
             {
@@ -245,8 +245,8 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
 
         private void getScores()
         {
-            getScoresRequest?.Cancel();
-            getScoresRequest = null;
+            getBeatmapScoresRequest?.Cancel();
+            getBeatmapScoresRequest = null;
 
             noScoresPlaceholder.Hide();
             noTeamPlaceholder.Hide();
@@ -276,8 +276,8 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
             Show();
             loading.Show();
 
-            getScoresRequest = new GetScoresRequest(Beatmap.Value, Beatmap.Value.Ruleset, scope.Value, modSelector.SelectedMods);
-            getScoresRequest.Success += scores =>
+            getBeatmapScoresRequest = new GetBeatmapScoresRequest(Beatmap.Value, Beatmap.Value.Ruleset, scope.Value, modSelector.SelectedMods);
+            getBeatmapScoresRequest.Success += scores =>
             {
                 Scores = scores;
 
@@ -285,7 +285,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                     noScoresPlaceholder.ShowWithScope(scope.Value);
             };
 
-            api.Queue(getScoresRequest);
+            api.Queue(getBeatmapScoresRequest);
         }
 
         private bool userIsSupporter => api.IsLoggedIn && api.LocalUser.Value.IsSupporter;

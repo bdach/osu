@@ -225,9 +225,9 @@ namespace osu.Game.Tests.Visual.Online
 
         private ulong onlineID = 1;
 
-        private APIScoresCollection createScores()
+        private GetBeatmapScoresResponse createScores()
         {
-            var scores = new APIScoresCollection
+            var scores = new GetBeatmapScoresResponse
             {
                 Scores = new List<SoloScoreInfo>
                 {
@@ -403,7 +403,7 @@ namespace osu.Game.Tests.Visual.Online
 
         private partial class TestScoresContainer : ScoresContainer
         {
-            public new APIScoresCollection Scores
+            public new GetBeatmapScoresResponse Scores
             {
                 set => base.Scores = value;
             }

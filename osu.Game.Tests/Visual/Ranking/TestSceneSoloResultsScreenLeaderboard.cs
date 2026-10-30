@@ -142,7 +142,7 @@ namespace osu.Game.Tests.Visual.Ranking
             {
                 switch (req)
                 {
-                    case GetScoresRequest getScoresRequest:
+                    case GetBeatmapScoresRequest getScoresRequest:
                         var scores = new List<SoloScoreInfo>();
 
                         for (int i = 0; i < 30; ++i)
@@ -153,7 +153,7 @@ namespace osu.Game.Tests.Visual.Ranking
                             scores.Add(SoloScoreInfo.ForSubmission(score));
                         }
 
-                        getScoresRequest.TriggerSuccess(new APIScoresCollection { Scores = scores });
+                        getScoresRequest.TriggerSuccess(new GetBeatmapScoresResponse { Scores = scores });
                         return true;
                 }
 
@@ -182,7 +182,7 @@ namespace osu.Game.Tests.Visual.Ranking
             {
                 switch (req)
                 {
-                    case GetScoresRequest getScoresRequest:
+                    case GetBeatmapScoresRequest getScoresRequest:
                         var scores = new List<SoloScoreInfo>();
 
                         for (int i = 0; i < 30; ++i)
@@ -196,7 +196,7 @@ namespace osu.Game.Tests.Visual.Ranking
                         scores[^1].ID = 123456;
                         scores[^1].UserID = API.LocalUser.Value.OnlineID;
 
-                        getScoresRequest.TriggerSuccess(new APIScoresCollection
+                        getScoresRequest.TriggerSuccess(new GetBeatmapScoresResponse
                         {
                             Scores = scores,
                             UserScore = new APIScoreWithPosition
@@ -259,8 +259,8 @@ namespace osu.Game.Tests.Visual.Ranking
                 {
                     switch (req)
                     {
-                        case GetScoresRequest getScoresRequest:
-                            getScoresRequest.TriggerSuccess(new APIScoresCollection
+                        case GetBeatmapScoresRequest getScoresRequest:
+                            getScoresRequest.TriggerSuccess(new GetBeatmapScoresResponse
                             {
                                 Scores = soloScores,
                                 UserScore = new APIScoreWithPosition
@@ -291,7 +291,7 @@ namespace osu.Game.Tests.Visual.Ranking
             {
                 switch (req)
                 {
-                    case GetScoresRequest getScoresRequest:
+                    case GetBeatmapScoresRequest getScoresRequest:
                         var scores = new List<SoloScoreInfo>();
 
                         for (int i = 0; i < 30; ++i)
@@ -302,7 +302,7 @@ namespace osu.Game.Tests.Visual.Ranking
                             scores.Add(SoloScoreInfo.ForSubmission(score));
                         }
 
-                        getScoresRequest.TriggerSuccess(new APIScoresCollection { Scores = scores });
+                        getScoresRequest.TriggerSuccess(new GetBeatmapScoresResponse { Scores = scores });
                         return true;
                 }
 
@@ -331,7 +331,7 @@ namespace osu.Game.Tests.Visual.Ranking
             {
                 switch (req)
                 {
-                    case GetScoresRequest getScoresRequest:
+                    case GetBeatmapScoresRequest getScoresRequest:
                         var scores = new List<SoloScoreInfo>();
 
                         for (int i = 0; i < 50; ++i)
@@ -346,7 +346,7 @@ namespace osu.Game.Tests.Visual.Ranking
                         userBest.TotalScore = 50_000;
                         userBest.ID = 123456;
 
-                        getScoresRequest.TriggerSuccess(new APIScoresCollection
+                        getScoresRequest.TriggerSuccess(new GetBeatmapScoresResponse
                         {
                             Scores = scores,
                             UserScore = new APIScoreWithPosition
@@ -385,7 +385,7 @@ namespace osu.Game.Tests.Visual.Ranking
             {
                 switch (req)
                 {
-                    case GetScoresRequest getScoresRequest:
+                    case GetBeatmapScoresRequest getScoresRequest:
                         var scores = new List<SoloScoreInfo>();
 
                         for (int i = 0; i < 50; ++i)
@@ -401,7 +401,7 @@ namespace osu.Game.Tests.Visual.Ranking
                         userBest.ID = 123456;
                         userBest.UserID = API.LocalUser.Value.OnlineID;
 
-                        getScoresRequest.TriggerSuccess(new APIScoresCollection
+                        getScoresRequest.TriggerSuccess(new GetBeatmapScoresResponse
                         {
                             Scores = scores,
                             UserScore = new APIScoreWithPosition
@@ -440,7 +440,7 @@ namespace osu.Game.Tests.Visual.Ranking
             {
                 switch (req)
                 {
-                    case GetScoresRequest getScoresRequest:
+                    case GetBeatmapScoresRequest getScoresRequest:
                         var scores = new List<SoloScoreInfo>();
 
                         for (int i = 0; i < 50; ++i)
@@ -456,7 +456,7 @@ namespace osu.Game.Tests.Visual.Ranking
                         userBest.ID = 123456;
                         userBest.UserID = API.LocalUser.Value.OnlineID;
 
-                        getScoresRequest.TriggerSuccess(new APIScoresCollection
+                        getScoresRequest.TriggerSuccess(new GetBeatmapScoresResponse
                         {
                             Scores = scores,
                             UserScore = new APIScoreWithPosition
@@ -492,7 +492,7 @@ namespace osu.Game.Tests.Visual.Ranking
             {
                 switch (req)
                 {
-                    case GetScoresRequest getScoresRequest:
+                    case GetBeatmapScoresRequest getScoresRequest:
                         var scores = new List<SoloScoreInfo>();
 
                         for (int i = 0; i < 50; ++i)
@@ -507,7 +507,7 @@ namespace osu.Game.Tests.Visual.Ranking
                         userBest.TotalScore = 151_000;
                         userBest.ID = 12345;
 
-                        getScoresRequest.TriggerSuccess(new APIScoresCollection
+                        getScoresRequest.TriggerSuccess(new GetBeatmapScoresResponse
                         {
                             Scores = scores,
                             UserScore = new APIScoreWithPosition

@@ -127,9 +127,9 @@ namespace osu.Game.Tests.Visual.Gameplay
                 {
                     switch (req)
                     {
-                        case GetScoresRequest getScores:
+                        case GetBeatmapScoresRequest getScores:
                             leaderboardRequestsHandled++;
-                            getScores.TriggerSuccess(new APIScoresCollection { Scores = [] });
+                            getScores.TriggerSuccess(new GetBeatmapScoresResponse { Scores = [] });
                             return true;
 
                         case CreateSoloScoreRequest createSoloScoreRequest:
