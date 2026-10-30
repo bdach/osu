@@ -1,8 +1,6 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using System.Collections.Generic;
@@ -23,8 +21,10 @@ using osu.Framework.Localisation;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Sprites;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Utils;
 
 namespace osu.Game.Overlays.BeatmapSet.Scores
 {
@@ -35,7 +35,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
         private const int text_size = 12;
 
         [Resolved]
-        private ScoreManager scoreManager { get; set; }
+        private ScoreManager scoreManager { get; set; } = null!;
 
         private readonly FillFlowContainer backgroundFlow;
 
@@ -65,7 +65,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
 
         private bool showPerformancePoints;
 
-        public void DisplayScores(IReadOnlyList<ScoreInfo> scores, bool showPerformanceColumn)
+        public void DisplayScores(IReadOnlyList<APIBeatmapScore> scores, bool showPerformanceColumn)
         {
             ClearScores();
 
@@ -88,7 +88,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
             backgroundFlow.Clear();
         }
 
-        private TableColumn[] createHeaders(IReadOnlyList<ScoreInfo> scores)
+        private TableColumn[] createHeaders(IReadOnlyList<APIBeatmapScore> scores)
         {
             var columns = new List<TableColumn>
             {
@@ -129,7 +129,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
             return columns.ToArray();
         }
 
-        private Drawable[] createContent(int index, ScoreInfo score)
+        private Drawable[] createContent(int index, APIBeatmapScore score)
         {
             var username = new LinkFlowContainer(t => t.Font = OsuFont.GetFont(size: text_size)) { AutoSizeAxes = Axes.Both };
             username.AddUserLink(score.User);
@@ -154,7 +154,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                 new StatisticText(score.Accuracy, 1, showTooltip: false)
                 {
                     Margin = new MarginPadding { Right = horizontal_inset },
-                    Text = score.DisplayAccuracy,
+                    Text = score.Accuracy.FormatAccuracy(),
                 },
                 new UpdateableFlag(score.User.CountryCode)
                 {
@@ -174,9 +174,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                         username,
                     }
                 },
-#pragma warning disable 618
-                new StatisticText(score.MaxCombo, score.BeatmapInfo!.MaxCombo, @"0\x"),
-#pragma warning restore 618
+                new StatisticText(score.MaxCombo, score.GetMaximumAchievableCombo(), @"0\x"),
             };
 
             var availableStatistics = score.GetStatisticsForDisplay().ToLookup(tuple => tuple.DisplayName);
@@ -226,7 +224,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                     content.Add(new StatisticText(score.PP, format: @"N0"));
             }
 
-            content.Add(new ScoreboardTime(score.Date, text_size)
+            content.Add(new ScoreboardTime(score.EndedAt, text_size)
             {
                 Margin = new MarginPadding { Right = 10 }
             });
@@ -246,7 +244,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
             return content.ToArray();
         }
 
-        protected override Drawable CreateHeader(int index, TableColumn column) => new HeaderText(column?.Header ?? default);
+        protected override Drawable CreateHeader(int index, TableColumn? column) => new HeaderText(column?.Header ?? default);
 
         private partial class HeaderText : OsuSpriteText
         {
@@ -271,7 +269,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
 
             public LocalisableString TooltipText => maxCount == null || !showTooltip ? string.Empty : $"{count}/{maxCount}";
 
-            public StatisticText(double? count, double? maxCount = null, string format = null, bool showTooltip = true)
+            public StatisticText(double? count, double? maxCount = null, string? format = null, bool showTooltip = true)
             {
                 this.count = count;
                 this.maxCount = maxCount;

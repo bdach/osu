@@ -8,7 +8,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using osu.Game.Beatmaps;
 using osu.Game.Rulesets;
-using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Users;
@@ -184,77 +183,6 @@ namespace osu.Game.Online.API.Requests.Responses
         public bool IsLegacyScore => LegacyScoreId != null;
 
         public override string ToString() => $"score_id: {ID} user_id: {UserID}";
-
-        /// <summary>
-        /// Create a <see cref="ScoreInfo"/> from an API score instance.
-        /// </summary>
-        /// <param name="rulesets">A ruleset store, used to populate a ruleset instance in the returned score.</param>
-        /// <param name="beatmap">An optional beatmap, copied into the returned score (for cases where the API does not populate the beatmap).</param>
-        /// <returns></returns>
-        public ScoreInfo ToScoreInfo(RulesetStore rulesets, BeatmapInfo? beatmap = null)
-        {
-            var ruleset = rulesets.GetRuleset(RulesetID) ?? throw new InvalidOperationException($"Ruleset with ID of {RulesetID} not found locally");
-
-            var rulesetInstance = ruleset.CreateInstance();
-
-            var mods = Mods.Select(apiMod => apiMod.ToMod(rulesetInstance)).ToArray();
-
-            var scoreInfo = ToScoreInfo(mods, beatmap);
-            scoreInfo.Ruleset = ruleset;
-
-            return scoreInfo;
-        }
-
-        /// <summary>
-        /// Create a <see cref="ScoreInfo"/> from an API score instance.
-        /// </summary>
-        /// <param name="mods">The mod instances, resolved from a ruleset.</param>
-        /// <param name="beatmap">The object to populate the scores' beatmap with.
-        ///<list type="bullet">
-        /// <item>If this is a <see cref="BeatmapInfo"/> type, then the score will be fully populated with the given object.</item>
-        /// <item>Otherwise, if this is an <see cref="IBeatmapInfo"/> type (e.g. <see cref="APIBeatmap"/>), then only the beatmap ruleset will be populated.</item>
-        /// <item>Otherwise, if this is <c>null</c>, then the beatmap ruleset will not be populated.</item>
-        /// <item>The online beatmap ID is populated in all cases.</item>
-        /// </list>
-        /// </param>
-        /// <returns>The populated <see cref="ScoreInfo"/>.</returns>
-        public ScoreInfo ToScoreInfo(Mod[] mods, IBeatmapInfo? beatmap = null)
-        {
-            var score = new ScoreInfo
-            {
-                OnlineID = OnlineID,
-                LegacyOnlineID = (long?)LegacyScoreId ?? -1,
-                IsLegacyScore = IsLegacyScore,
-                User = User ?? new APIUser { Id = UserID },
-                BeatmapInfo = new BeatmapInfo { OnlineID = BeatmapID },
-                Ruleset = new RulesetInfo { OnlineID = RulesetID },
-                Passed = Passed,
-                TotalScore = TotalScore,
-                TotalScoreWithoutMods = TotalScoreWithoutMods,
-                LegacyTotalScore = LegacyTotalScore,
-                Accuracy = Accuracy,
-                MaxCombo = MaxCombo,
-                Rank = Rank,
-                Statistics = Statistics,
-                MaximumStatistics = MaximumStatistics,
-                Date = EndedAt,
-                HasOnlineReplay = HasReplay,
-                Mods = mods,
-                PP = PP,
-                Ranked = Ranked,
-            };
-
-            if (beatmap is BeatmapInfo realmBeatmap)
-                score.BeatmapInfo = realmBeatmap;
-            else if (beatmap != null)
-            {
-                score.BeatmapInfo.Ruleset.OnlineID = beatmap.Ruleset.OnlineID;
-                score.BeatmapInfo.Ruleset.Name = beatmap.Ruleset.Name;
-                score.BeatmapInfo.Ruleset.ShortName = beatmap.Ruleset.ShortName;
-            }
-
-            return score;
-        }
 
         /// <summary>
         /// Creates a <see cref="SoloScoreInfo"/> from a local score for score submission.

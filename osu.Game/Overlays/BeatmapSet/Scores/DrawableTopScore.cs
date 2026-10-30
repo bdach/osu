@@ -1,15 +1,13 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using osu.Framework.Allocation;
 using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
-using osu.Game.Scoring;
+using osu.Game.Online.API.Requests.Responses;
 using osuTK;
 using osuTK.Graphics;
 
@@ -19,7 +17,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
     {
         private readonly Box background;
 
-        public DrawableTopScore(ScoreInfo score, int? position = 1)
+        public DrawableTopScore(APIBeatmapScore score, int? position = 1)
         {
             RelativeSizeAxes = Axes.X;
             AutoSizeAxes = Axes.Y;
@@ -57,7 +55,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                             RelativeSizeAxes = Axes.X,
                             Content = new[]
                             {
-                                new Drawable[]
+                                new[]
                                 {
                                     new TopScoreUserSection
                                     {
@@ -66,7 +64,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                                         Score = score,
                                         ScorePosition = position,
                                     },
-                                    null,
+                                    Empty(),
                                     new TopScoreStatisticsSection
                                     {
                                         Anchor = Anchor.CentreRight,

@@ -143,14 +143,14 @@ namespace osu.Game.Tests.Visual.Ranking
                 switch (req)
                 {
                     case GetBeatmapScoresRequest getScoresRequest:
-                        var scores = new List<SoloScoreInfo>();
+                        var scores = new List<APIBeatmapScore>();
 
                         for (int i = 0; i < 30; ++i)
                         {
                             var score = TestResources.CreateTestScoreInfo(importedBeatmap);
                             score.TotalScore = 10_000 * (30 - i);
                             score.Position = i + 1;
-                            scores.Add(SoloScoreInfo.ForSubmission(score));
+                            scores.Add(APIBeatmapScore.FromScoreInfo(score));
                         }
 
                         getScoresRequest.TriggerSuccess(new GetBeatmapScoresResponse { Scores = scores });
@@ -183,14 +183,14 @@ namespace osu.Game.Tests.Visual.Ranking
                 switch (req)
                 {
                     case GetBeatmapScoresRequest getScoresRequest:
-                        var scores = new List<SoloScoreInfo>();
+                        var scores = new List<APIBeatmapScore>();
 
                         for (int i = 0; i < 30; ++i)
                         {
                             var score = TestResources.CreateTestScoreInfo(importedBeatmap);
                             score.TotalScore = 10_000 * (30 - i);
                             score.Position = i + 1;
-                            scores.Add(SoloScoreInfo.ForSubmission(score));
+                            scores.Add(APIBeatmapScore.FromScoreInfo(score));
                         }
 
                         scores[^1].ID = 123456;
@@ -228,7 +228,7 @@ namespace osu.Game.Tests.Visual.Ranking
         public void TestOnlineLeaderboardWithLessThan50Scores_ShowingAnotherUserScore()
         {
             var scores = new List<ScoreInfo>();
-            var soloScores = new List<SoloScoreInfo>();
+            var apiScores = new List<APIBeatmapScore>();
 
             AddStep("set leaderboard to global", () => leaderboardManager.FetchWithCriteria(new LeaderboardCriteria(importedBeatmap, importedBeatmap.Ruleset, BeatmapLeaderboardScope.Global, null)));
             AddStep("set up request handling", () =>
@@ -247,13 +247,13 @@ namespace osu.Game.Tests.Visual.Ranking
                     score.OnlineID = i;
                     scores.Add(score);
 
-                    var soloScore = SoloScoreInfo.ForSubmission(score);
-                    soloScore.ID = (ulong)i;
-                    soloScores.Add(soloScore);
+                    var apiScore = APIBeatmapScore.FromScoreInfo(score);
+                    apiScore.ID = i;
+                    apiScores.Add(apiScore);
                 }
 
                 scores[^1].User = API.LocalUser.Value;
-                soloScores[^1].UserID = API.LocalUser.Value.OnlineID;
+                apiScores[^1].UserID = API.LocalUser.Value.OnlineID;
 
                 dummyAPI.HandleRequest = req =>
                 {
@@ -262,10 +262,10 @@ namespace osu.Game.Tests.Visual.Ranking
                         case GetBeatmapScoresRequest getScoresRequest:
                             getScoresRequest.TriggerSuccess(new GetBeatmapScoresResponse
                             {
-                                Scores = soloScores,
+                                Scores = apiScores,
                                 UserScore = new APIScoreWithPosition
                                 {
-                                    Score = soloScores[^1],
+                                    Score = apiScores[^1],
                                     Position = 30
                                 }
                             });
@@ -292,14 +292,14 @@ namespace osu.Game.Tests.Visual.Ranking
                 switch (req)
                 {
                     case GetBeatmapScoresRequest getScoresRequest:
-                        var scores = new List<SoloScoreInfo>();
+                        var scores = new List<APIBeatmapScore>();
 
                         for (int i = 0; i < 30; ++i)
                         {
                             var score = TestResources.CreateTestScoreInfo(importedBeatmap);
                             score.TotalScore = 300_000 + 10_000 * (30 - i);
                             score.Position = i + 1;
-                            scores.Add(SoloScoreInfo.ForSubmission(score));
+                            scores.Add(APIBeatmapScore.FromScoreInfo(score));
                         }
 
                         getScoresRequest.TriggerSuccess(new GetBeatmapScoresResponse { Scores = scores });
@@ -332,17 +332,17 @@ namespace osu.Game.Tests.Visual.Ranking
                 switch (req)
                 {
                     case GetBeatmapScoresRequest getScoresRequest:
-                        var scores = new List<SoloScoreInfo>();
+                        var scores = new List<APIBeatmapScore>();
 
                         for (int i = 0; i < 50; ++i)
                         {
                             var score = TestResources.CreateTestScoreInfo(importedBeatmap);
                             score.TotalScore = 500_000 + 10_000 * (50 - i);
                             score.Position = i + 1;
-                            scores.Add(SoloScoreInfo.ForSubmission(score));
+                            scores.Add(APIBeatmapScore.FromScoreInfo(score));
                         }
 
-                        var userBest = SoloScoreInfo.ForSubmission(TestResources.CreateTestScoreInfo(importedBeatmap));
+                        var userBest = APIBeatmapScore.FromScoreInfo(TestResources.CreateTestScoreInfo(importedBeatmap));
                         userBest.TotalScore = 50_000;
                         userBest.ID = 123456;
 
@@ -386,17 +386,17 @@ namespace osu.Game.Tests.Visual.Ranking
                 switch (req)
                 {
                     case GetBeatmapScoresRequest getScoresRequest:
-                        var scores = new List<SoloScoreInfo>();
+                        var scores = new List<APIBeatmapScore>();
 
                         for (int i = 0; i < 50; ++i)
                         {
                             var score = TestResources.CreateTestScoreInfo(importedBeatmap);
                             score.TotalScore = 500_000 + 10_000 * (50 - i);
                             score.Position = i + 1;
-                            scores.Add(SoloScoreInfo.ForSubmission(score));
+                            scores.Add(APIBeatmapScore.FromScoreInfo(score));
                         }
 
-                        var userBest = SoloScoreInfo.ForSubmission(TestResources.CreateTestScoreInfo(importedBeatmap));
+                        var userBest = APIBeatmapScore.FromScoreInfo(TestResources.CreateTestScoreInfo(importedBeatmap));
                         userBest.TotalScore = 50_000;
                         userBest.ID = 123456;
                         userBest.UserID = API.LocalUser.Value.OnlineID;
@@ -441,17 +441,17 @@ namespace osu.Game.Tests.Visual.Ranking
                 switch (req)
                 {
                     case GetBeatmapScoresRequest getScoresRequest:
-                        var scores = new List<SoloScoreInfo>();
+                        var scores = new List<APIBeatmapScore>();
 
                         for (int i = 0; i < 50; ++i)
                         {
                             var score = TestResources.CreateTestScoreInfo(importedBeatmap);
                             score.TotalScore = 500_000 + 10_000 * (50 - i);
                             score.Position = i + 1;
-                            scores.Add(SoloScoreInfo.ForSubmission(score));
+                            scores.Add(APIBeatmapScore.FromScoreInfo(score));
                         }
 
-                        var userBest = SoloScoreInfo.ForSubmission(TestResources.CreateTestScoreInfo(importedBeatmap));
+                        var userBest = APIBeatmapScore.FromScoreInfo(TestResources.CreateTestScoreInfo(importedBeatmap));
                         userBest.TotalScore = 50_000;
                         userBest.ID = 123456;
                         userBest.UserID = API.LocalUser.Value.OnlineID;
@@ -493,17 +493,17 @@ namespace osu.Game.Tests.Visual.Ranking
                 switch (req)
                 {
                     case GetBeatmapScoresRequest getScoresRequest:
-                        var scores = new List<SoloScoreInfo>();
+                        var scores = new List<APIBeatmapScore>();
 
                         for (int i = 0; i < 50; ++i)
                         {
                             var score = TestResources.CreateTestScoreInfo(importedBeatmap);
                             score.TotalScore = 500_000 + 10_000 * (50 - i);
                             score.Position = i + 1;
-                            scores.Add(SoloScoreInfo.ForSubmission(score));
+                            scores.Add(APIBeatmapScore.FromScoreInfo(score));
                         }
 
-                        var userBest = SoloScoreInfo.ForSubmission(TestResources.CreateTestScoreInfo(importedBeatmap));
+                        var userBest = APIBeatmapScore.FromScoreInfo(TestResources.CreateTestScoreInfo(importedBeatmap));
                         userBest.TotalScore = 151_000;
                         userBest.ID = 12345;
 

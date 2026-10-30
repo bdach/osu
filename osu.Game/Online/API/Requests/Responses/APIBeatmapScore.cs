@@ -3,11 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Rulesets;
+using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Users;
@@ -115,15 +117,118 @@ namespace osu.Game.Online.API.Requests.Responses
 
         #endregion
 
+        #region Convenience properties
+
+        public IEnumerable<Mod> Mods
+        {
+            get
+            {
+                var rulesetInstance = Ruleset.CreateInstance();
+                return APIMods.Select(m => m.ToMod(rulesetInstance));
+            }
+        }
+
+        #endregion
+
         #region IScoreInfo
 
         DateTimeOffset IScoreInfo.Date => EndedAt;
         long IHasOnlineID<long>.OnlineID => ID;
         long IScoreInfo.LegacyOnlineID => LegacyScoreID ?? -1;
         IReadOnlyDictionary<HitResult, int> IScoreInfo.MaximumStatistics => MaximumStatistics;
-        IEnumerable<IConfiguredMod> IScoreInfo.Mods => Mods;
+        IEnumerable<IConfiguredMod> IScoreInfo.Mods => APIMods;
         IReadOnlyDictionary<HitResult, int> IScoreInfo.Statistics => Statistics;
         IUser IScoreInfo.User => User;
+
+        #endregion
+
+        #region temporary passthroughs, remove when `LeaderboardManager` is weaned off `ScoreInfo`
+
+        /// <summary>
+        /// Create a <see cref="ScoreInfo"/> from an API score instance.
+        /// </summary>
+        /// <param name="rulesets">A ruleset store, used to populate a ruleset instance in the returned score.</param>
+        /// <param name="beatmap">An optional beatmap, copied into the returned score (for cases where the API does not populate the beatmap).</param>
+        /// <returns></returns>
+        public ScoreInfo ToScoreInfo(RulesetStore rulesets, BeatmapInfo? beatmap = null)
+        {
+            var ruleset = rulesets.GetRuleset(RulesetID) ?? throw new InvalidOperationException($"Ruleset with ID of {RulesetID} not found locally");
+
+            var rulesetInstance = ruleset.CreateInstance();
+
+            var mods = Mods.Select(apiMod => apiMod.ToMod(rulesetInstance)).ToArray();
+
+            var scoreInfo = ToScoreInfo(mods, beatmap);
+            scoreInfo.Ruleset = ruleset;
+
+            return scoreInfo;
+        }
+
+        /// <summary>
+        /// Create a <see cref="ScoreInfo"/> from an API score instance.
+        /// </summary>
+        /// <param name="mods">The mod instances, resolved from a ruleset.</param>
+        /// <param name="beatmap">The object to populate the scores' beatmap with.
+        /// <list type="bullet">
+        /// <item>If this is a <see cref="BeatmapInfo"/> type, then the score will be fully populated with the given object.</item>
+        /// <item>Otherwise, if this is an <see cref="IBeatmapInfo"/> type (e.g. <see cref="APIBeatmap"/>), then only the beatmap ruleset will be populated.</item>
+        /// <item>Otherwise, if this is <c>null</c>, then the beatmap ruleset will not be populated.</item>
+        /// <item>The online beatmap ID is populated in all cases.</item>
+        /// </list>
+        /// </param>
+        /// <returns>The populated <see cref="ScoreInfo"/>.</returns>
+        public ScoreInfo ToScoreInfo(Mod[] mods, IBeatmapInfo? beatmap = null)
+        {
+            var score = new ScoreInfo
+            {
+                OnlineID = ID,
+                LegacyOnlineID = LegacyScoreID ?? -1,
+                IsLegacyScore = LegacyScoreID != null,
+                User = User,
+                BeatmapInfo = new BeatmapInfo { OnlineID = BeatmapID },
+                Ruleset = new RulesetInfo { OnlineID = RulesetID },
+                Passed = Passed,
+                TotalScore = TotalScore,
+                TotalScoreWithoutMods = TotalScoreWithoutMods ?? 0,
+                LegacyTotalScore = LegacyTotalScore,
+                Accuracy = Accuracy,
+                MaxCombo = MaxCombo,
+                Rank = Rank,
+                Statistics = Statistics,
+                MaximumStatistics = MaximumStatistics,
+                Date = EndedAt,
+                HasOnlineReplay = HasReplay,
+                Mods = mods,
+                PP = PP,
+                Ranked = Ranked,
+            };
+
+            if (beatmap is BeatmapInfo realmBeatmap)
+                score.BeatmapInfo = realmBeatmap;
+            else if (beatmap != null)
+            {
+                score.BeatmapInfo.Ruleset.OnlineID = beatmap.Ruleset.OnlineID;
+                score.BeatmapInfo.Ruleset.Name = beatmap.Ruleset.Name;
+                score.BeatmapInfo.Ruleset.ShortName = beatmap.Ruleset.ShortName;
+            }
+
+            return score;
+        }
+
+        public static APIBeatmapScore FromScoreInfo(ScoreInfo score) => new APIBeatmapScore
+        {
+            Rank = score.Rank,
+            TotalScore = score.TotalScore,
+            TotalScoreWithoutMods = score.TotalScoreWithoutMods,
+            Accuracy = score.Accuracy,
+            PP = score.PP,
+            MaxCombo = score.MaxCombo,
+            RulesetID = score.RulesetID,
+            Passed = score.Passed,
+            APIMods = score.APIMods,
+            Statistics = score.Statistics.Where(kvp => kvp.Value != 0).ToDictionary(),
+            MaximumStatistics = score.MaximumStatistics.Where(kvp => kvp.Value != 0).ToDictionary(),
+        };
 
         #endregion
     }

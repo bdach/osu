@@ -134,6 +134,9 @@ namespace osu.Game.Online.Leaderboards
                         if (inFlightOnlineRequest != null && !newRequest.Equals(inFlightOnlineRequest))
                             return;
 
+                        var userScore = response.UserScore?.Score.ToScoreInfo(rulesets, newCriteria.Beatmap);
+                        userScore?.Position = response.UserScore?.Position;
+
                         var result = LeaderboardScores.Success
                         (
                             response.Scores.Select(s => s.ToScoreInfo(rulesets, newCriteria.Beatmap))
@@ -146,7 +149,7 @@ namespace osu.Game.Online.Leaderboards
                                     .ToArray(),
                             scoresRequested: newRequest.ScoresRequested,
                             totalScores: response.ScoresCount,
-                            response.UserScore?.CreateScoreInfo(rulesets, newCriteria.Beatmap)
+                            userScore
                         );
                         inFlightOnlineRequest = null;
                         scores.Value = result;

@@ -19,6 +19,7 @@ using osu.Game.Online.API;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Overlays.BeatmapSet.Scores;
+using osu.Game.Rulesets.Osu;
 using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
@@ -223,15 +224,16 @@ namespace osu.Game.Tests.Visual.Online
             });
         }
 
-        private ulong onlineID = 1;
+        private long onlineID = 1;
 
         private GetBeatmapScoresResponse createScores()
         {
+            var ruleset = new OsuRuleset().RulesetInfo;
             var scores = new GetBeatmapScoresResponse
             {
-                Scores = new List<SoloScoreInfo>
+                Scores = new List<APIBeatmapScore>
                 {
-                    new SoloScoreInfo
+                    new APIBeatmapScore
                     {
                         EndedAt = DateTimeOffset.Now,
                         ID = onlineID++,
@@ -241,7 +243,7 @@ namespace osu.Game.Tests.Visual.Online
                             Username = @"waaiiru",
                             CountryCode = CountryCode.ES,
                         },
-                        Mods = new[]
+                        APIMods = new[]
                         {
                             new APIMod { Acronym = new OsuModDoubleTime().Acronym },
                             new APIMod { Acronym = new OsuModHidden().Acronym },
@@ -254,8 +256,10 @@ namespace osu.Game.Tests.Visual.Online
                         TotalScore = 1234567890,
                         Accuracy = 1,
                         Ranked = true,
+                        Beatmap = scoresContainer.Beatmap.Value,
+                        Ruleset = ruleset,
                     },
-                    new SoloScoreInfo
+                    new APIBeatmapScore
                     {
                         EndedAt = DateTimeOffset.Now,
                         ID = onlineID++,
@@ -265,7 +269,7 @@ namespace osu.Game.Tests.Visual.Online
                             Username = @"Skycries",
                             CountryCode = CountryCode.BR,
                         },
-                        Mods = new[]
+                        APIMods = new[]
                         {
                             new APIMod { Acronym = new OsuModDoubleTime().Acronym },
                             new APIMod { Acronym = new OsuModHidden().Acronym },
@@ -277,8 +281,10 @@ namespace osu.Game.Tests.Visual.Online
                         TotalScore = 1234789,
                         Accuracy = 0.9997,
                         Ranked = true,
+                        Beatmap = scoresContainer.Beatmap.Value,
+                        Ruleset = ruleset,
                     },
-                    new SoloScoreInfo
+                    new APIBeatmapScore
                     {
                         EndedAt = DateTimeOffset.Now,
                         ID = onlineID++,
@@ -288,7 +294,7 @@ namespace osu.Game.Tests.Visual.Online
                             Username = @"eLy",
                             CountryCode = CountryCode.JP,
                         },
-                        Mods = new[]
+                        APIMods = new[]
                         {
                             new APIMod { Acronym = new OsuModDoubleTime().Acronym },
                             new APIMod { Acronym = new OsuModHidden().Acronym },
@@ -299,8 +305,10 @@ namespace osu.Game.Tests.Visual.Online
                         TotalScore = 12345678,
                         Accuracy = 0.9854,
                         Ranked = true,
+                        Beatmap = scoresContainer.Beatmap.Value,
+                        Ruleset = ruleset,
                     },
-                    new SoloScoreInfo
+                    new APIBeatmapScore
                     {
                         EndedAt = DateTimeOffset.Now,
                         ID = onlineID++,
@@ -310,7 +318,7 @@ namespace osu.Game.Tests.Visual.Online
                             Username = @"Toukai",
                             CountryCode = CountryCode.CA,
                         },
-                        Mods = new[]
+                        APIMods = new[]
                         {
                             new APIMod { Acronym = new OsuModDoubleTime().Acronym },
                         },
@@ -320,8 +328,10 @@ namespace osu.Game.Tests.Visual.Online
                         TotalScore = 1234567,
                         Accuracy = 0.8765,
                         Ranked = true,
+                        Beatmap = scoresContainer.Beatmap.Value,
+                        Ruleset = ruleset,
                     },
-                    new SoloScoreInfo
+                    new APIBeatmapScore
                     {
                         EndedAt = DateTimeOffset.Now,
                         ID = onlineID++,
@@ -337,6 +347,8 @@ namespace osu.Game.Tests.Visual.Online
                         TotalScore = 123456,
                         Accuracy = 0.6543,
                         Ranked = true,
+                        Beatmap = scoresContainer.Beatmap.Value,
+                        Ruleset = ruleset,
                     },
                 }
             };
@@ -381,7 +393,7 @@ namespace osu.Game.Tests.Visual.Online
 
         private APIScoreWithPosition createUserBest() => new APIScoreWithPosition
         {
-            Score = new SoloScoreInfo
+            Score = new APIBeatmapScore
             {
                 EndedAt = DateTimeOffset.Now,
                 ID = onlineID++,
@@ -397,6 +409,8 @@ namespace osu.Game.Tests.Visual.Online
                 TotalScore = 123456,
                 Accuracy = 0.6543,
                 Ranked = true,
+                Beatmap = scoresContainer.Beatmap.Value,
+                Ruleset = new OsuRuleset().RulesetInfo,
             },
             Position = 1337,
         };

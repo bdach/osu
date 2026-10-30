@@ -1,26 +1,28 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.LocalisationExtensions;
+using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 using osu.Game.Beatmaps;
+using osu.Game.Extensions;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets.Mods;
 using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
+using osu.Game.Utils;
 using osuTK;
 
 namespace osu.Game.Overlays.BeatmapSet.Scores
@@ -43,7 +45,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
         private readonly ModsInfoColumn modsColumn;
 
         [Resolved]
-        private ScoreManager scoreManager { get; set; }
+        private ScoreManager scoreManager { get; set; } = null!;
 
         public TopScoreStatisticsSection()
         {
@@ -102,33 +104,34 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                 totalScoreColumn.Current = scoreManager.GetBindableTotalScoreString(score);
 
                 if (score.Accuracy == 1.0) accuracyColumn.TextColour = colours.GreenLight;
-#pragma warning disable CS0618
-                if (score.MaxCombo == score.BeatmapInfo!.MaxCombo) maxComboColumn.TextColour = colours.GreenLight;
-#pragma warning restore CS0618
+                if (score.IsPerfect()) maxComboColumn.TextColour = colours.GreenLight;
             }
         }
 
-        private ScoreInfo score;
+        private APIBeatmapScore? score;
 
         /// <summary>
         /// Sets the score to be displayed.
         /// </summary>
-        public ScoreInfo Score
+        public APIBeatmapScore? Score
         {
             set
             {
                 if (score == null && value == null)
                     return;
 
-                if (score?.Equals(value) == true)
+                if (score?.MatchesOnlineID(value) == true)
+                    return;
+
+                if (value == null)
                     return;
 
                 score = value;
 
-                accuracyColumn.Text = value.DisplayAccuracy;
+                accuracyColumn.Text = value.Accuracy.FormatAccuracy();
                 maxComboColumn.Text = value.MaxCombo.ToLocalisableString(@"0\x");
 
-                ppColumn.Alpha = value.BeatmapInfo!.Status.GrantsPerformancePoints() ? 1 : 0;
+                ppColumn.Alpha = value.Beatmap.Status.GrantsPerformancePoints() ? 1 : 0;
 
                 if (!value.Ranked)
                 {
@@ -154,7 +157,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                 statisticsColumns.ChildrenEnumerable = value.GetStatisticsForDisplay().Select(createStatisticsColumn);
                 modsColumn.Mods = value.Mods;
 
-                if (scoreManager != null)
+                if (scoreManager.IsNotNull())
                     totalScoreColumn.Current = scoreManager.GetBindableTotalScoreString(value);
             }
         }
