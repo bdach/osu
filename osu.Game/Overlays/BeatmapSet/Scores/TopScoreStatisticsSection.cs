@@ -9,7 +9,6 @@ using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Extensions.ObjectExtensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Localisation;
 using osu.Game.Beatmaps;
@@ -20,6 +19,7 @@ using osu.Game.Graphics.Sprites;
 using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Resources.Localisation.Web;
 using osu.Game.Rulesets.Mods;
+using osu.Game.Rulesets.Scoring;
 using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
 using osu.Game.Utils;
@@ -41,7 +41,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
         private readonly TextColumn maxComboColumn;
         private readonly TextColumn ppColumn;
 
-        private readonly FillFlowContainer<InfoColumn> statisticsColumns;
+        private readonly FillFlowContainer<TextColumn> statisticsColumns;
         private readonly ModsInfoColumn modsColumn;
 
         [Resolved]
@@ -82,7 +82,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                         Spacing = new Vector2(margin, 0),
                         Children = new Drawable[]
                         {
-                            statisticsColumns = new FillFlowContainer<InfoColumn>
+                            statisticsColumns = new FillFlowContainer<TextColumn>
                             {
                                 AutoSizeAxes = Axes.Both,
                                 Direction = FillDirection.Horizontal,
@@ -103,8 +103,14 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
             {
                 totalScoreColumn.Current = scoreManager.GetBindableTotalScoreString(score);
 
-                if (score.Accuracy == 1.0) accuracyColumn.TextColour = colours.GreenLight;
-                if (score.IsPerfect()) maxComboColumn.TextColour = colours.GreenLight;
+                if (score.Accuracy == 1.0) accuracyColumn.ValueColour = colours.Lime1;
+                if (score.IsPerfect()) maxComboColumn.ValueColour = colours.Lime1;
+
+                foreach (var column in statisticsColumns)
+                {
+                    if (column.HitResult?.IsBasic() == true)
+                        column.HeaderColour = column.ValueColour = colours.ForHitResult(column.HitResult.Value);
+                }
             }
         }
 
@@ -162,15 +168,16 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
             }
         }
 
-        private TextColumn createStatisticsColumn(HitResultDisplayStatistic stat) => new TextColumn(stat.DisplayName, smallFont, bottom_columns_min_width)
-        {
-            Text = stat.MaxCount == null ? stat.Count.ToLocalisableString(@"N0") : (LocalisableString)$"{stat.Count}/{stat.MaxCount}"
-        };
+        private TextColumn createStatisticsColumn(HitResultDisplayStatistic stat) => new TextColumn(stat, smallFont, bottom_columns_min_width);
 
         private partial class InfoColumn : CompositeDrawable
         {
-            private readonly Box separator;
             private readonly OsuSpriteText text;
+
+            public Colour4 HeaderColour
+            {
+                set => text.Colour = value;
+            }
 
             public InfoColumn(LocalisableString title, Drawable content, float? minWidth = null)
             {
@@ -187,7 +194,6 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                     RowDimensions = new[]
                     {
                         new Dimension(GridSizeMode.AutoSize),
-                        new Dimension(GridSizeMode.Absolute, 2),
                         new Dimension(GridSizeMode.AutoSize)
                     },
                     Content = new[]
@@ -202,15 +208,6 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                                 Padding = new MarginPadding { Top = 1, Bottom = 3 }
                             }
                         },
-                        new Drawable[]
-                        {
-                            separator = new Box
-                            {
-                                Anchor = Anchor.TopLeft,
-                                RelativeSizeAxes = Axes.X,
-                                Height = 2,
-                            },
-                        },
                         new[]
                         {
                             // osu-web has 4px margin here but also uses 0.9 line-height, reducing margin to 2px seems like a good alternative to that
@@ -224,7 +221,6 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
             private void load(OverlayColourProvider colourProvider)
             {
                 text.Colour = colourProvider.Foreground1;
-                separator.Colour = colourProvider.Background3;
             }
         }
 
@@ -232,12 +228,14 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
         {
             private readonly OsuTextFlowContainer text;
 
+            public HitResult? HitResult { get; }
+
             public LocalisableString Text
             {
                 set => text.Text = value;
             }
 
-            public Colour4 TextColour
+            public Colour4 ValueColour
             {
                 set => text.Colour = value;
             }
@@ -249,6 +247,13 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                     text.Clear();
                     text.AddArbitraryDrawable(value);
                 }
+            }
+
+            public TextColumn(HitResultDisplayStatistic stat, FontUsage font, float? minWidth = null)
+                : this(stat.DisplayName, font, minWidth)
+            {
+                HitResult = stat.Result;
+                Text = stat.MaxCount == null ? stat.Count.ToLocalisableString(@"N0") : (LocalisableString)$"{stat.Count}/{stat.MaxCount}";
             }
 
             public TextColumn(LocalisableString title, FontUsage font, float? minWidth = null)

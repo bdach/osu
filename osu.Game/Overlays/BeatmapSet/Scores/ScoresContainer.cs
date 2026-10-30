@@ -189,7 +189,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
         [BackgroundDependencyLoader]
         private void load(OverlayColourProvider colourProvider)
         {
-            background.Colour = colourProvider.Background5;
+            background.Colour = colourProvider.Background4;
 
             user.BindTo(api.LocalUser);
         }

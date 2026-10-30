@@ -32,6 +32,9 @@ namespace osu.Game.Graphics.UserInterface
                 Anchor = Anchor.BottomCentre,
                 Origin = Anchor.BottomCentre,
             });
+
+            // must be done this way here to override specification in `OsuTabControl` constructor
+            TabContainer.Spacing = new Vector2(20, 0);
         }
 
         protected override Dropdown<TModel> CreateDropdown() => null;
@@ -43,7 +46,6 @@ namespace osu.Game.Graphics.UserInterface
             AutoSizeAxes = Axes.X,
             RelativeSizeAxes = Axes.Y,
             Direction = FillDirection.Horizontal,
-            Spacing = new Vector2(20, 0),
         };
 
         private partial class GradientLine : GridContainer

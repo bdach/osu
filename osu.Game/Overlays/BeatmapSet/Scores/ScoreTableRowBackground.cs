@@ -55,11 +55,11 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
             if (isOwnScore)
                 background.Colour = colours.GreenDarker;
             else if (index % 2 == 0)
-                background.Colour = colourProvider.Background4;
+                background.Colour = colourProvider.Background3;
             else
                 background.Alpha = 0;
 
-            hoveredBackground.Colour = isOwnScore ? colours.GreenDark : colourProvider.Background3;
+            hoveredBackground.Colour = isOwnScore ? colours.GreenDark : colourProvider.Background2;
         }
 
         protected override bool OnHover(HoverEvent e)

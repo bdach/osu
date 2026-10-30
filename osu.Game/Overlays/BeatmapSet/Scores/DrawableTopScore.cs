@@ -84,7 +84,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
         [BackgroundDependencyLoader]
         private void load(OverlayColourProvider colourProvider)
         {
-            background.Colour = colourProvider.Background4;
+            background.Colour = colourProvider.Background3;
         }
 
         private partial class AutoSizingGrid : GridContainer

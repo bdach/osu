@@ -16,7 +16,6 @@ using osu.Game.Rulesets.UI;
 using osu.Game.Scoring;
 using osu.Game.Users.Drawables;
 using osuTK;
-using osuTK.Graphics;
 using osu.Framework.Localisation;
 using osu.Framework.Extensions.LocalisationExtensions;
 using osu.Framework.Graphics.Cursor;
@@ -183,6 +182,7 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
             {
                 int count = 0;
                 int? maxCount = null;
+                HitResult? hitResult = null;
 
                 if (availableStatistics.Contains(columnName))
                 {
@@ -192,10 +192,11 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
                     {
                         count += s.Count;
                         maxCount += s.MaxCount;
+                        hitResult ??= s.Result;
                     }
                 }
 
-                content.Add(new StatisticText(count, maxCount, @"N0") { Colour = count == 0 ? Color4.Gray : Color4.White });
+                content.Add(new StatisticText(count, maxCount, @"N0", hitResult));
             }
 
             // TODO: all this should be using the same sort of logic as `DrawableProfileScore` is, but that's not easily done
@@ -265,14 +266,16 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
         {
             private readonly double? count;
             private readonly double? maxCount;
+            private readonly HitResult? hitResult;
             private readonly bool showTooltip;
 
             public LocalisableString TooltipText => maxCount == null || !showTooltip ? string.Empty : $"{count}/{maxCount}";
 
-            public StatisticText(double? count, double? maxCount = null, string? format = null, bool showTooltip = true)
+            public StatisticText(double? count, double? maxCount = null, string? format = null, HitResult? hitResult = null, bool showTooltip = true)
             {
                 this.count = count;
                 this.maxCount = maxCount;
+                this.hitResult = hitResult;
                 this.showTooltip = showTooltip;
 
                 Text = count?.ToLocalisableString(format) ?? default;
@@ -282,8 +285,14 @@ namespace osu.Game.Overlays.BeatmapSet.Scores
             [BackgroundDependencyLoader]
             private void load(OsuColour colours)
             {
-                if (count == maxCount)
-                    Colour = colours.GreenLight;
+                if (hitResult != null)
+                {
+                    if (hitResult.Value.IsBasic())
+                        Colour = colours.ForHitResult(hitResult.Value);
+                    Alpha = count == 0 ? 0.4f : 1;
+                }
+                else if (count == maxCount)
+                    Colour = colours.Lime1;
             }
         }
     }
