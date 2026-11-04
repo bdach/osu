@@ -5,12 +5,13 @@ using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
-using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Cursor;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Osu;
@@ -52,18 +53,53 @@ namespace osu.Game.Tests.Visual.RankingV2
                     switch (req)
                     {
                         case GetBeatmapSetRequest getBeatmapSetRequest:
-                            getBeatmapSetRequest.TriggerSuccess(CreateAPIBeatmapSet(Beatmap.Value.BeatmapInfo));
+                            var beatmapSet = CreateAPIBeatmapSet(Beatmap.Value.BeatmapInfo);
+                            beatmapSet.Beatmaps.Single().TopTags =
+                            [
+                                new APIBeatmapTag { TagId = 3, VoteCount = 4 },
+                                new APIBeatmapTag { TagId = 2, VoteCount = 3 },
+                                new APIBeatmapTag { TagId = 0, VoteCount = 2 },
+                            ];
+                            Scheduler.AddDelayed(() => getBeatmapSetRequest.TriggerSuccess(beatmapSet), 500);
                             return true;
 
-                        case PostBeatmapFavouriteRequest favouriteRequest:
-                            favouriteRequest.TriggerSuccess();
+                        case ListTagsRequest listTagsRequest:
+                        {
+                            Scheduler.AddDelayed(() => listTagsRequest.TriggerSuccess(new APITagCollection
+                            {
+                                Tags =
+                                [
+                                    new APITag { Id = 0, Name = "uncategorised tag", Description = "This probably isn't real but could be and should be handled.", },
+                                    new APITag { Id = 1, Name = "song representation/simple", Description = "Accessible and straightforward map design.", },
+                                    new APITag
+                                    {
+                                        Id = 2, Name = "style/clean",
+                                        Description = "Visually uncluttered and organised patterns, often involving few overlaps and equal visual spacing between objects.",
+                                    },
+                                    new APITag
+                                    {
+                                        Id = 3, Name = "aim/aim control", Description = "Patterns with velocity or direction changes which strongly go against a player's natural movement pattern.",
+                                    },
+                                    new APITag { Id = 4, Name = "tap/bursts", Description = "Patterns requiring continuous movement and alternating, typically 9 notes or less.", },
+                                    new APITag { Id = 5, Name = "style/mono-heavy", Description = "Features monos used in large amounts.", RulesetId = 1, },
+                                ]
+                            }), 500);
                             return true;
+                        }
+
+                        case PostBeatmapFavouriteRequest:
+                        case AddBeatmapTagRequest:
+                        case RemoveBeatmapTagRequest:
+                        {
+                            Scheduler.AddDelayed(req.TriggerSuccess, 500);
+                            return true;
+                        }
                     }
 
                     return false;
                 };
             });
-            AddStep("create content", () => Child = new Container
+            AddStep("create content", () => Child = new PopoverContainer
             {
                 RelativeSizeAxes = Axes.Both,
                 Padding = new MarginPadding

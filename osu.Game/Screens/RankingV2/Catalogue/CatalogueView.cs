@@ -14,7 +14,6 @@ using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
 using osu.Game.Scoring;
 using osu.Game.Screens.RankingV2.Statistics;
-using osuTK;
 
 namespace osu.Game.Screens.RankingV2.Catalogue
 {
@@ -80,15 +79,27 @@ namespace osu.Game.Screens.RankingV2.Catalogue
                                         {
                                             new[]
                                             {
-                                                new FillFlowContainer
+                                                new GridContainer
                                                 {
                                                     RelativeSizeAxes = Axes.Both,
-                                                    Direction = FillDirection.Vertical,
-                                                    Spacing = new Vector2(10),
-                                                    Children =
+                                                    RowDimensions =
                                                     [
-                                                        new RateBeatmapPanel(),
+                                                        new Dimension(GridSizeMode.AutoSize),
+                                                        new Dimension(GridSizeMode.Absolute, 10),
+                                                        new Dimension()
                                                     ],
+                                                    Content = new[]
+                                                    {
+                                                        new Drawable[]
+                                                        {
+                                                            new RateBeatmapPanel(),
+                                                        },
+                                                        [],
+                                                        new Drawable[]
+                                                        {
+                                                            new TagBeatmapPanel(),
+                                                        }
+                                                    }
                                                 },
                                                 Empty(),
                                                 Empty(),

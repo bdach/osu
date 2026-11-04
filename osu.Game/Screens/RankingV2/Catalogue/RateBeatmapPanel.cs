@@ -49,7 +49,7 @@ namespace osu.Game.Screens.RankingV2.Catalogue
                 RelativeSizeAxes = Axes.X,
                 AutoSizeAxes = Axes.Y,
                 Direction = FillDirection.Horizontal,
-                Spacing = new Vector2(10),
+                Spacing = new Vector2(5),
                 Children =
                 [
                     new RatingControl
@@ -131,7 +131,6 @@ namespace osu.Game.Screens.RankingV2.Catalogue
                         {
                             Icon = FontAwesome.Solid.Star,
                             Size = new Vector2(30),
-                            Margin = new MarginPadding { Horizontal = 2.5f, },
                         },
                         Action = commitRating,
                     });

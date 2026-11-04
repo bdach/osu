@@ -29,7 +29,7 @@ namespace osu.Game.Screens.Ranking
 {
     public partial class UserTagControl : CompositeDrawable
     {
-        private readonly BeatmapInfo beatmapInfo;
+        private readonly IBeatmapInfo beatmapInfo;
 
         public override bool HandlePositionalInput => true;
 
@@ -56,7 +56,7 @@ namespace osu.Game.Screens.Ranking
         [Resolved]
         private IAPIProvider api { get; set; } = null!;
 
-        public UserTagControl(BeatmapInfo beatmapInfo)
+        public UserTagControl(IBeatmapInfo beatmapInfo)
         {
             this.beatmapInfo = beatmapInfo;
         }
