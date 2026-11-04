@@ -102,7 +102,7 @@ namespace osu.Game.Screens.RankingV2.Catalogue
                                                     }
                                                 },
                                                 Empty(),
-                                                Empty(),
+                                                new AddToCollectionsPanel(),
                                             },
                                         },
                                     },

@@ -8,6 +8,7 @@ using osu.Framework.Graphics;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
+using osu.Game.Collections;
 using osu.Game.Database;
 using osu.Game.Online.API;
 using osu.Game.Online.API.Requests;
@@ -46,6 +47,14 @@ namespace osu.Game.Tests.Visual.RankingV2
         public void SetUpSteps()
         {
             AddStep("set score", () => setScore(new OsuRuleset().RulesetInfo));
+            AddStep("create some collections", () =>
+            {
+                Realm.Write(r =>
+                {
+                    for (int i = 0; i < 30; ++i)
+                        r.Add(new BeatmapCollection { Name = $"Collection #{i + 1}" });
+                });
+            });
             AddStep("set up request handling", () =>
             {
                 ((DummyAPIAccess)API).HandleRequest = req =>
