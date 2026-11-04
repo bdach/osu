@@ -9,6 +9,8 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Testing;
 using osu.Game.Beatmaps;
 using osu.Game.Database;
+using osu.Game.Online.API;
+using osu.Game.Online.API.Requests;
 using osu.Game.Overlays;
 using osu.Game.Rulesets;
 using osu.Game.Rulesets.Osu;
@@ -43,6 +45,24 @@ namespace osu.Game.Tests.Visual.RankingV2
         public void SetUpSteps()
         {
             AddStep("set score", () => setScore(new OsuRuleset().RulesetInfo));
+            AddStep("set up request handling", () =>
+            {
+                ((DummyAPIAccess)API).HandleRequest = req =>
+                {
+                    switch (req)
+                    {
+                        case GetBeatmapSetRequest getBeatmapSetRequest:
+                            getBeatmapSetRequest.TriggerSuccess(CreateAPIBeatmapSet(Beatmap.Value.BeatmapInfo));
+                            return true;
+
+                        case PostBeatmapFavouriteRequest favouriteRequest:
+                            favouriteRequest.TriggerSuccess();
+                            return true;
+                    }
+
+                    return false;
+                };
+            });
             AddStep("create content", () => Child = new Container
             {
                 RelativeSizeAxes = Axes.Both,

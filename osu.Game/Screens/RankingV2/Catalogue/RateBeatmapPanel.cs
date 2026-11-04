@@ -11,7 +11,9 @@ using osu.Framework.Input.Events;
 using osu.Game.Graphics;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
+using osu.Game.Online.API.Requests.Responses;
 using osu.Game.Overlays;
+using osu.Game.Overlays.BeatmapSet.Buttons;
 using osu.Game.Screens.RankingV2.Statistics;
 using osuTK;
 
@@ -23,12 +25,16 @@ namespace osu.Game.Screens.RankingV2.Catalogue
         private readonly Bindable<int?> committedRating = new Bindable<int?>();
 
         private OsuSpriteText ratingText = null!;
+        private FavouriteButton favouriteButton = null!;
 
         [Resolved]
         private OverlayColourProvider colourProvider { get; set; } = null!;
 
         [Resolved]
         private OsuColour colours { get; set; } = null!;
+
+        [Resolved]
+        private Bindable<APIBeatmap?> apiBeatmap { get; set; } = null!;
 
         public RateBeatmapPanel()
             : base("Rate the beatmap")
@@ -66,7 +72,13 @@ namespace osu.Game.Screens.RankingV2.Catalogue
                             Anchor = Anchor.CentreRight,
                             Origin = Anchor.CentreRight,
                         }
-                    }
+                    },
+                    favouriteButton = new FavouriteButton
+                    {
+                        Anchor = Anchor.Centre,
+                        Origin = Anchor.Centre,
+                        Margin = new MarginPadding { Left = 10, },
+                    },
                 ]
             };
         }
@@ -74,6 +86,8 @@ namespace osu.Game.Screens.RankingV2.Catalogue
         protected override void LoadComplete()
         {
             base.LoadComplete();
+
+            apiBeatmap.BindValueChanged(_ => favouriteButton.BeatmapSet.Value = apiBeatmap.Value?.BeatmapSet);
 
             instantaneousRating.BindValueChanged(_ => updateState());
             committedRating.BindValueChanged(_ => updateState(), true);
