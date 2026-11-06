@@ -134,9 +134,13 @@ namespace osu.Game.Overlays.Chat
 
             // initialise using sane defaults.
             // consumers can use the initialiser of `UsernameColour` to override this if they wish to.
-            UsernameColour = !string.IsNullOrEmpty(message.Sender.Colour)
-                ? Color4Extensions.FromHex(message.Sender.Colour)
-                : default_username_colours[message.SenderId % default_username_colours.Length];
+            if (!string.IsNullOrEmpty(message.Sender.Colour))
+                UsernameColour = Colour4.FromHex(message.Sender.Colour);
+            else if (message.Sender.ProfileHue != null)
+                // compare `OverlayColourProvider.Colour1`
+                UsernameColour = Colour4.FromHSL(message.Sender.ProfileHue.Value / 360f, 1f, 0.7f);
+            else
+                UsernameColour = default_username_colours[message.SenderId % default_username_colours.Length];
         }
 
         [BackgroundDependencyLoader]

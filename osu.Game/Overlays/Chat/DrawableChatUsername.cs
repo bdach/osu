@@ -12,6 +12,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Cursor;
 using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Input.Events;
 using osu.Framework.Localisation;
@@ -98,6 +99,7 @@ namespace osu.Game.Overlays.Chat
 
         private readonly APIUser user;
         private readonly OsuSpriteText drawableText;
+        private readonly SpriteIcon supporterIcon;
 
         private Drawable colouredDrawable = null!;
 
@@ -110,8 +112,17 @@ namespace osu.Game.Overlays.Chat
             drawableText = new TruncatingSpriteText
             {
                 Shadow = false,
-                Anchor = Anchor.TopRight,
-                Origin = Anchor.TopRight,
+                Anchor = Anchor.CentreLeft,
+                Origin = Anchor.CentreLeft,
+            };
+            supporterIcon = new SpriteIcon
+            {
+                Size = new Vector2(8),
+                Icon = FontAwesome.Solid.Heart,
+                Alpha = user.IsSupporter ? 1 : 0,
+                Anchor = Anchor.CentreLeft,
+                Origin = Anchor.CentreLeft,
+                Margin = new MarginPadding { Top = 2, },
             };
         }
 
@@ -120,7 +131,19 @@ namespace osu.Game.Overlays.Chat
         {
             if (!Inverted)
             {
-                Add(colouredDrawable = drawableText);
+                Add(colouredDrawable = new FillFlowContainer
+                {
+                    Anchor = Anchor.TopRight,
+                    Origin = Anchor.TopRight,
+                    AutoSizeAxes = Axes.Both,
+                    Direction = FillDirection.Horizontal,
+                    Spacing = new Vector2(3),
+                    Children =
+                    [
+                        supporterIcon,
+                        drawableText,
+                    ]
+                });
             }
             else
             {
@@ -150,11 +173,17 @@ namespace osu.Game.Overlays.Chat
                             {
                                 RelativeSizeAxes = Axes.Both,
                             },
-                            new Container
+                            new FillFlowContainer
                             {
                                 AutoSizeAxes = Axes.Both,
                                 Padding = new MarginPadding { Left = 4, Right = 4, Bottom = 1, Top = -2 },
-                                Child = drawableText,
+                                Direction = FillDirection.Horizontal,
+                                Spacing = new Vector2(3),
+                                Children =
+                                [
+                                    supporterIcon,
+                                    drawableText
+                                ],
                             }
                         }
                     }
@@ -165,8 +194,9 @@ namespace osu.Game.Overlays.Chat
         protected override void LoadComplete()
         {
             base.LoadComplete();
-            drawableText.Colour = colours.ChatBlue;
             colouredDrawable.Colour = AccentColour;
+            if (Inverted)
+                supporterIcon.Colour = drawableText.Colour = colours.ChatBlue;
         }
 
         public MenuItem[] ContextMenuItems
