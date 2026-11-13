@@ -1,12 +1,14 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Collections.Generic;
 using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Localisation;
 using osu.Game.Collections;
 using osu.Game.Database;
 using osu.Game.Extensions;
@@ -23,6 +25,8 @@ namespace osu.Game.Screens.RankingV2.Catalogue
     public partial class AddToCollectionsPanel : CompositeDrawable
     {
         private FillFlowContainer collectionFlow = null!;
+        private SearchContainer searchContainer = null!;
+        private SearchTextBox searchTextBox = null!;
 
         [Resolved]
         private RealmAccess realm { get; set; } = null!;
@@ -53,23 +57,32 @@ namespace osu.Game.Screens.RankingV2.Catalogue
                         {
                             Text = "Add to collections",
                         },
-                        new Container
+                        searchContainer = new SearchContainer
                         {
                             RelativeSizeAxes = Axes.Both,
-                            Padding = new MarginPadding { Top = 30 },
-                            Child = new OsuScrollContainer
-                            {
-                                RelativeSizeAxes = Axes.Both,
-                                ScrollbarOverlapsContent = false,
-                                Child = collectionFlow = new FillFlowContainer
+                            Padding = new MarginPadding { Top = 30, Bottom = 45, },
+                            Children =
+                            [
+                                new OsuScrollContainer
                                 {
-                                    RelativeSizeAxes = Axes.X,
-                                    AutoSizeAxes = Axes.Y,
-                                    Direction = FillDirection.Vertical,
-                                    Spacing = new Vector2(5),
+                                    RelativeSizeAxes = Axes.Both,
+                                    ScrollbarOverlapsContent = false,
+                                    Child = collectionFlow = new FillFlowContainer
+                                    {
+                                        RelativeSizeAxes = Axes.X,
+                                        AutoSizeAxes = Axes.Y,
+                                        Direction = FillDirection.Vertical,
+                                        Spacing = new Vector2(5),
+                                    },
                                 },
-                            },
+                            ],
                         },
+                        searchTextBox = new SearchTextBox
+                        {
+                            Anchor = Anchor.BottomCentre,
+                            Origin = Anchor.BottomCentre,
+                            RelativeSizeAxes = Axes.X,
+                        }
                     ],
                 },
             ];
@@ -81,7 +94,14 @@ namespace osu.Game.Screens.RankingV2.Catalogue
             });
         }
 
-        private partial class DrawableCollection : CompositeDrawable
+        protected override void LoadComplete()
+        {
+            base.LoadComplete();
+
+            searchTextBox.Current.BindValueChanged(_ => searchContainer.SearchTerm = searchTextBox.Current.Value, true);
+        }
+
+        private partial class DrawableCollection : CompositeDrawable, IFilterable
         {
             private readonly Live<BeatmapCollection> collection;
 
@@ -106,14 +126,6 @@ namespace osu.Game.Screens.RankingV2.Catalogue
             [BackgroundDependencyLoader]
             private void load()
             {
-                //Children =
-                //[
-                //    background = new Box
-                //    {
-                //        RelativeSizeAxes = Axes.Both,
-                //    },
-                //];
-
                 RelativeSizeAxes = Axes.X;
                 AutoSizeAxes = Axes.Y;
                 Masking = true;
@@ -228,6 +240,15 @@ namespace osu.Game.Screens.RankingV2.Catalogue
                     toggleSetButton.Active.Value = setHashes.IsSubsetOf(col.BeatmapMD5Hashes);
                 });
             }
+
+            public IEnumerable<LocalisableString> FilterTerms => [collection.PerformRead(col => col.Name)];
+
+            public bool MatchingFilter
+            {
+                set => Alpha = value ? 1 : 0;
+            }
+
+            public bool FilteringActive { set { } }
         }
     }
 }

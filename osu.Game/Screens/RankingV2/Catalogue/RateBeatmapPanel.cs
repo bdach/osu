@@ -19,6 +19,7 @@ namespace osu.Game.Screens.RankingV2.Catalogue
     {
         private RatingToggleButton likeButton = null!;
         private RatingToggleButton dislikeButton = null!;
+        private RatingToggleButton favouriteButton = null!;
 
         [Resolved]
         private OsuColour colours { get; set; } = null!;
@@ -31,49 +32,49 @@ namespace osu.Game.Screens.RankingV2.Catalogue
         [BackgroundDependencyLoader]
         private void load()
         {
-            Child = new FillFlowContainer
-            {
-                RelativeSizeAxes = Axes.X,
-                AutoSizeAxes = Axes.Y,
-                Direction = FillDirection.Horizontal,
-                Spacing = new Vector2(5),
-                Children =
-                [
-                    likeButton = new RatingToggleButton
-                    {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Text = "Like",
-                        Icon = FontAwesome.Solid.ThumbsUp,
-                        ActiveLighterColour = colours.Lime1,
-                        ActiveDarkerColour = colours.Lime3,
-                        Width = 120,
-                        Height = 40,
-                    },
-                    dislikeButton = new RatingToggleButton
-                    {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Text = "Dislike",
-                        Icon = FontAwesome.Solid.ThumbsDown,
-                        ActiveLighterColour = colours.Orange1,
-                        ActiveDarkerColour = colours.Orange3,
-                        Width = 120,
-                        Height = 40,
-                    },
-                    new RatingToggleButton
-                    {
-                        Anchor = Anchor.Centre,
-                        Origin = Anchor.Centre,
-                        Text = "Favourite",
-                        Icon = OsuIcon.Heart,
-                        ActiveLighterColour = colours.Pink1,
-                        ActiveDarkerColour = colours.Pink3,
-                        Width = 140,
-                        Height = 40,
-                    },
-                ]
-            };
+            Children =
+            [
+                new FillFlowContainer
+                {
+                    AutoSizeAxes = Axes.Both,
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
+                    Direction = FillDirection.Horizontal,
+                    Padding = new MarginPadding { Horizontal = 10, },
+                    Spacing = new Vector2(5),
+                    Children =
+                    [
+                        likeButton = new RatingToggleButton
+                        {
+                            Text = "Like",
+                            Icon = FontAwesome.Solid.ThumbsUp,
+                            ActiveLighterColour = colours.Lime1,
+                            ActiveDarkerColour = colours.Lime3,
+                            Width = 120,
+                            Height = 40,
+                        },
+                        dislikeButton = new RatingToggleButton
+                        {
+                            Text = "Dislike",
+                            Icon = FontAwesome.Solid.ThumbsDown,
+                            ActiveLighterColour = colours.Orange1,
+                            ActiveDarkerColour = colours.Orange3,
+                            Width = 120,
+                            Height = 40,
+                        },
+                    ]
+                },
+                favouriteButton = new RatingToggleButton
+                {
+                    Anchor = Anchor.CentreRight,
+                    Origin = Anchor.CentreRight,
+                    Text = "Favourite",
+                    ActiveLighterColour = colours.Pink1,
+                    ActiveDarkerColour = colours.Pink3,
+                    Width = 140,
+                    Height = 40,
+                },
+            ];
         }
 
         protected override void LoadComplete()
@@ -82,6 +83,9 @@ namespace osu.Game.Screens.RankingV2.Catalogue
 
             likeButton.Active.BindValueChanged(_ => likeToggled());
             dislikeButton.Active.BindValueChanged(_ => dislikeToggled());
+            favouriteButton.Active.BindValueChanged(_ => favouriteButton.Icon = favouriteButton.Active.Value
+                ? FontAwesome.Solid.Heart
+                : FontAwesome.Regular.Heart, true);
         }
 
         private bool adjustingStates;
