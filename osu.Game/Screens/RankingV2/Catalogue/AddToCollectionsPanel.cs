@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -8,7 +9,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Collections;
 using osu.Game.Database;
-using osu.Game.Graphics;
+using osu.Game.Extensions;
 using osu.Game.Graphics.Containers;
 using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
@@ -59,6 +60,7 @@ namespace osu.Game.Screens.RankingV2.Catalogue
                             Child = new OsuScrollContainer
                             {
                                 RelativeSizeAxes = Axes.Both,
+                                ScrollbarOverlapsContent = false,
                                 Child = collectionFlow = new FillFlowContainer
                                 {
                                     RelativeSizeAxes = Axes.X,
@@ -79,19 +81,20 @@ namespace osu.Game.Screens.RankingV2.Catalogue
             });
         }
 
-        private partial class DrawableCollection : OsuAnimatedButton
+        private partial class DrawableCollection : CompositeDrawable
         {
             private readonly Live<BeatmapCollection> collection;
 
             private Box background = null!;
             private OsuSpriteText label = null!;
+            private ShearedToggleButton toggleDifficultyButton = null!;
+            private ShearedToggleButton toggleSetButton = null!;
 
             public DrawableCollection(Live<BeatmapCollection> collection)
             {
                 this.collection = collection;
                 RelativeSizeAxes = Axes.X;
                 AutoSizeAxes = Axes.Y;
-                ScaleOnMouseDown = 0.95f;
             }
 
             [Resolved]
@@ -103,33 +106,102 @@ namespace osu.Game.Screens.RankingV2.Catalogue
             [BackgroundDependencyLoader]
             private void load()
             {
-                Children =
+                //Children =
+                //[
+                //    background = new Box
+                //    {
+                //        RelativeSizeAxes = Axes.Both,
+                //    },
+                //];
+
+                RelativeSizeAxes = Axes.X;
+                AutoSizeAxes = Axes.Y;
+                Masking = true;
+                CornerRadius = ShearedButton.CORNER_RADIUS;
+
+                InternalChildren =
                 [
                     background = new Box
                     {
                         RelativeSizeAxes = Axes.Both,
+                        Colour = colourProvider.Background4,
                     },
-                    label = new OsuSpriteText
+                    new GridContainer
                     {
-                        Margin = new MarginPadding(8),
-                        Text = collection.PerformRead(c => c.Name),
-                    },
-                ];
-
-                Action = () =>
-                {
-                    collection.PerformWrite(col =>
-                    {
-                        string? hash = score.Value.Beatmap?.MD5Hash;
-
-                        if (!string.IsNullOrEmpty(hash))
+                        RelativeSizeAxes = Axes.X,
+                        AutoSizeAxes = Axes.Y,
+                        RowDimensions = [new Dimension(GridSizeMode.AutoSize)],
+                        Padding = new MarginPadding { Left = 10, Vertical = 3, },
+                        ColumnDimensions =
+                        [
+                            new Dimension(),
+                            new Dimension(GridSizeMode.AutoSize),
+                            new Dimension(GridSizeMode.AutoSize),
+                        ],
+                        Content = new[]
                         {
-                            if (!col.BeatmapMD5Hashes.Remove(hash))
-                                col.BeatmapMD5Hashes.Add(hash);
+                            new Drawable[]
+                            {
+                                label = new OsuSpriteText
+                                {
+                                    Text = collection.PerformRead(c => c.Name),
+                                    Anchor = Anchor.CentreLeft,
+                                    Origin = Anchor.CentreLeft,
+                                },
+                                toggleDifficultyButton = new ShearedToggleButton
+                                {
+                                    Text = "Difficulty",
+                                    Width = 100,
+                                    Height = 30,
+                                    Action = toggleDifficulty,
+                                },
+                                toggleSetButton = new ShearedToggleButton
+                                {
+                                    Text = "Whole set",
+                                    Width = 100,
+                                    Height = 30,
+                                    Action = toggleSet,
+                                },
+                            }
                         }
-                    });
-                    updateState();
-                };
+                    }
+                ];
+            }
+
+            private void toggleDifficulty()
+            {
+                collection.PerformWrite(col =>
+                {
+                    string? hash = score.Value.Beatmap?.MD5Hash;
+
+                    if (string.IsNullOrEmpty(hash)) return;
+
+                    if (!col.BeatmapMD5Hashes.Remove(hash))
+                        col.BeatmapMD5Hashes.Add(hash);
+                });
+                updateState();
+            }
+
+            private void toggleSet()
+            {
+                collection.PerformWrite(col =>
+                {
+                    var setHashes = score.Value.Beatmap?.BeatmapSet?.Beatmaps.Select(b => b.MD5Hash).ToHashSet();
+
+                    if (setHashes == null) return;
+
+                    if (setHashes.IsSubsetOf(col.BeatmapMD5Hashes))
+                    {
+                        foreach (string hash in setHashes)
+                            col.BeatmapMD5Hashes.Remove(hash);
+                    }
+                    else
+                    {
+                        setHashes.ExceptWith(col.BeatmapMD5Hashes);
+                        col.BeatmapMD5Hashes.AddRange(setHashes);
+                    }
+                });
+                updateState();
             }
 
             protected override void LoadComplete()
@@ -141,11 +213,20 @@ namespace osu.Game.Screens.RankingV2.Catalogue
 
             private void updateState()
             {
-                string? hash = score.Value.Beatmap?.MD5Hash;
-                background.Colour = hash != null && collection.PerformRead(col => col.BeatmapMD5Hashes.Contains(hash))
-                    ? colourProvider.Highlight1
-                    : colourProvider.Background3;
-                label.Colour = OsuColour.ForegroundTextColourFor(background.Colour);
+                collection.PerformRead(col =>
+                {
+                    if (score.Value.Beatmap == null)
+                        return;
+
+                    toggleDifficultyButton.Active.Value = col.BeatmapMD5Hashes.Contains(score.Value.Beatmap.MD5Hash);
+
+                    var setHashes = score.Value.Beatmap?.BeatmapSet?.Beatmaps.Select(b => b.MD5Hash).ToHashSet();
+
+                    if (setHashes == null)
+                        return;
+
+                    toggleSetButton.Active.Value = setHashes.IsSubsetOf(col.BeatmapMD5Hashes);
+                });
             }
         }
     }

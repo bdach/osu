@@ -1,6 +1,7 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
 using osu.Framework.Allocation;
 using osu.Framework.Audio;
 using osu.Framework.Audio.Sample;
@@ -24,6 +25,13 @@ namespace osu.Game.Graphics.UserInterface
         /// </summary>
         public BindableBool Active { get; } = new BindableBool();
 
+        public new Action Action { get; set; }
+
+        public ShearedToggleButton()
+        {
+            Action = Active.Toggle;
+        }
+
         [BackgroundDependencyLoader]
         private void load(AudioManager audio)
         {
@@ -35,7 +43,7 @@ namespace osu.Game.Graphics.UserInterface
 
         protected override void LoadComplete()
         {
-            Active.BindDisabledChanged(disabled => Action = disabled ? null : Active.Toggle, true);
+            Active.BindDisabledChanged(disabled => base.Action = disabled ? null : Action, true);
             Active.BindValueChanged(_ =>
             {
                 UpdateActiveState();

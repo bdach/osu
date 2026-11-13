@@ -1,19 +1,15 @@
 // Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System.Linq;
 using osu.Framework.Allocation;
+using osu.Framework.Audio;
+using osu.Framework.Audio.Sample;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Sprites;
-using osu.Framework.Input.Events;
 using osu.Game.Graphics;
-using osu.Game.Graphics.Containers;
-using osu.Game.Graphics.Sprites;
-using osu.Game.Online.API.Requests.Responses;
-using osu.Game.Overlays;
-using osu.Game.Overlays.BeatmapSet.Buttons;
+using osu.Game.Graphics.UserInterface;
 using osu.Game.Screens.RankingV2.Statistics;
 using osuTK;
 
@@ -21,20 +17,11 @@ namespace osu.Game.Screens.RankingV2.Catalogue
 {
     public partial class RateBeatmapPanel : StatisticItemPanel
     {
-        private readonly Bindable<int?> instantaneousRating = new Bindable<int?>();
-        private readonly Bindable<int?> committedRating = new Bindable<int?>();
-
-        private OsuSpriteText ratingText = null!;
-        private FavouriteButton favouriteButton = null!;
-
-        [Resolved]
-        private OverlayColourProvider colourProvider { get; set; } = null!;
+        private RatingToggleButton likeButton = null!;
+        private RatingToggleButton dislikeButton = null!;
 
         [Resolved]
         private OsuColour colours { get; set; } = null!;
-
-        [Resolved]
-        private Bindable<APIBeatmap?> apiBeatmap { get; set; } = null!;
 
         public RateBeatmapPanel()
             : base("Rate the beatmap")
@@ -52,32 +39,38 @@ namespace osu.Game.Screens.RankingV2.Catalogue
                 Spacing = new Vector2(5),
                 Children =
                 [
-                    new RatingControl
+                    likeButton = new RatingToggleButton
                     {
-                        InstantaneousRating = { BindTarget = instantaneousRating, },
-                        CommittedRating = { BindTarget = committedRating, },
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
+                        Text = "Like",
+                        Icon = FontAwesome.Solid.ThumbsUp,
+                        ActiveLighterColour = colours.Lime1,
+                        ActiveDarkerColour = colours.Lime3,
+                        Width = 120,
+                        Height = 40,
                     },
-                    new Container
+                    dislikeButton = new RatingToggleButton
                     {
-                        AutoSizeAxes = Axes.Y,
-                        Width = 56,
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Child = ratingText = new OsuSpriteText
-                        {
-                            Font = OsuFont.Style.Heading1.With(fixedWidth: true),
-                            Spacing = new Vector2(-3),
-                            Anchor = Anchor.CentreRight,
-                            Origin = Anchor.CentreRight,
-                        }
+                        Text = "Dislike",
+                        Icon = FontAwesome.Solid.ThumbsDown,
+                        ActiveLighterColour = colours.Orange1,
+                        ActiveDarkerColour = colours.Orange3,
+                        Width = 120,
+                        Height = 40,
                     },
-                    favouriteButton = new FavouriteButton
+                    new RatingToggleButton
                     {
                         Anchor = Anchor.Centre,
                         Origin = Anchor.Centre,
-                        Margin = new MarginPadding { Left = 10, },
+                        Text = "Favourite",
+                        Icon = OsuIcon.Heart,
+                        ActiveLighterColour = colours.Pink1,
+                        ActiveDarkerColour = colours.Pink3,
+                        Width = 140,
+                        Height = 40,
                     },
                 ]
             };
@@ -87,105 +80,90 @@ namespace osu.Game.Screens.RankingV2.Catalogue
         {
             base.LoadComplete();
 
-            apiBeatmap.BindValueChanged(_ => favouriteButton.BeatmapSet.Value = apiBeatmap.Value?.BeatmapSet);
-
-            instantaneousRating.BindValueChanged(_ => updateState());
-            committedRating.BindValueChanged(_ => updateState(), true);
+            likeButton.Active.BindValueChanged(_ => likeToggled());
+            dislikeButton.Active.BindValueChanged(_ => dislikeToggled());
         }
 
-        private void updateState()
-        {
-            if (instantaneousRating.Value != null)
-                ratingText.Colour = colourProvider.Highlight1;
-            else if (committedRating.Value != null)
-                ratingText.Colour = colours.Orange1;
-            else
-                ratingText.Colour = colourProvider.Background2;
+        private bool adjustingStates;
 
-            ratingText.Text = $@"{instantaneousRating.Value ?? committedRating.Value ?? 0}/10";
+        private void likeToggled()
+        {
+            if (adjustingStates)
+                return;
+
+            adjustingStates = true;
+
+            if (dislikeButton.Active.Value)
+                dislikeButton.Active.Value = false;
+
+            // either vote 10 if like active, or remove vote if like inactive (is that even possible?)
+
+            adjustingStates = false;
         }
 
-        private partial class RatingControl : FillFlowContainer<OsuClickableContainer>
+        private void dislikeToggled()
         {
-            public Bindable<int?> InstantaneousRating { get; } = new Bindable<int?>();
-            public Bindable<int?> CommittedRating { get; } = new Bindable<int?>();
+            if (adjustingStates)
+                return;
 
-            [Resolved]
-            private OverlayColourProvider colourProvider { get; set; } = null!;
+            adjustingStates = true;
 
-            [Resolved]
-            private OsuColour colours { get; set; } = null!;
+            if (likeButton.Active.Value)
+                likeButton.Active.Value = false;
+
+            // either vote 1 if dislike active, or remove vote if dislike inactive (is that even possible?)
+
+            adjustingStates = false;
+        }
+
+        public partial class RatingToggleButton : ShearedButtonWithIcon
+        {
+            private Sample? sampleOff;
+            private Sample? sampleOn;
+
+            /// <summary>
+            /// Whether this button is currently toggled to an active state.
+            /// </summary>
+            public BindableBool Active { get; } = new BindableBool();
 
             [BackgroundDependencyLoader]
-            private void load()
+            private void load(AudioManager audio)
             {
-                AutoSizeAxes = Axes.Both;
-                Direction = FillDirection.Horizontal;
-
-                for (int i = 1; i <= 10; ++i)
-                {
-                    Add(new OsuClickableContainer
-                    {
-                        AutoSizeAxes = Axes.Both,
-                        Child = new SpriteIcon
-                        {
-                            Icon = FontAwesome.Solid.Star,
-                            Size = new Vector2(30),
-                        },
-                        Action = commitRating,
-                    });
-                }
+                sampleOn = audio.Samples.Get(@"UI/check-on");
+                sampleOff = audio.Samples.Get(@"UI/check-off");
             }
+
+            public required Colour4 ActiveDarkerColour { get; init; }
+            public required Colour4 ActiveLighterColour { get; init; }
+
+            protected override HoverSounds CreateHoverSounds(HoverSampleSet sampleSet) => new HoverSounds(sampleSet);
 
             protected override void LoadComplete()
             {
+                Active.BindDisabledChanged(disabled => Action = disabled ? null : Active.Toggle, true);
+                Active.BindValueChanged(_ =>
+                {
+                    UpdateActiveState();
+                    playSample();
+                });
+
+                UpdateActiveState();
                 base.LoadComplete();
-
-                InstantaneousRating.BindValueChanged(_ => updateState());
-                CommittedRating.BindValueChanged(_ => updateState(), true);
             }
 
-            protected override bool OnMouseMove(MouseMoveEvent e)
+            protected virtual void UpdateActiveState()
             {
-                int count = this.Count(star => star.ScreenSpaceDrawQuad.TopLeft.X < e.ScreenSpaceLastMousePosition.X);
-                if (count > 0)
-                    InstantaneousRating.Value = count;
-
-                return true;
+                DarkerColour = Active.Value ? ActiveDarkerColour : ColourProvider.Background3;
+                LighterColour = Active.Value ? ActiveLighterColour : ColourProvider.Background1;
+                TextColour = Active.Value ? ColourProvider.Background6 : ColourProvider.Content1;
             }
 
-            protected override bool OnHover(HoverEvent e) => true;
-
-            protected override void OnHoverLost(HoverLostEvent e)
+            private void playSample()
             {
-                base.OnHoverLost(e);
-
-                InstantaneousRating.Value = null;
-            }
-
-            private void commitRating()
-            {
-                if (InstantaneousRating.Value > 0)
-                {
-                    CommittedRating.Value = InstantaneousRating.Value;
-                    InstantaneousRating.Value = null;
-                }
-            }
-
-            private void updateState()
-            {
-                for (int i = 0; i < Count; ++i)
-                {
-                    var star = this[i];
-                    int rating = i + 1;
-
-                    if (rating <= InstantaneousRating.Value)
-                        star.Colour = colourProvider.Highlight1;
-                    else if (rating <= CommittedRating.Value)
-                        star.Colour = colours.Orange1;
-                    else
-                        star.Colour = colourProvider.Background2;
-                }
+                if (Active.Value)
+                    sampleOn?.Play();
+                else
+                    sampleOff?.Play();
             }
         }
     }
