@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
@@ -255,6 +256,11 @@ namespace osu.Game.Utils
                     if (ioe.Message == "Pipe is broken.")
                         return false;
 
+                    // general networking failures which do not have distinct HRESULTs
+                    if (ioe.Message.Contains(@"net_io_readfailure")
+                        || ioe.Message == @"Received an unexpected EOF or 0 bytes from the transport stream.")
+                        return false;
+
                     // disk I/O failures, invalid formats, etc.
                     if (ignored_io_exception_hresults.Contains(ioe.HResult))
                         return false;
@@ -278,6 +284,9 @@ namespace osu.Game.Utils
         {
             switch (exception)
             {
+                case HttpRequestException:
+                    return true;
+
                 case TimeoutException te:
                     return te.Message.Contains(@"elapsed without receiving a message from the server");
 
