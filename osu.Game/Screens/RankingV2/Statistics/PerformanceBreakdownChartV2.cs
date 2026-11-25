@@ -35,12 +35,13 @@ namespace osu.Game.Screens.RankingV2.Statistics
         [BackgroundDependencyLoader]
         private void load(OverlayColourProvider colourProvider, OsuColour colours)
         {
-            const float circle_diameter = 200;
-            const float text_radius = circle_diameter / 2 + 10;
+            const float inner_diameter = 15;
+            const float outer_diameter = 200;
+            const float text_radius = outer_diameter / 2 + 10;
 
             AddInternal(new Circle
             {
-                Size = new Vector2(circle_diameter),
+                Size = new Vector2(outer_diameter),
                 Colour = colourProvider.Background4,
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
@@ -64,7 +65,8 @@ namespace osu.Game.Screens.RankingV2.Statistics
             {
                 string key = keys[i];
                 var seriesColour = seriesColours[i % seriesColours.Length];
-                float sliceRotationDegrees = 360f * i / keys.Length;
+                float sliceProportion = 1f / keys.Length;
+                const float slice_spacing = 0.02f;
                 float textRotationRadians = (2 * MathF.PI * (i + 0.5f) / keys.Length) - (MathF.PI / 2);
                 float unitX = MathF.Cos(textRotationRadians);
                 float unitY = MathF.Sin(textRotationRadians);
@@ -72,10 +74,12 @@ namespace osu.Game.Screens.RankingV2.Statistics
 
                 AddInternal(new CircularProgress
                 {
-                    Progress = 1f / keys.Length,
-                    Rotation = sliceRotationDegrees,
+                    Progress = sliceProportion * (1 - 2 * slice_spacing),
+                    Rotation = 360f * ((i + slice_spacing) * sliceProportion),
                     Colour = seriesColour,
-                    Size = new Vector2((float)(circle_diameter * relativeValue)),
+                    X = inner_diameter / 2 * unitX,
+                    Y = inner_diameter / 2 * unitY,
+                    Size = new Vector2((float)((outer_diameter - inner_diameter + 5) * relativeValue)),
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre,
                 });
@@ -112,8 +116,8 @@ namespace osu.Game.Screens.RankingV2.Statistics
                     Origin = valueInsideSlice ? Anchor.Centre : textAnchor,
                     Text = relativeValue.ToLocalisableString(@"P0"),
                     Colour = valueInsideSlice ? colourProvider.Background5 : seriesColour,
-                    X = unitX * circle_diameter / 2 * (valueInsideSlice ? (float)relativeValue / 2 : (float)relativeValue + 0.08f),
-                    Y = unitY * circle_diameter / 2 * (valueInsideSlice ? (float)relativeValue / 2 : (float)relativeValue + 0.08f),
+                    X = unitX * inner_diameter / 2 + unitX * (outer_diameter - inner_diameter) / 2 * (valueInsideSlice ? (float)relativeValue / 2 : (float)relativeValue + 0.04f),
+                    Y = unitY * inner_diameter / 2 + unitY * (outer_diameter - inner_diameter) / 2 * (valueInsideSlice ? (float)relativeValue / 2 : (float)relativeValue + 0.04f),
                 });
             }
 

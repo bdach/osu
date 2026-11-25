@@ -23,11 +23,11 @@ namespace osu.Game.Tests.Visual.RankingV2
             {
                 PerformanceDisplayAttribute[] attrs =
                 [
-                    new PerformanceDisplayAttribute("Aim", "Aim", RNG.NextDouble()),
-                    new PerformanceDisplayAttribute("Speed", "Speed", RNG.NextDouble()),
-                    new PerformanceDisplayAttribute("Accuracy", "Accuracy", RNG.NextDouble()),
-                    new PerformanceDisplayAttribute("Flashlight", "Flashlight Bonus", RNG.NextDouble()),
-                    new PerformanceDisplayAttribute("Reading", "Reading", RNG.NextDouble()),
+                    new PerformanceDisplayAttribute("Aim", "Aim", 1),
+                    new PerformanceDisplayAttribute("Speed", "Speed", 1),
+                    new PerformanceDisplayAttribute("Accuracy", "Accuracy", 1),
+                    new PerformanceDisplayAttribute("Flashlight", "Flashlight Bonus", 1),
+                    new PerformanceDisplayAttribute("Reading", "Reading", 1),
                 ];
                 PerformanceDisplayAttribute[] perfectAttrs =
                 [
